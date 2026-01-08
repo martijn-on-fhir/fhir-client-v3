@@ -1,0 +1,62 @@
+<div class="d-flex gap-2 align-items-center">
+  <!-- Search input -->
+  @if (showSearch()) {
+    <div class="input-group input-group-sm" style="width: 200px">
+      <input
+        type="text"
+        class="form-control"
+        placeholder="Search..."
+        [ngModel]="searchTerm()"
+        (ngModelChange)="searchTerm.set($event)"
+        spellCheck="false">
+      <button
+        class="btn btn-outline-secondary"
+        (click)="clearSearch()"
+        title="Clear search">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+  }
+
+  <!-- Toggle search button -->
+  <button
+    class="btn btn-sm btn-outline-secondary"
+    (click)="toggleSearch()"
+    title="Search">
+    <i class="fas fa-search"></i>
+  </button>
+
+  <!-- Expand one level -->
+  <button
+    class="btn btn-sm btn-outline-secondary"
+    (click)="expandOneLevel.emit()"
+    title="Expand One Level"
+    [disabled]="isExpandDisabled()">
+    <i class="fas fa-minus"></i>
+  </button>
+
+  <!-- Collapse one level -->
+  <button
+    class="btn btn-sm btn-outline-secondary"
+    (click)="collapseOneLevel.emit()"
+    title="Collapse One Level"
+    [disabled]="isCollapseDisabled()">
+    <i class="fas fa-plus"></i>
+  </button>
+
+  <!-- Expand all -->
+  <button
+    class="btn btn-sm btn-outline-secondary"
+    (click)="expandAll.emit()"
+    title="Expand All">
+    <i class="fas fa-expand"></i>
+  </button>
+
+  <!-- Collapse all -->
+  <button
+    class="btn btn-sm btn-outline-secondary"
+    (click)="collapseAll.emit()"
+    title="Collapse All">
+    <i class="fas fa-compress"></i>
+  </button>
+</div>

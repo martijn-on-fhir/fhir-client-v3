@@ -1,0 +1,202 @@
+<div class="logs-container">
+  <!-- Toolbar -->
+  <div class="card mb-3 border-0" style="flex-shrink: 0">
+    <div class="card-body p-2">
+      <div class="d-flex gap-2 align-items-center flex-wrap">
+        <!-- Search Input -->
+        <div style="flex: 1; min-width: 200px">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search logs..."
+            [(ngModel)]="searchText"
+            (ngModelChange)="searchText.set($event)">
+        </div>
+
+        <!-- Level Filter -->
+        <select
+          class="form-select"
+          style="width: auto"
+          [(ngModel)]="selectedLevel"
+          (ngModelChange)="selectedLevel.set($event)">
+          <option value="all">All Levels</option>
+          <option value="debug">Debug</option>
+          <option value="info">Info</option>
+          <option value="warn">Warning</option>
+          <option value="error">Error</option>
+        </select>
+
+        <!-- Quick Load Buttons -->
+        <div class="btn-group">
+          <button class="btn btn-sm btn-outline-secondary" (click)="loadTail(100)" title="Load last 100 lines">
+            <i class="fas fa-arrow-down me-1"></i>100
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="loadTail(500)" title="Load last 500 lines">
+            <i class="fas fa-arrow-down me-1"></i>500
+          </button>
+          <button class="btn btn-sm btn-outline-secondary" (click)="loadLogs()" title="Load all">
+            <i class="fas fa-list me-1"></i>All
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        <button class="btn btn-sm btn-primary" (click)="refresh()" [disabled]="loading()" title="Refresh">
+          <i class="fas fa-sync" [class.fa-spin]="loading()"></i>
+        </button>
+
+        <button
+          class="btn btn-sm"
+          [class.btn-success]="watching()"
+          [class.btn-outline-secondary]="!watching()"
+          (click)="toggleWatch()"
+          title="Toggle live updates">
+          <i class="fas" [class.fa-eye]="!watching()" [class.fa-eye-slash]="watching()"></i>
+        </button>
+
+        <button class="btn btn-sm btn-outline-secondary" (click)="exportLogs()" title="Export logs">
+          <i class="fas fa-download"></i>
+        </button>
+
+        <button class="btn btn-sm btn-outline-danger" (click)="clear()" title="Clear display">
+          <i class="fas fa-trash"></i>
+        </button>
+
+        <!-- Auto-scroll Toggle -->
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="autoScroll"
+            [(ngModel)]="autoScroll"
+            (ngModelChange)="autoScroll.set($event)">
+          <label class="form-check-label small" for="autoScroll">
+            Auto-scroll
+          </label>
+        </div>
+      </div>
+
+      <!-- Stats Bar -->
+      <div class="d-flex gap-3 mt-2 small text-muted">
+        <span>
+          <i class="fas fa-list me-1"></i>
+          Total: <strong>{{ stats().total }}</strong>
+        </span>
+        <span class="text-secondary">
+          <i class="fas fa-bug me-1"></i>
+          Debug: <strong>{{ stats().debug }}</strong>
+        </span>
+        <span class="text-info">
+          <i class="fas fa-info-circle me-1"></i>
+          Info: <strong>{{ stats().info }}</strong>
+        </span>
+        <span class="text-warning">
+          <i class="fas fa-exclamation-triangle me-1"></i>
+          Warn: <strong>{{ stats().warn }}</strong>
+        </span>
+        <span class="text-danger">
+          <i class="fas fa-times-circle me-1"></i>
+          Error: <strong>{{ stats().error }}</strong>
+        </span>
+        @if (stats().filtered !== stats().total) {
+          <span class="text-primary">
+            <i class="fas fa-filter me-1"></i>
+            Filtered: <strong>{{ stats().filtered }}</strong>
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Log Paths Info -->
+  @if (logPaths()) {
+    <div class="alert alert-info py-2 mb-3" style="flex-shrink: 0">
+      <div class="d-flex justify-content-between align-items-center">
+        <div class="small">
+          <strong>Log Files:</strong>
+          <div class="font-monospace mt-1">
+            <div>Main: {{ logPaths()!.mainLog }}</div>
+            <div>Renderer: {{ logPaths()!.rendererLog }}</div>
+          </div>
+        </div>
+        <button class="btn btn-sm btn-outline-info" (click)="copyPaths()" title="Copy paths to clipboard">
+          <i class="fas fa-copy"></i>
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert-danger mb-3" style="flex-shrink: 0">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Logs Panel -->
+  <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <span>
+        <i class="fas fa-list me-2"></i>
+        Application Logs
+        @if (watching()) {
+          <span class="badge bg-success ms-2">
+            <i class="fas fa-eye me-1"></i>Live
+          </span>
+        }
+      </span>
+      <span class="badge bg-secondary">{{ filteredLogs().length }} entries</span>
+    </div>
+
+    <div class="card-body p-0 log-container" style="overflow-y: auto; flex: 1; font-family: 'Courier New', monospace;">
+      <!-- Loading State -->
+      @if (loading()) {
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Loading logs...</p>
+        </div>
+      }
+
+      <!-- Empty State -->
+      @if (!loading() && filteredLogs().length === 0 && !error()) {
+        <div class="text-center p-4 text-muted">
+          <i class="fas fa-inbox fa-3x mb-3"></i>
+          <p>No log entries found</p>
+          @if (searchText() || selectedLevel() !== 'all') {
+            <p class="small">Try adjusting your filters</p>
+          } @else {
+            <button class="btn btn-sm btn-primary" (click)="loadLogs()">
+              <i class="fas fa-sync me-2"></i>Load Logs
+            </button>
+          }
+        </div>
+      }
+
+      <!-- Log Entries -->
+      @if (!loading() && filteredLogs().length > 0) {
+        <div class="p-2">
+          @for (log of filteredLogs(); track $index) {
+            <div class="log-entry py-1 border-bottom" [class]="getLevelClass(log.level)">
+              <!-- Timestamp and Level -->
+              <div class="d-flex align-items-start">
+                <span class="text-muted me-2" style="min-width: 200px; font-size: 0.85em;">
+                  {{ log.timestamp || 'N/A' }}
+                </span>
+                <span class="me-2" style="min-width: 80px;">
+                  <i class="fas {{ getLevelIcon(log.level) }} me-1"></i>
+                  <strong>{{ log.level?.toUpperCase() || 'LOG' }}</strong>
+                </span>
+                <span class="badge bg-secondary me-2" style="font-size: 0.7em;">
+                  {{ log.source }}
+                </span>
+                <span class="flex-grow-1" style="font-size: 0.9em; word-break: break-all;">
+                  {{ log.message }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</div>

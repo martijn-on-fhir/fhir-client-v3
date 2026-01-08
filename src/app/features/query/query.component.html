@@ -1,0 +1,587 @@
+<div class="query-container">
+  <!-- Mode Switcher -->
+  <div class="d-flex justify-content-center gap-2">
+    <button
+      class="btn btn-sm"
+      [class.btn-primary]="queryMode() === 'text'"
+      [class.btn-outline-secondary]="queryMode() !== 'text'"
+      (click)="setQueryMode('text')">
+      <i class="fas fa-keyboard me-2"></i>Text Mode
+    </button>
+    <button
+      class="btn btn-sm"
+      [class.btn-primary]="queryMode() === 'visual'"
+      [class.btn-outline-secondary]="queryMode() !== 'visual'"
+      (click)="setQueryMode('visual')">
+      <i class="fas fa-wand-magic-sparkles me-2"></i>Visual Mode
+    </button>
+  </div>
+
+  <!-- Text Mode -->
+  @if (queryMode() === 'text') {
+        <div class="flex-grow-1 d-flex flex-column" style="gap: 8px">
+          <!-- Query Input -->
+          <div class="card border-0">
+            <div class="card-body p-2">
+              <label for="textQuery" class="form-label small mb-1">
+                <i class="fas fa-search me-2"></i>FHIR Query
+              </label>
+              <div class="input-group">
+                <input
+                  id="textQuery"
+                  type="text"
+                  class="form-control"
+                  [ngModel]="textQuery()"
+                  (ngModelChange)="textQuery.set($event)"
+                  (keydown.enter)="executeTextQuery()"
+                  placeholder="/Patient?name=John"
+                  spellCheck="false">
+                <button class="btn btn-primary" (click)="executeTextQuery()" [disabled]="!textQuery()">
+                  <i class="fas fa-bolt me-2"></i>
+                  Execute
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Error Alert -->
+          @if (error()) {
+            <div class="alert alert-danger" role="alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>{{ error() }}
+            </div>
+          }
+
+          <!-- Results -->
+          @if (result() || loading()) {
+            <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-file-lines me-2"></i>Result</span>
+
+                <!-- Toolbar -->
+                <app-json-viewer-toolbar
+                  [collapsedLevel]="collapsedLevel"
+                  [showSearch]="showSearch"
+                  [searchTerm]="searchTerm"
+                  (expandOneLevel)="expandOneLevel()"
+                  (collapseOneLevel)="collapseOneLevel()"
+                  (expandAll)="collapsedLevel.set(false)"
+                  (collapseAll)="collapsedLevel.set(1)">
+                </app-json-viewer-toolbar>
+              </div>
+
+              @if (loading()) {
+                <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px">
+                  <div class="text-center">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    Executing query...
+                  </div>
+                </div>
+              } @else {
+                <div class="card-body p-0" style="overflow-y: auto; flex: 1; min-height: 400px">
+                  <app-monaco-editor
+                    [value]="resultJson()"
+                    [language]="'json'"
+                    [readOnly]="true"
+                    [theme]="'light'"
+                  />
+                </div>
+
+                @if (entries().length > itemsPerPage) {
+                  <div class="card-footer">
+                    <nav aria-label="Results pagination">
+                      <ul class="pagination pagination-sm justify-content-center mb-0">
+                        <li class="page-item" [class.disabled]="currentPage() === 1">
+                          <button class="page-link" (click)="currentPage.set(currentPage() - 1)" [disabled]="currentPage() === 1">Previous</button>
+                        </li>
+
+                        @for (pageNum of pageNumbers(); track pageNum) {
+                          <li class="page-item" [class.active]="currentPage() === pageNum">
+                            <button class="page-link" (click)="currentPage.set(pageNum)">{{ pageNum }}</button>
+                          </li>
+                        }
+
+                        <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                          <button class="page-link" (click)="currentPage.set(currentPage() + 1)" [disabled]="currentPage() === totalPages()">Next</button>
+                        </li>
+                      </ul>
+                    </nav>
+                  </div>
+                }
+              }
+            </div>
+          }
+
+          @if (!result() && !loading()) {
+            <div class="card flex-grow-1">
+              <div class="card-body d-flex flex-column align-items-center justify-content-center">
+                <i class="fas fa-play-circle fa-3x mb-3 text-muted" style="opacity: 0.3"></i>
+                <p class="text-muted text-center">Enter a FHIR query and press Execute to get results.</p>
+              </div>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Visual Mode -->
+      @if (queryMode() === 'visual') {
+        @if (metadataLoading()) {
+          <div class="d-flex justify-content-center align-items-center flex-grow-1">
+            <div class="text-center">
+              <div class="spinner-border text-primary mb-3"></div>
+              <p class="text-muted">Loading metadata...</p>
+            </div>
+          </div>
+        } @else if (metadataError()) {
+          <div class="alert alert-warning m-3">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ metadataError() }}
+          </div>
+        } @else {
+          <div class="d-flex flex-grow-1" style="gap: 8px">
+            <!-- Left Panel: Builder (40%) -->
+            <div style="width: 40%; overflow-y: auto; padding-right: 8px">
+              <!-- Resource Selector -->
+              <div class="card mb-3 border-0">
+                <div class="card-body p-2">
+                  <label for="resourceType" class="form-label small mb-1">
+                    <i class="fas fa-search me-2"></i>Resource Type
+                  </label>
+                  <select
+                    id="resourceType"
+                    class="form-select form-select-sm"
+                    [ngModel]="selectedResource()"
+                    (ngModelChange)="onResourceChange($event)">
+                    <option value="">-- Select Resource Type --</option>
+                    @for (type of resourceTypes(); track type) {
+                      <option [value]="type">{{ type }}</option>
+                    }
+                  </select>
+                  @if (resourceTypes().length === 0 && !metadataLoading()) {
+                    <small class="text-danger d-block mt-1">No resource types found in metadata</small>
+                  }
+                </div>
+              </div>
+
+        <!-- Search Parameter Builder -->
+        @if (selectedResource() && resourceMetadata()) {
+          <div class="card mb-3 border-0">
+            <div class="card-body p-2">
+              <h6 class="small mb-2">
+                <i class="fas fa-filter me-2"></i>Search Parameters
+              </h6>
+
+              <!-- Display added parameters -->
+              @for (param of parameters(); track $index; let paramIndex = $index) {
+                <div class="mb-3 p-2 border rounded">
+                  <!-- Parameter header -->
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div class="flex-grow-1">
+                      <label class="form-label small mb-0">
+                        <strong>{{ param.name }}</strong>
+                      </label>
+                      <div class="text-muted small" style="font-size: 0.75rem">
+                        {{ param.type }}
+                      </div>
+                    </div>
+                    <button
+                      class="btn btn-sm btn-outline-secondary"
+                      (click)="removeParameter(paramIndex)"
+                      title="Remove parameter"
+                      style="padding: 0.2rem 0.4rem; font-size: 0.75rem; opacity: 0.7">
+                      <i class="fas fa-times"></i>
+                    </button>
+                  </div>
+
+                  <!-- Operator selector for date/number types -->
+                  @if (param.type === 'date' || param.type === 'number' || param.type === 'quantity') {
+                    <div class="mb-2">
+                      <select
+                        class="form-select form-select-sm"
+                        [ngModel]="param.operator || ''"
+                        (ngModelChange)="updateParameterOperator(param, $event)">
+                        <option value="">Equals</option>
+                        <option value="gt">Greater Than (&gt;)</option>
+                        <option value="lt">Less Than (&lt;)</option>
+                        <option value="ge">Greater Than or Equal (&gt;=)</option>
+                        <option value="le">Less Than or Equal (&lt;=)</option>
+                        <option value="ne">Not Equal (!=)</option>
+                      </select>
+                    </div>
+                  }
+
+                  <!-- Modifier selector for string/token types -->
+                  @if (param.type === 'string' || param.type === 'token') {
+                    <div class="mb-2">
+                      <label class="form-label small mb-1">Search Modifier</label>
+                      <select
+                        class="form-select form-select-sm"
+                        [ngModel]="param.modifier || ''"
+                        (ngModelChange)="updateParameterModifier(param, $event)">
+                        <option value="">Default (contains)</option>
+                        <option value="exact">Exact Match (case-sensitive)</option>
+                        <option value="contains">Contains (substring)</option>
+                        <option value="text">Text Search</option>
+                        <option value="missing">Missing (true/false)</option>
+                        <option value="not">Not Equal</option>
+                      </select>
+                    </div>
+                  }
+
+                  <!-- Chain input for reference types -->
+                  @if (param.type === 'reference') {
+                    <div class="mb-2">
+                      <label class="form-label small mb-1">
+                        Chain to Related Resource Field
+                        <i
+                          class="fas fa-circle-info text-muted ms-2"
+                          style="cursor: help"
+                          title="Search on a field of the referenced resource. Example: 'name' to search patient.name"></i>
+                      </label>
+                      <input
+                        type="text"
+                        class="form-control form-control-sm"
+                        [ngModel]="param.chain || ''"
+                        (ngModelChange)="updateParameterChain(param, $event)"
+                        placeholder="e.g., name, identifier, birthdate"
+                        spellCheck="false">
+                      <small class="text-muted d-block mt-1"
+                        >Leave empty to search by reference ID. Enter a field name to chain search (e.g., {{ param.name }}.name)</small>
+                    </div>
+                  }
+
+                  <!-- Values -->
+                  @for (value of param.values; track valueIndex; let valueIndex = $index) {
+                    <div class="row g-2 mb-2 align-items-center">
+                      <div class="col">
+                        <!-- Type-specific input -->
+                        @if (param.type === 'date') {
+                          <input
+                            type="date"
+                            class="form-control form-control-sm"
+                            [ngModel]="value"
+                            (ngModelChange)="updateParameterValue(param, valueIndex, $event)">
+                        } @else if (param.type === 'number') {
+                          <input
+                            type="number"
+                            class="form-control form-control-sm"
+                            [ngModel]="value"
+                            (ngModelChange)="updateParameterValue(param, valueIndex, $event)">
+                        } @else if (param.type === 'token') {
+                          <input
+                            type="text"
+                            class="form-control form-control-sm"
+                            [ngModel]="value"
+                            (ngModelChange)="updateParameterValue(param, valueIndex, $event)"
+                            placeholder="code or system|code"
+                            spellCheck="false">
+                        } @else if (param.type === 'reference') {
+                          <input
+                            type="text"
+                            class="form-control form-control-sm"
+                            [ngModel]="value"
+                            (ngModelChange)="updateParameterValue(param, valueIndex, $event)"
+                            placeholder="ResourceType/id"
+                            spellCheck="false">
+                        } @else {
+                          <input
+                            type="text"
+                            class="form-control form-control-sm"
+                            [ngModel]="value"
+                            (ngModelChange)="updateParameterValue(param, valueIndex, $event)"
+                            spellCheck="false">
+                        }
+                      </div>
+                      <div class="col-auto">
+                        @if (param.values.length > 1) {
+                          <button
+                            class="btn btn-sm btn-outline-danger"
+                            (click)="removeParameterValue(param, valueIndex)"
+                            title="Remove value">
+                            <i class="fas fa-times"></i>
+                          </button>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Add value button (for OR logic) -->
+                  <button
+                    class="btn btn-sm btn-outline-secondary w-100"
+                    (click)="addParameterValue(param)"
+                    title="Add another value (OR logic)">
+                    <i class="fas fa-plus me-2"></i>Add Value (OR)
+                  </button>
+                </div>
+              }
+
+              <!-- Add parameter dropdown -->
+              @if (unusedParams().length > 0) {
+                <div class="mt-2">
+                  <select
+                    class="form-select form-select-sm"
+                    #paramSelector
+                    (change)="addParameter(paramSelector.value); paramSelector.value = ''">
+                    <option value="">-- Add Parameter --</option>
+                    @for (param of unusedParams(); track param.name) {
+                      <option [value]="param.name">{{ param.name }} ({{ param.type }})</option>
+                    }
+                  </select>
+                </div>
+              }
+
+              <!-- Show message if no parameters available -->
+              @if (availableSearchParams().length === 0) {
+                <div class="text-muted small">No search parameters available for this resource.</div>
+              }
+
+              <!-- Show message if all parameters added -->
+              @if (availableSearchParams().length > 0 && unusedParams().length === 0 && parameters().length > 0) {
+                <div class="text-muted small mt-2">All available parameters have been added.</div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Include Selector -->
+        @if (selectedResource() && resourceMetadata()) {
+          @if (resourceMetadata()!.searchInclude || resourceMetadata()!.searchRevInclude) {
+            <div class="card mb-3 border-0">
+              <div class="card-body p-2">
+                <!-- Includes Section -->
+                @if (resourceMetadata()!.searchInclude && resourceMetadata()!.searchInclude!.length > 0) {
+                  <h6 class="small mb-2 d-flex align-items-center justify-content-between" style="cursor: pointer; user-select: none" (click)="includesExpanded.set(!includesExpanded())">
+                    <span>
+                      <i class="fas fa-arrow-right me-2"></i>Includes (_include)
+                      <span class="text-muted ms-2">({{ resourceMetadata()!.searchInclude!.length }})</span>
+                    </span>
+                    <i class="fas fa-chevron-down" [style.transform]="includesExpanded() ? 'rotate(180deg)' : 'rotate(0deg)'" style="transition: transform 0.2s; font-size: 0.7rem"></i>
+                  </h6>
+                  @if (includesExpanded()) {
+                    <div class="mb-3">
+                      @for (include of resourceMetadata()!.searchInclude; track include) {
+                        <div class="form-check">
+                          <input
+                            type="checkbox"
+                            class="form-check-input"
+                            [id]="'inc-' + include"
+                            [checked]="selectedIncludes().includes(include)"
+                            (change)="onIncludeCheckChange(include, $event)">
+                          <label class="form-check-label small" [for]="'inc-' + include">
+                            {{ include }}
+                          </label>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+
+                <!-- Reverse Includes Section -->
+                @if (resourceMetadata()!.searchRevInclude && resourceMetadata()!.searchRevInclude!.length > 0) {
+                  <h6 class="small mb-2 d-flex align-items-center justify-content-between" style="cursor: pointer; user-select: none" (click)="revIncludesExpanded.set(!revIncludesExpanded())">
+                    <span>
+                      <i class="fas fa-arrow-left me-2"></i>Reverse Includes (_revinclude)
+                      <span class="text-muted ms-2">({{ resourceMetadata()!.searchRevInclude!.length }})</span>
+                    </span>
+                    <i class="fas fa-chevron-down" [style.transform]="revIncludesExpanded() ? 'rotate(180deg)' : 'rotate(0deg)'" style="transition: transform 0.2s; font-size: 0.7rem"></i>
+                  </h6>
+                  @if (revIncludesExpanded()) {
+                    <div>
+                      @for (revInclude of resourceMetadata()!.searchRevInclude; track revInclude) {
+                        <div class="form-check">
+                          <input
+                            type="checkbox"
+                            class="form-check-input"
+                            [id]="'rev-' + revInclude"
+                            [checked]="selectedRevIncludes().includes(revInclude)"
+                            (change)="onRevIncludeCheckChange(revInclude, $event)">
+                          <label class="form-check-label small" [for]="'rev-' + revInclude">
+                            {{ revInclude }}
+                          </label>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              </div>
+            </div>
+          }
+        }
+
+        <!-- Query Modifiers -->
+        @if (selectedResource() && resourceMetadata()) {
+          <div class="card mb-3 border-0">
+            <div class="card-body p-2">
+              <h6 class="small mb-2">
+                <i class="fas fa-cog me-2"></i>Query Modifiers
+              </h6>
+
+              <div class="row g-2">
+                <!-- _count modifier -->
+                <div class="col-4">
+                  <label for="countModifier" class="form-label small mb-1">_count</label>
+                  <input
+                    id="countModifier"
+                    type="number"
+                    class="form-control form-control-sm"
+                    [ngModel]="count()"
+                    (ngModelChange)="count.set($event)"
+                    placeholder="20"
+                    min="1">
+                </div>
+
+                <!-- _sort modifier -->
+                <div class="col-4">
+                  <label for="sortModifier" class="form-label small mb-1">_sort</label>
+                  <select id="sortModifier" class="form-select form-select-sm" [ngModel]="sort()" (ngModelChange)="sort.set($event)">
+                    <option value="">None</option>
+                    @for (param of availableSearchParams(); track param.name) {
+                      <option [value]="param.name">{{ param.name }} (asc)</option>
+                      <option [value]="'-' + param.name">{{ param.name }} (desc)</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- _summary modifier -->
+                <div class="col-4">
+                  <label for="summaryModifier" class="form-label small mb-1">_summary</label>
+                  <select id="summaryModifier" class="form-select form-select-sm" [ngModel]="summary()" (ngModelChange)="summary.set($event)">
+                    <option value="">false</option>
+                    <option value="true">true</option>
+                    <option value="text">text</option>
+                    <option value="data">data</option>
+                    <option value="count">count</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Action Buttons -->
+        @if (selectedResource()) {
+          <div class="card mb-3 border-0">
+            <div class="card-body p-2">
+              <button class="btn btn-outline-secondary btn-sm w-100" (click)="clearAll()">
+                <i class="fas fa-times me-2"></i>Clear All
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Right Panel: Preview & Results (60%) -->
+      <div style="width: 60%; display: flex; flex-direction: column; padding-left: 8px">
+        <!-- Query Preview Section -->
+        <div class="card mb-3 border-0">
+          <div class="card-body p-2">
+            <h6 class="small mb-2">
+              <i class="fas fa-search me-2"></i>Generated Query
+            </h6>
+
+            <div class="p-2 bg-light border rounded font-monospace small" style="word-break: break-all; min-height: 2.5rem">
+              @if (generatedQuery()) {
+                {{ generatedQuery() }}
+              } @else {
+                <span class="text-muted">Select a resource type to begin building a query...</span>
+              }
+            </div>
+
+            @if (generatedQuery()) {
+              <div class="d-flex gap-2 mt-2">
+                <button class="btn btn-primary btn-sm flex-grow-1" (click)="executeQuery()">
+                  <i class="fas fa-bolt me-2"></i>
+                  Execute Query
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" (click)="copyQuery()">
+                  <i class="fas fa-copy me-2"></i>Copy
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Error Alert -->
+        @if (error()) {
+          <div class="alert alert-danger" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i>{{ error() }}
+          </div>
+        }
+
+        <!-- Results Section -->
+        @if (result() || loading()) {
+          <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <span><i class="fas fa-file-lines me-2"></i>Result</span>
+
+              <!-- Toolbar: Search and expand/collapse controls -->
+              <app-json-viewer-toolbar
+                [collapsedLevel]="collapsedLevel"
+                [showSearch]="showSearch"
+                [searchTerm]="searchTerm"
+                (expandOneLevel)="expandOneLevel()"
+                (collapseOneLevel)="collapseOneLevel()"
+                (expandAll)="collapsedLevel.set(false)"
+                (collapseAll)="collapsedLevel.set(1)">
+              </app-json-viewer-toolbar>
+            </div>
+
+            @if (loading()) {
+              <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px">
+                <div class="text-center">
+                  <span class="spinner-border spinner-border-sm me-2"></span>
+                  Executing query...
+                </div>
+              </div>
+            } @else {
+              <div class="card-body p-0" style="overflow-y: auto; flex: 1; min-height: 400px">
+                <app-monaco-editor
+                  [value]="resultJson()"
+                  [language]="'json'"
+                  [readOnly]="true"
+                  [theme]="'light'"
+                />
+              </div>
+
+              <!-- Pagination -->
+              @if (entries().length > itemsPerPage) {
+                <div class="card-footer">
+                  <nav aria-label="Results pagination">
+                    <ul class="pagination pagination-sm justify-content-center mb-0">
+                      <!-- Previous page button -->
+                      <li class="page-item" [class.disabled]="currentPage() === 1">
+                        <button class="page-link" (click)="currentPage.set(currentPage() - 1)" [disabled]="currentPage() === 1">Previous</button>
+                      </li>
+
+                      <!-- Page number buttons -->
+                      @for (pageNum of pageNumbers(); track pageNum) {
+                        <li class="page-item" [class.active]="currentPage() === pageNum">
+                          <button class="page-link" (click)="currentPage.set(pageNum)">{{ pageNum }}</button>
+                        </li>
+                      }
+
+                      <!-- Next page button -->
+                      <li class="page-item" [class.disabled]="currentPage() === totalPages()">
+                        <button class="page-link" (click)="currentPage.set(currentPage() + 1)" [disabled]="currentPage() === totalPages()">Next</button>
+                      </li>
+                    </ul>
+                  </nav>
+                </div>
+              }
+            }
+          </div>
+        }
+
+        <!-- Empty State -->
+        @if (!result() && !loading()) {
+          <div class="card flex-grow-1">
+            <div class="card-body d-flex flex-column align-items-center justify-content-center">
+              <i class="fas fa-play-circle fa-3x mb-3 text-muted" style="opacity: 0.3"></i>
+              <p class="text-muted text-center">Select a resource type from the left panel and configure parameters to execute a query.</p>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+        }
+  }
+</div>

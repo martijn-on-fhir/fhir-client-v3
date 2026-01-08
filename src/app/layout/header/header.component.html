@@ -1,0 +1,61 @@
+<header class="app-header">
+  <div class="header-content">
+    <!-- Left: Logo and Title -->
+    <div class="header-left">
+      <i class="fas fa-heartbeat brand-icon"></i>
+      <h1 class="brand-title">FHIR Client</h1>
+
+      <!-- File Actions -->
+        <button
+          class="btn btn-icon btn-sm"
+          (click)="openFile()"
+          title="Open File">
+          <i class="fas fa-folder-open"></i>
+        </button>
+        <button
+          class="btn btn-icon btn-sm"
+          (click)="saveFile()"
+          title="Save File">
+          <i class="fas fa-save"></i>
+        </button>
+    </div>
+
+    <!-- Right: Controls -->
+    <div class="header-right">
+      <!-- Sidebar Toggle -->
+      <button
+        class="btn btn-icon btn-sm"
+        (click)="toggleSidebar()"
+        [title]="sidebarVisible() ? 'Hide Sidebar' : 'Show Sidebar'">
+        <i class="fas fa-bars"></i>
+      </button>
+
+      <!-- Theme Toggle -->
+      <button
+        class="btn btn-icon btn-sm"
+        (click)="toggleTheme()"
+        [title]="'Switch to ' + (currentTheme === 'light' ? 'dark' : 'light') + ' mode'">
+        <i class="fas fa-{{ themeIcon }}"></i>
+      </button>
+
+      <!-- Settings Button -->
+      <button
+        class="btn btn-icon btn-sm"
+        (click)="openSettings()"
+        title="Settings">
+        <i class="fas fa-cog"></i>
+      </button>
+
+      <!-- Logout Button -->
+      <button
+        class="btn btn-icon btn-sm"
+        (click)="logout()"
+        title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- Settings Dialog -->
+<app-settings-dialog></app-settings-dialog>

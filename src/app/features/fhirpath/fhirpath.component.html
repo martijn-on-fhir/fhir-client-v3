@@ -1,0 +1,124 @@
+<div class="fhirpath-container">
+  <!-- FHIRPath Expression Input -->
+  <div class="card mb-3 border-0" style="flex-shrink: 0">
+    <div class="card-body p-2">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-10">
+          <label class="form-label small mb-1">FHIRPath Expression</label>
+          <input
+            type="text"
+            class="form-control"
+            [(ngModel)]="expression"
+            (keydown)="handleKeyDown($event)"
+            placeholder="e.g., name.family, telecom.where(system='phone').value"
+            autofocus
+          />
+        </div>
+        <div class="col-md-2">
+          <button
+            class="btn btn-sm btn-primary w-100"
+            (click)="handleExecute()"
+            [disabled]="loading() || !expression().trim()">
+            @if (loading()) {
+              <i class="fas fa-spinner fa-spin me-2"></i>
+              Executing...
+            } @else {
+              <i class="fas fa-bolt me-2"></i>
+              Execute
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert-danger" role="alert" style="flex-shrink: 0">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Results Card with Split Panel -->
+  <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+    <div class="card-header d-flex justify-content-between align-items-center" style="flex-shrink: 0">
+      <span>
+        <i class="fas fa-sitemap me-2"></i>
+        FHIRPath Tester
+      </span>
+      @if (result() !== null) {
+        <span class="badge bg-primary">{{ getResultBadgeText() }}</span>
+      }
+    </div>
+
+    <div class="card-body flex-grow-1 overflow-hidden p-0" id="fhirpath-container">
+      <div class="d-flex h-100" [style.user-select]="isResizing() ? 'none' : 'auto'">
+        <!-- Left Panel: JSON Input -->
+        <div [style.width.%]="leftWidth()" [style.min-width.%]="leftWidth()" class="h-100 overflow-auto p-3">
+          @if (parsedData()) {
+            <!-- Formatted JSON Display -->
+            <div class="json-display">
+              <div class="d-flex justify-content-end mb-2">
+                <button class="btn btn-sm btn-outline-secondary" (click)="formatJson()">
+                  <i class="fas fa-align-left me-1"></i>
+                  Format JSON
+                </button>
+              </div>
+              <pre class="json-pre">{{ jsonInput() }}</pre>
+            </div>
+          } @else {
+            <!-- Empty State -->
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-file-lines fa-3x mb-3 opacity-50"></i>
+              <p>Paste JSON or use File > Open to load a FHIR resource.</p>
+              <textarea
+                class="form-control mt-3"
+                [(ngModel)]="jsonInput"
+                placeholder="Paste your FHIR JSON resource here..."
+                spellcheck="false"
+                rows="10"
+                style="font-family: monospace; font-size: 0.875rem">
+              </textarea>
+            </div>
+          }
+        </div>
+
+        <!-- Resize Divider -->
+        <div
+          class="resize-divider"
+          [class.resizing]="isResizing()"
+          (mousedown)="startResizing($event)">
+        </div>
+
+        <!-- Right Panel: Result -->
+        <div [style.width.%]="100 - leftWidth()" [style.min-width.%]="100 - leftWidth()" class="h-100 overflow-auto p-3">
+          @if (result() === null) {
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-bolt fa-3x mb-3 opacity-50"></i>
+              <p>Enter a FHIRPath expression and click Execute to see results.</p>
+              <div class="mt-4 text-start">
+                <h6>Example Expressions:</h6>
+                <ul class="small">
+                  <li><code>name.family</code> - Get all family names</li>
+                  <li><code>telecom.where(system='phone').value</code> - Get phone numbers</li>
+                  <li><code>Patient.birthDate</code> - Get birth date</li>
+                  <li><code>entry.resource.ofType(Patient)</code> - Filter Bundle entries</li>
+                </ul>
+              </div>
+            </div>
+          } @else {
+            <!-- Result Display -->
+            <div class="result-display">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">Result</h6>
+                <span class="badge bg-success">{{ getResultBadgeText() }}</span>
+              </div>
+              <pre class="json-pre">{{ formatResult() }}</pre>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

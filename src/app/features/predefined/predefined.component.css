@@ -1,0 +1,28 @@
+.predefined-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+.template-card {
+  transition: all 0.2s ease;
+  border: 1px solid #dee2e6;
+}
+.template-card:hover {
+  border-color: #0d6efd;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+.template-card.selected {
+  border-color: #0d6efd;
+  background-color: rgba(13, 110, 253, 0.05);
+}
+
+.modal.d-block {
+  overflow-y: auto;
+}
+
+/*# sourceMappingURL=predefined.component.css.map */

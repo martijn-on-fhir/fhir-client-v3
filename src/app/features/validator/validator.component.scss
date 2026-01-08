@@ -1,0 +1,41 @@
+.validator-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+// Resize Divider
+.resize-divider {
+  width: 4px;
+  min-width: 4px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background-color: var(--bs-border-color);
+  transition: background-color 0.2s;
+
+  &:hover,
+  &.resizing {
+    background-color: var(--bs-primary);
+  }
+}
+
+// Issue Cards
+.card {
+  transition: box-shadow 0.2s;
+
+  &.border-danger:hover {
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+  }
+
+  &.border-warning:hover {
+    box-shadow: 0 0 0 0.2rem rgba(255, 193, 7, 0.25);
+  }
+
+  &.border-info:hover {
+    box-shadow: 0 0 0 0.2rem rgba(13, 202, 240, 0.25);
+  }
+}

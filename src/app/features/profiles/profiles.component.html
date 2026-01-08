@@ -1,0 +1,231 @@
+<div class="profiles-container">
+  <!-- Lookup Form -->
+  <div class="card mb-3 border-0" style="flex-shrink: 0">
+    <div class="card-body p-2">
+      <div class="d-flex gap-2 align-items-center">
+        <!-- Profile Dropdown -->
+        <div style="flex: 1">
+          <select
+            class="form-select"
+            [value]="selectedProfileUrl()"
+            (change)="onProfileChange($event)"
+            [disabled]="loading() || profiles().length === 0">
+            <option value="">
+              {{ loading() ? '-- Loading profiles... --' : '-- Select Profile --' }}
+            </option>
+            @for (profile of profiles(); track profile.url) {
+              <option [value]="profile.url">
+                {{ profile.resourceType }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <!-- Execute Button -->
+        <button class="btn btn-sm btn-primary" (click)="execute()" [disabled]="!selectedProfileUrl()">
+          <i class="fas fa-bolt me-2"></i>
+          Execute
+        </button>
+
+        <!-- Edit Button -->
+        <button class="btn btn-sm btn-success" (click)="openEditor()" [disabled]="!structureDefinition()">
+          <i class="fas fa-edit me-2"></i>
+          Create
+        </button>
+
+        <!-- Cache Management -->
+        <app-profile-cache-dropdown
+          [cacheStats]="cacheStats()"
+          (refresh)="handleRefreshProfile()"
+          (clear)="handleClearCache()">
+        </app-profile-cache-dropdown>
+      </div>
+    </div>
+  </div>
+
+  <!-- Result Panel -->
+  <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+    <div class="card-header">
+      <i class="fas fa-file-lines me-2"></i>
+      {{ selectedProfileUrl() ? selectedProfileTitle() : 'Result' }}
+    </div>
+
+    <div class="card-body p-0" style="overflow-y: auto; flex: 1">
+      <!-- Loading profiles -->
+      @if (loading()) {
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Loading profiles from metadata...</p>
+        </div>
+      }
+
+      <!-- Loading profile -->
+      @if (loadingProfile() && !loading()) {
+        <div class="text-center p-4">
+          <div class="spinner-border text-primary" role="status"></div>
+          <p class="mt-2 text-muted">Loading StructureDefinition...</p>
+        </div>
+      }
+
+      <!-- Profile error -->
+      @if (profileError()) {
+        <div class="p-3">
+          <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ profileError() }}
+          </div>
+        </div>
+      }
+
+      <!-- Profile details -->
+      @if (structureDefinition() && !loading() && !loadingProfile()) {
+        <div class="p-3">
+          <!-- Basic Info -->
+          <div class="mb-3">
+            <div class="card">
+              <div class="card-body">
+                @if (structureDefinition()!.version) {
+                  <div class="row">
+                    <div class="col-12">
+                      <strong>Version:</strong>
+                      <div class="mt-1 text-muted small">{{ structureDefinition()!.version }}</div>
+                    </div>
+                  </div>
+                }
+                @if (structureDefinition()!.description) {
+                  <div class="row" [class.mt-4]="structureDefinition()!.version">
+                    <div class="col-12">
+                      <strong>Description:</strong>
+                      <div class="mt-1 text-muted small">{{ structureDefinition()!.description }}</div>
+                    </div>
+                  </div>
+                }
+                @if (structureDefinition()!.purpose) {
+                  <div class="row mt-4">
+                    <div class="col-12">
+                      <strong>Purpose:</strong>
+                      <div class="mt-1 text-muted small">{{ structureDefinition()!.purpose }}</div>
+                    </div>
+                  </div>
+                }
+                @if (structureDefinition()!.url) {
+                  <div class="row mt-4">
+                    <div class="col-12">
+                      <strong>Canonical URL:</strong>
+                      <div class="mt-1 text-muted small font-monospace">{{ structureDefinition()!.url }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Inheritance Chain -->
+          @if (structureDefinition()!.baseDefinition) {
+            <div class="mb-3">
+              <h6 class="border-bottom pb-2">
+                <i class="fas fa-sitemap me-2"></i>
+                Inheritance Chain
+              </h6>
+              <div class="card">
+                <div class="card-body">
+                  <nav>
+                    <ol class="breadcrumb mb-0">
+                      <li class="breadcrumb-item active">
+                        <i class="fas fa-file-lines me-2 text-primary"></i>
+                        {{ structureDefinition()!.name }}
+                      </li>
+                      @for (baseDef of baseDefinitions(); track $index) {
+                        <li class="breadcrumb-item">
+                          <i class="fas fa-file-lines me-2 text-secondary"></i>
+                          <span>{{ baseDef.name || baseDef.url }}</span>
+                        </li>
+                      }
+                    </ol>
+                  </nav>
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- Elements Table -->
+          @if (mergedElements().length > 0) {
+            <div class="mb-3">
+              <h6 class="border-bottom pb-2">
+                <i class="fas fa-sitemap me-2"></i>
+                Elements ({{ mergedElements().length }})
+              </h6>
+              <div class="table-responsive">
+                <table class="table table-sm table-striped">
+                  <thead>
+                    <tr>
+                      <th>Path</th>
+                      <th>Cardinality</th>
+                      <th>Type</th>
+                      <th>Short</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (element of mergedElements(); track $index) {
+                      <tr [class.text-muted]="element.max === '0'">
+                        <td class="font-monospace small" [title]="element.path" style="white-space: pre">
+                          {{ formatElementPath(element.path, $index, mergedElements()) }}
+                        </td>
+                        <td>
+                          <span [class]="'badge ' + getCardinalityBadgeClass(element.min, element.max)">
+                            {{ element.min }}..{{ element.max }}
+                          </span>
+                        </td>
+                        <td class="small">{{ renderElementType(element) }}</td>
+                        <td class="small">{{ element.short || '-' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+
+          <!-- Constraints Table -->
+          @if (constraints().length > 0) {
+            <div class="mb-3">
+              <h6 class="border-bottom pb-2">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                Constraints ({{ constraints().length }})
+              </h6>
+              <div class="table-responsive">
+                <table class="table table-sm">
+                  <thead>
+                    <tr>
+                      <th>Key</th>
+                      <th>Severity</th>
+                      <th>Path</th>
+                      <th>Description</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (constraint of constraints(); track $index) {
+                      <tr>
+                        <td class="font-monospace small">{{ constraint.key }}</td>
+                        <td>
+                          <span [class]="'badge ' + getSeverityBadgeClass(constraint.severity)">
+                            {{ constraint.severity }}
+                          </span>
+                        </td>
+                        <td class="font-monospace small">{{ constraint.path }}</td>
+                        <td class="small">{{ constraint.human }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Resource Editor Dialog -->
+  <app-resource-editor-dialog />
+</div>

@@ -1,0 +1,31 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fas fa-edit me-2"></i>
+          Resource Editor
+        </h2>
+        <button type="button" class="btn-close" (click)="close()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Empty for now -->
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">
+          <i class="fas fa-times me-2"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

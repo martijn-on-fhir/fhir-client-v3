@@ -1,0 +1,34 @@
+.logs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+.log-container {
+  background-color: #f8f9fa;
+}
+.log-container .log-entry {
+  font-size: 0.9em;
+  transition: background-color 0.15s ease;
+}
+.log-container .log-entry:hover {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+.log-container .log-entry:last-child {
+  border-bottom: none !important;
+}
+
+@media (prefers-color-scheme: dark) {
+  .log-container {
+    background-color: #1a1a1a;
+  }
+  .log-container .log-entry:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+}
+
+/*# sourceMappingURL=logs.component.css.map */

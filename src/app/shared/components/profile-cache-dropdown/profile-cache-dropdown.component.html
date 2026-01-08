@@ -1,0 +1,38 @@
+<div class="profile-cache-dropdown dropdown">
+  <button
+    class="btn btn-sm btn-outline-secondary dropdown-toggle"
+    type="button"
+    (click)="toggleDropdown($event)"
+    [title]="displayTitle">
+    <i class="fas fa-database me-2"></i>
+    Cache
+  </button>
+
+  @if (isOpen) {
+    <div class="dropdown-menu show" (click)="$event.stopPropagation()">
+      <h6 class="dropdown-header">Cache Management</h6>
+
+      @if (cacheStats) {
+        <div class="dropdown-item-text text-muted">
+          <i class="fas fa-info-circle me-2"></i>
+          {{ cacheStats.fileCount }} profiles cached
+        </div>
+        <div class="dropdown-item-text text-muted">
+          <i class="fas fa-hdd me-2"></i>
+          {{ (cacheStats.totalSize / 1024).toFixed(1) }} KB total
+        </div>
+        <div class="dropdown-divider"></div>
+      }
+
+      <button class="dropdown-item" (click)="onRefresh($event)">
+        <i class="fas fa-sync me-2"></i>
+        Refresh from Server
+      </button>
+
+      <button class="dropdown-item" (click)="onClear($event)">
+        <i class="fas fa-trash me-2"></i>
+        Clear Cache
+      </button>
+    </div>
+  }
+</div>

@@ -1,0 +1,11 @@
+.nictiz-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+/*# sourceMappingURL=nictiz.component.css.map */

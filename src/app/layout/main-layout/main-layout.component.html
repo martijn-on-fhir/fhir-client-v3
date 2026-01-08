@@ -1,0 +1,26 @@
+<div class="main-layout">
+  <!-- Header -->
+  <app-header></app-header>
+
+  <!-- Main Content Container (Sidebar + Tabs + Content) -->
+  <div class="layout-container">
+    <!-- Sidebar (conditionally rendered) -->
+    @if (sidebarVisible()) {
+      <app-sidebar></app-sidebar>
+    }
+
+    <!-- Right Side (Tabs + Content) -->
+    <div class="layout-content">
+      <!-- Tab Navigation -->
+      <app-tab-nav></app-tab-nav>
+
+      <!-- Content Area with Router Outlet -->
+      <main class="content-area">
+        <router-outlet></router-outlet>
+      </main>
+    </div>
+  </div>
+
+  <!-- About Dialog -->
+  <app-about-dialog />
+</div>

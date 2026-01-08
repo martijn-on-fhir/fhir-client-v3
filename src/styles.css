@@ -1,0 +1,45 @@
+/* Global Styles */
+/* Override Bootstrap primary color to anthracite */
+:root {
+  --bs-primary: rgba(36, 48, 73, 0.87);
+  --bs-primary-rgb: 53, 59, 72;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Remove glow/focus effects from all inputs and buttons */
+input:focus,
+input:focus-visible,
+button:focus,
+button:focus-visible,
+select:focus,
+select:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+.form-control:focus,
+.form-select:focus,
+.btn:focus,
+.btn:active:focus,
+.btn.active:focus,
+.btn:focus-visible,
+a:focus,
+a:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/*# sourceMappingURL=styles.css.map */

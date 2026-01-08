@@ -1,0 +1,84 @@
+.pluriform-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+.code-editor-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+.code-editor-textarea,
+.code-editor-highlight {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 10px;
+  border: none;
+  outline: none;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+}
+
+.code-editor-textarea {
+  z-index: 1;
+  color: transparent;
+  caret-color: currentColor;
+  background: transparent;
+  resize: none;
+}
+.code-editor-textarea::selection {
+  color: inherit;
+  background-color: rgba(0, 123, 255, 0.3);
+}
+
+.code-editor-highlight {
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.code-editor-highlight code[class*=language-],
+.code-editor-highlight pre[class*=language-] {
+  text-shadow: none;
+}
+
+.resize-divider {
+  width: 4px;
+  min-width: 4px;
+  flex-shrink: 0;
+  cursor: col-resize;
+  background-color: var(--bs-border-color);
+  transition: background-color 0.2s;
+}
+.resize-divider:hover, .resize-divider.resizing {
+  background-color: var(--bs-primary);
+}
+
+.output-panel {
+  outline: none;
+  white-space: pre-wrap;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.875rem;
+  line-height: 1.5;
+}
+
+body.resizing {
+  user-select: none;
+  cursor: col-resize;
+}
+
+/*# sourceMappingURL=pluriform.component.css.map */

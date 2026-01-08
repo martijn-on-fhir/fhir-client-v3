@@ -1,0 +1,315 @@
+<div class="predefined-container">
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert-danger m-3 mb-0">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Toolbar -->
+  <div class="px-3 py-2" style="flex-shrink: 0">
+    <div class="row g-2">
+      <!-- Left: Search and Category -->
+      <div class="col-4">
+        <div class="row g-2">
+          <div class="col-8">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text">
+                <i class="fas fa-search"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control"
+                placeholder="Search templates..."
+                [(ngModel)]="searchQuery"
+                (ngModelChange)="searchQuery.set($event)">
+              @if (searchQuery()) {
+                <button class="btn btn-outline-secondary" (click)="searchQuery.set('')">
+                  <i class="fas fa-times"></i>
+                </button>
+              }
+            </div>
+          </div>
+          <div class="col-4">
+            <select
+              class="form-select form-select-sm"
+              [(ngModel)]="selectedCategory"
+              (ngModelChange)="selectedCategory.set($event)">
+              <option value="all">All Categories</option>
+              @for (cat of categories; track cat.id) {
+                <option [value]="cat.id">{{ cat.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right: Action Buttons -->
+      <div class="col-8">
+        <div class="d-flex gap-2 justify-content-end">
+          <button class="btn btn-sm btn-primary btn-sm" (click)="openNewTemplate()">
+            <i class="fas fa-plus me-2"></i>New Template
+          </button>
+          @if (selectedTemplate()) {
+            <button class="btn btn-sm btn-outline-secondary btn-sm" (click)="editTemplate(selectedTemplate()!)">
+              <i class="fas fa-edit me-2"></i>Edit
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Split Panel Container -->
+  <div class="flex-grow-1 overflow-hidden" id="predefined-container">
+    <div class="d-flex h-100">
+      <!-- Left Panel: Template Browser -->
+      <div [style.width.%]="leftWidth()" class="h-100 border-end overflow-auto p-3">
+        <h6 class="mb-3">
+          <i class="fas fa-list me-2"></i>Templates ({{ filteredTemplates().length }})
+        </h6>
+
+        @if (filteredTemplates().length === 0) {
+          <div class="text-center text-muted py-5">
+            <i class="fas fa-inbox fa-3x mb-3"></i>
+            <p>No templates found</p>
+            @if (searchQuery() || selectedCategory() !== 'all') {
+              <p class="small">Try adjusting your filters</p>
+            }
+          </div>
+        }
+
+        <!-- Group by category -->
+        @for (entry of groupedTemplates() | keyvalue; track entry.key) {
+          <div class="mb-4">
+            <div class="d-flex align-items-center mb-2">
+              <i class="fas fa-{{ getCategoryInfo(entry.key).icon }} me-2 text-primary"></i>
+              <strong>{{ getCategoryInfo(entry.key).label }}</strong>
+              <span class="badge bg-secondary ms-2">{{ entry.value.length }}</span>
+            </div>
+
+            @for (template of entry.value; track template.id) {
+              <div
+                class="card mb-2 template-card"
+                [class.selected]="selectedTemplate()?.id === template.id"
+                (click)="selectTemplate(template)"
+                style="cursor: pointer">
+                <div class="card-body p-2">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <div class="flex-grow-1">
+                      <div class="fw-bold">{{ template.name }}</div>
+                      <div class="small text-muted">{{ template.description }}</div>
+                      <div class="mt-1">
+                        @for (tag of template.tags; track tag) {
+                          <span class="badge bg-light text-dark me-1" style="font-size: 0.7em">{{ tag }}</span>
+                        }
+                      </div>
+                    </div>
+                    <div class="ms-2">
+                      @if (template.isSystem) {
+                        <span class="badge bg-info" style="font-size: 0.7em">System</span>
+                      } @else {
+                        <button
+                          class="btn btn-sm btn-outline-danger"
+                          (click)="deleteTemplate(template); $event.stopPropagation()"
+                          title="Delete template">
+                          <i class="fas fa-trash"></i>
+                        </button>
+                      }
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Resizable Divider -->
+      <div
+        (mousedown)="startResizing($event)"
+        [style.background-color]="isResizing() ? '#6c757d' : '#dee2e6'"
+        style="width: 2px; min-width: 2px; cursor: col-resize; flex-shrink: 0"></div>
+
+      <!-- Right Panel: Query Results -->
+      <div [style.width.%]="100 - leftWidth()" class="h-100 d-flex flex-column p-3">
+        <!-- Generated Query Display -->
+        <div class="mb-3">
+          <h6 class="small mb-2">
+            <i class="fas fa-search me-2"></i>Generated Query
+          </h6>
+          <div class="p-2 bg-light border rounded font-monospace small" style="word-break: break-all; min-height: 2.5rem">
+            @if (currentQuery()) {
+              {{ currentQuery() }}
+            } @else {
+              <span class="text-muted">No query generated yet</span>
+            }
+          </div>
+          <div class="d-flex gap-2 mt-2">
+            <button
+              class="btn btn-primary btn-sm flex-grow-1"
+              (click)="executeQuery(currentQuery())"
+              [disabled]="loading() || !currentQuery()">
+              <i class="fas fa-bolt me-2"></i>
+              {{ loading() ? 'Executing...' : 'Execute Query' }}
+            </button>
+            <button
+              class="btn btn-outline-secondary btn-sm"
+              (click)="copyQuery()"
+              [disabled]="!currentQuery()">
+              <i class="fas fa-copy me-2"></i>Copy
+            </button>
+          </div>
+        </div>
+
+        <!-- Results Card -->
+        <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+          <div class="card-header">
+            <i class="fas fa-file-lines me-2"></i>Result
+          </div>
+          <div class="card-body overflow-auto">
+            @if (!result() && !loading()) {
+              <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                <i class="fas fa-play-circle fa-3x mb-3 text-muted" style="opacity: 0.3"></i>
+                <p class="text-muted text-center">Select a template from the left panel and configure it to execute a query.</p>
+              </div>
+            }
+
+            @if (loading()) {
+              <div class="d-flex justify-content-center align-items-center h-100">
+                <div class="spinner-border text-primary"></div>
+              </div>
+            }
+
+            @if (result() && !loading()) {
+              <pre class="mb-0">{{ result() | json }}</pre>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Config Dialog -->
+  @if (showConfigDialog() && selectedTemplate()) {
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-cog me-2"></i>{{ selectedTemplate()!.name }}
+            </h5>
+            <button type="button" class="btn-close" (click)="showConfigDialog.set(false)"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted">{{ selectedTemplate()!.description }}</p>
+
+            <form>
+              @for (param of selectedTemplate()!.parameters; track param.name) {
+                <div class="mb-3">
+                  <label class="form-label">
+                    {{ param.label }}
+                    @if (param.required) {
+                      <span class="text-danger">*</span>
+                    }
+                  </label>
+
+                  @if (param.type === 'string' || param.type === 'reference' || param.type === 'token') {
+                    <input
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="parameterValues()[param.name]"
+                      [name]="param.name"
+                      [required]="param.required"
+                      [placeholder]="param.hint || ''">
+                  }
+
+                  @if (param.type === 'number') {
+                    <input
+                      type="number"
+                      class="form-control"
+                      [(ngModel)]="parameterValues()[param.name]"
+                      [name]="param.name"
+                      [required]="param.required"
+                      [min]="param.min ?? null"
+                      [max]="param.max ?? null"
+                      [placeholder]="param.hint || ''">
+                  }
+
+                  @if (param.type === 'date') {
+                    <input
+                      type="date"
+                      class="form-control"
+                      [(ngModel)]="parameterValues()[param.name]"
+                      [name]="param.name"
+                      [required]="param.required">
+                  }
+
+                  @if (param.type === 'boolean') {
+                    <select
+                      class="form-select"
+                      [(ngModel)]="parameterValues()[param.name]"
+                      [name]="param.name">
+                      <option value="">-- Select --</option>
+                      <option value="true">True</option>
+                      <option value="false">False</option>
+                    </select>
+                  }
+
+                  @if (param.type === 'choice' && param.choices) {
+                    <select
+                      class="form-select"
+                      [(ngModel)]="parameterValues()[param.name]"
+                      [name]="param.name">
+                      @for (choice of param.choices; track choice.value) {
+                        <option [value]="choice.value">{{ choice.label }}</option>
+                      }
+                    </select>
+                  }
+
+                  @if (param.hint) {
+                    <div class="form-text">{{ param.hint }}</div>
+                  }
+                </div>
+              }
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="showConfigDialog.set(false)">Cancel</button>
+            <button type="button" class="btn btn-primary" (click)="executeTemplate()">
+              <i class="fas fa-bolt me-2"></i>Execute
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Template Editor Dialog (simplified) -->
+  @if (showEditorDialog()) {
+    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
+      <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-edit me-2"></i>
+              {{ editingTemplate() ? 'Edit Template' : 'New Template' }}
+            </h5>
+            <button type="button" class="btn-close" (click)="showEditorDialog.set(false)"></button>
+          </div>
+          <div class="modal-body">
+            <p class="text-muted">Template editor - Create custom query templates with parameters</p>
+            <div class="alert alert-info">
+              <i class="fas fa-info-circle me-2"></i>
+              <strong>Note:</strong> Full template editor coming soon. For now, templates can only be browsed and executed.
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="showEditorDialog.set(false)">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

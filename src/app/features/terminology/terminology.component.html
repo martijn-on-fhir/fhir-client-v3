@@ -1,0 +1,455 @@
+<div class="terminology-container">
+  <!-- Input Section -->
+  <div class="input-card card  border-0">
+    <div class="card-body">
+      <!-- Single Row Form -->
+      <div class="single-row-form">
+        <!-- Operation Selector -->
+        <div class="form-field">
+          <label class="form-label fw-bold">Operation</label>
+          <select
+            class="form-select form-select-sm"
+            [value]="operation()"
+            (change)="selectOperation($any($event.target).value)">
+            <option value="lookup">$lookup</option>
+            <option value="expand">$expand</option>
+            <option value="validate-code">$validate</option>
+            <option value="translate">$translate</option>
+          </select>
+        </div>
+
+        <!-- Lookup Parameters -->
+        @if (operation() === 'lookup') {
+          <div class="form-field flex-grow-2">
+            <label class="form-label">System <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="lookupSystem()"
+              (input)="lookupSystem.set($any($event.target).value)"
+              placeholder="http://snomed.info/sct" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Code <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="lookupCode()"
+              (input)="lookupCode.set($any($event.target).value)"
+              placeholder="73211009" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Version</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="lookupVersion()"
+              (input)="lookupVersion.set($any($event.target).value)" />
+          </div>
+          <div class="form-field flex-grow-1">
+            <label class="form-label">Language</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="lookupLanguage()"
+              (input)="lookupLanguage.set($any($event.target).value)"
+              placeholder="nl-x-sctlang-31000146-106" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Property</label>
+            <select
+              class="form-select form-select-sm"
+              [value]="lookupProperty()"
+              (change)="lookupProperty.set($any($event.target).value)">
+              <option value="">None</option>
+              <option value="designation">Designation</option>
+              <option value="definition">Definition</option>
+            </select>
+          </div>
+        }
+
+        <!-- Expand Parameters -->
+        @if (operation() === 'expand') {
+          <div class="form-field flex-grow-3">
+            <label class="form-label">ValueSet URL <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="expandUrl()"
+              (input)="expandUrl.set($any($event.target).value)"
+              placeholder="http://terminology.hl7.org/ValueSet/v3-NullFlavor" />
+          </div>
+          <div class="form-field flex-grow-1">
+            <label class="form-label">Filter</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="expandFilter()"
+              (input)="expandFilter.set($any($event.target).value)"
+              placeholder="Search..." />
+          </div>
+          <div class="form-field form-field-sm">
+            <label class="form-label">Count</label>
+            <input
+              type="number"
+              class="form-control form-control-sm"
+              [value]="expandCount()"
+              (input)="expandCount.set(+$any($event.target).value)"
+              min="1"
+              max="1000" />
+          </div>
+          <div class="form-field form-field-sm">
+            <label class="form-label">Offset</label>
+            <input
+              type="number"
+              class="form-control form-control-sm"
+              [value]="expandOffset()"
+              (input)="expandOffset.set(+$any($event.target).value)"
+              min="0" />
+          </div>
+          <div class="form-field flex-grow-1">
+            <label class="form-label">Language</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="expandDisplayLanguage()"
+              (input)="expandDisplayLanguage.set($any($event.target).value)"
+              placeholder="nl-x-sctlang..." />
+          </div>
+          <div class="form-field-checkbox">
+            <label class="form-label">&nbsp;</label>
+            <div class="form-check">
+              <input
+                type="checkbox"
+                class="form-check-input"
+                id="includeDesignations"
+                [checked]="expandIncludeDesignations()"
+                (change)="expandIncludeDesignations.set($any($event.target).checked)" />
+              <label class="form-check-label" for="includeDesignations">
+                Designations
+              </label>
+            </div>
+          </div>
+        }
+
+        <!-- Validate Parameters -->
+        @if (operation() === 'validate-code') {
+          <div class="form-field flex-grow-2">
+            <label class="form-label">ValueSet URL <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="validateUrl()"
+              (input)="validateUrl.set($any($event.target).value)"
+              placeholder="http://terminology.hl7.org/ValueSet/v3-NullFlavor" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Code <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="validateCode()"
+              (input)="validateCode.set($any($event.target).value)"
+              placeholder="UNK" />
+          </div>
+          <div class="form-field flex-grow-2">
+            <label class="form-label">System <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="validateSystem()"
+              (input)="validateSystem.set($any($event.target).value)"
+              placeholder="http://terminology.hl7.org/CodeSystem/v3-NullFlavor" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Display</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="validateDisplay()"
+              (input)="validateDisplay.set($any($event.target).value)" />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Version</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="validateVersion()"
+              (input)="validateVersion.set($any($event.target).value)" />
+          </div>
+        }
+
+        <!-- Translate Parameters -->
+        @if (operation() === 'translate') {
+          <div class="form-field flex-grow-2">
+            <label class="form-label">ConceptMap URL <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="translateUrl()"
+              (input)="translateUrl.set($any($event.target).value)"
+              placeholder="http://..." />
+          </div>
+          <div class="form-field">
+            <label class="form-label">Code <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="translateCode()"
+              (input)="translateCode.set($any($event.target).value)" />
+          </div>
+          <div class="form-field flex-grow-1">
+            <label class="form-label">Source System <span class="text-danger">*</span></label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="translateSystem()"
+              (input)="translateSystem.set($any($event.target).value)" />
+          </div>
+          <div class="form-field flex-grow-1">
+            <label class="form-label">Source URL</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="translateSource()"
+              (input)="translateSource.set($any($event.target).value)" />
+          </div>
+          <div class="form-field flex-grow-1">
+            <label class="form-label">Target URL</label>
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="translateTarget()"
+              (input)="translateTarget.set($any($event.target).value)" />
+          </div>
+        }
+
+        <!-- Execute Button -->
+        <button
+          type="button"
+          class="btn btn-sm btn-primary btn-sm"
+          (click)="executeOperation()"
+          [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+            Executing...
+          } @else {
+            <i class="fas fa-play me-1"></i>
+            Execute
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Results Section -->
+  <div class="results-card card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+      <h5 class="card-title mb-0">
+        <i class="fas fa-chart-bar me-2"></i>
+        Results
+      </h5>
+      @if (result()) {
+        <div class="d-flex gap-2 align-items-center">
+          <app-json-viewer-toolbar
+            [collapsedLevel]="collapsedLevel"
+            [showSearch]="showSearch"
+            [searchTerm]="searchTerm"
+            (expandOneLevel)="expandOneLevel()"
+            (collapseOneLevel)="collapseOneLevel()"
+            (expandAll)="expandAll()"
+            (collapseAll)="collapseAll()">
+          </app-json-viewer-toolbar>
+        </div>
+      }
+    </div>
+    <div class="card-body results-body">
+      <!-- Error Display -->
+      @if (error()) {
+        <div class="alert alert-danger">
+          <i class="fas fa-exclamation-triangle me-2"></i>
+          {{ error() }}
+        </div>
+      }
+
+      <!-- Loading State -->
+      @if (loading()) {
+        <div class="text-center p-5">
+          <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
+          <p class="text-muted">Executing {{ operation() }} operation...</p>
+        </div>
+      }
+
+      <!-- No Results -->
+      @if (!result() && !loading() && !error()) {
+        <div class="empty-state">
+          <i class="fas fa-search fa-3x text-muted mb-3"></i>
+          <p class="text-muted">No results yet. Select an operation and click Execute.</p>
+        </div>
+      }
+
+      <!-- Results Panel -->
+      @if (result() && !loading()) {
+        <div class="results-panel">
+          <!-- JSON View (Left) -->
+
+            <div class="json-panel" [style.width.%]="leftWidth()">
+              <app-monaco-editor
+                [value]="jsonContent()"
+                [language]="'json'"
+                [readOnly]="true">
+              </app-monaco-editor>
+            </div>
+
+            <!-- Resize Handle -->
+            <div
+              class="resize-handle"
+              [class.resizing]="isResizing()"
+              (mousedown)="startResize($event)"
+              title="Drag to resize">
+            </div>
+
+
+          <!-- Formatted View (Right) -->
+          <div class="formatted-panel" [style.width.%]="100 - leftWidth()">
+            <div class="formatted-content">
+              <!-- Lookup Results -->
+              @if (operation() === 'lookup' && result().resourceType === 'Parameters') {
+                <div class="result-section">
+                  <h6 class="section-title">Code Information</h6>
+                  @if (getParameterValue(result(), 'name'); as name) {
+                    <div class="result-item">
+                      <strong>Name:</strong> {{ name }}
+                    </div>
+                  }
+                  @if (getParameterValue(result(), 'display'); as display) {
+                    <div class="result-item">
+                      <strong>Display:</strong> {{ display }}
+                    </div>
+                  }
+                  @if (getParameterValue(result(), 'version'); as version) {
+                    <div class="result-item">
+                      <strong>Version:</strong> {{ version }}
+                    </div>
+                  }
+                </div>
+
+                <!-- Designations -->
+                @if (getAllParameters(result(), 'designation'); as designations) {
+                  @if (designations.length > 0) {
+                    <div class="result-section mt-3">
+                      <h6 class="section-title">Designations</h6>
+                      @for (designation of designations; track $index) {
+                        <div class="card mb-2">
+                          <div class="card-body p-2">
+                            @if (designation.part) {
+                              @for (part of designation.part; track $index) {
+                                <div class="designation-part">
+                                  <strong>{{ part.name }}:</strong>
+                                  {{ part.valueString || part.valueCode }}
+                                </div>
+                              }
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                }
+              }
+
+              <!-- Expand Results -->
+              @if (operation() === 'expand' && result().resourceType === 'ValueSet') {
+                <div class="result-section">
+                  <h6 class="section-title">
+                    Expanded Codes
+                    @if (result().expansion?.total) {
+                      <span class="badge bg-primary ms-2">{{ result().expansion.total }} total</span>
+                    }
+                  </h6>
+                  @if (result().expansion?.contains; as codes) {
+                    <div class="table-responsive">
+                      <table class="table table-sm table-striped">
+                        <thead>
+                          <tr>
+                            <th>Code</th>
+                            <th>Display</th>
+                            <th>System</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (code of codes; track code.code) {
+                            <tr>
+                              <td><code>{{ code.code }}</code></td>
+                              <td>{{ code.display }}</td>
+                              <td><small class="text-muted">{{ code.system }}</small></td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  }
+                </div>
+              }
+
+              <!-- Validate Results -->
+              @if (operation() === 'validate-code' && result().resourceType === 'Parameters') {
+                @if (getParameterValue(result(), 'result'); as isValid) {
+                  <div [class]="isValid ? 'alert alert-success' : 'alert alert-danger'">
+                    <h5 class="alert-heading">
+                      <i [class]="isValid ? 'fas fa-check-circle' : 'fas fa-times-circle'"></i>
+                      {{ isValid ? 'Code is Valid' : 'Code is Invalid' }}
+                    </h5>
+                    @if (getParameterValue(result(), 'message'); as message) {
+                      <p class="mb-0">{{ message }}</p>
+                    }
+                    @if (getParameterValue(result(), 'display'); as display) {
+                      <p class="mb-0"><strong>Display:</strong> {{ display }}</p>
+                    }
+                  </div>
+                }
+              }
+
+              <!-- Translate Results -->
+              @if (operation() === 'translate' && result().resourceType === 'Parameters') {
+                @if (getParameterValue(result(), 'result'); as hasMatch) {
+                  <div [class]="hasMatch ? 'alert alert-success' : 'alert alert-warning'">
+                    <h5 class="alert-heading">
+                      <i [class]="hasMatch ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle'"></i>
+                      {{ hasMatch ? 'Translation Found' : 'No Translation Found' }}
+                    </h5>
+                    @if (getParameterValue(result(), 'message'); as message) {
+                      <p class="mb-0">{{ message }}</p>
+                    }
+                  </div>
+
+                  @if (getAllParameters(result(), 'match'); as matches) {
+                    @if (matches.length > 0) {
+                      <div class="result-section mt-3">
+                        <h6 class="section-title">Matches</h6>
+                        @for (match of matches; track $index) {
+                          <div class="card mb-2">
+                            <div class="card-body p-2">
+                              @if (match.part) {
+                                @for (part of match.part; track $index) {
+                                  <div class="match-part">
+                                    <strong>{{ part.name }}:</strong>
+                                    {{ part.valueCode || part.valueString || 'See concept details' }}
+                                  </div>
+                                }
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  }
+                }
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

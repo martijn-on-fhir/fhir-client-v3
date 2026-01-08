@@ -1,0 +1,273 @@
+<div class="validator-container">
+  <!-- Validation Controls -->
+  <div class="card mb-3 border-0" style="flex-shrink: 0">
+    <div class="card-body p-2">
+      <div class="row g-2 align-items-end mb-2">
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Validation Profile</label>
+          <select class="form-select" [(ngModel)]="selectedProfile">
+            <option value="server-capability">Server CapabilityStatement</option>
+            <option value="fhir-r4-base">FHIR R4 Base</option>
+            <option value="fhir-stu3-base">FHIR STU3 Base</option>
+          </select>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Actions</label>
+          <button
+            class="btn btn-sm btn-outline-secondary w-100"
+            (click)="handleClear()"
+            [disabled]="!jsonInput() && !validationResult()">
+            <i class="fas fa-times me-1"></i>
+            Clear
+          </button>
+        </div>
+        <div class="col-md-4">
+          <label class="form-label small mb-1">Validate</label>
+          <button
+            class="btn btn-sm btn-primary w-100"
+            (click)="handleValidate()"
+            [disabled]="loading() || !parsedData()">
+            @if (loading()) {
+              <i class="fas fa-spinner fa-spin me-2"></i>
+              Validating...
+            } @else {
+              <i class="fas fa-check-circle me-2"></i>
+              Validate Resource
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert-danger" role="alert" style="flex-shrink: 0">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Results Card with Split Panel -->
+  <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
+    <div class="card-header d-flex justify-content-between align-items-center" style="flex-shrink: 0">
+      <span>
+        <i class="fas fa-check-circle me-2"></i>
+        FHIR Validator
+      </span>
+      @if (validationResult()) {
+        <span class="badge" [class]="'bg-' + (validationResult()!.isValid ? 'success' : 'danger')">
+          {{ validationResult()!.isValid ? 'Valid' : 'Invalid' }}
+          @if (validationResult()!.issues.length > 0) {
+            <span>({{ validationResult()!.issues.length }} issue{{ validationResult()!.issues.length !== 1 ? 's' : '' }})</span>
+          }
+        </span>
+      }
+    </div>
+
+    <div class="card-body flex-grow-1 overflow-hidden p-0" id="validator-container">
+      <div class="d-flex h-100" [style.user-select]="isResizing() ? 'none' : 'auto'">
+        <!-- Left Panel: JSON Input -->
+        <div [style.width.%]="leftWidth()" [style.min-width.%]="leftWidth()" class="h-100 d-flex flex-column">
+          @if (parsedData()) {
+            <div class="flex-grow-1" style="min-height: 0">
+              <app-monaco-editor
+                [value]="jsonInput()"
+                [language]="'json'"
+                [readOnly]="true"
+                [theme]="'light'"
+              />
+            </div>
+          } @else {
+            <!-- Empty State with Monaco Editor -->
+            <div class="text-center text-muted p-3" style="flex-shrink: 0">
+              <i class="fas fa-file-code fa-3x mb-3 opacity-50"></i>
+              <p>Paste JSON or use File > Open to load a FHIR resource.</p>
+            </div>
+            <div class="flex-grow-1 p-2" style="min-height: 0">
+              <textarea
+                class="form-control h-100"
+                [(ngModel)]="jsonInput"
+                placeholder="Paste your FHIR JSON resource here..."
+                spellcheck="false"
+                style="font-family: monospace; font-size: 0.875rem; resize: none">
+              </textarea>
+            </div>
+          }
+        </div>
+
+        <!-- Resize Divider -->
+        <div
+          class="resize-divider"
+          [class.resizing]="isResizing()"
+          (mousedown)="startResizing($event)">
+        </div>
+
+        <!-- Right Panel: Validation Results -->
+        <div [style.width.%]="100 - leftWidth()" [style.min-width.%]="100 - leftWidth()" class="h-100 overflow-auto p-3">
+          <!-- Validation Results -->
+          @if (!validationResult()) {
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-check-circle fa-3x mb-3 opacity-50"></i>
+              <p>Load a FHIR resource and click Validate to see results.</p>
+            </div>
+          } @else {
+            <div class="h-100 overflow-auto">
+              <!-- Summary Header -->
+              <div class="alert mb-3" [class]="'alert-' + (validationResult()!.isValid ? 'success' : 'danger')">
+                <div class="d-flex justify-content-between align-items-center">
+                  <div>
+                    <i class="fas" [class]="'fa-' + (validationResult()!.isValid ? 'check-circle' : 'times-circle') + ' me-2'"></i>
+                    <strong>{{ validationResult()!.isValid ? 'Valid FHIR Resource' : 'Validation Failed' }}</strong>
+                    @if (validationResult()!.resourceType) {
+                      <span class="ms-2 text-muted">({{ validationResult()!.resourceType }})</span>
+                    }
+                  </div>
+                  <button class="btn btn-sm btn-outline-secondary" (click)="clearResult()">
+                    <i class="fas fa-times me-1"></i>
+                    Clear
+                  </button>
+                </div>
+
+                @if (validationResult()!.issues.length > 0) {
+                  <div class="mt-2 small">
+                    <strong>Issues Found:</strong>
+                    @if (errors().length > 0) {
+                      <span class="text-danger">
+                        {{ errors().length }} error{{ errors().length !== 1 ? 's' : '' }}
+                      </span>
+                    }
+                    @if (errors().length > 0 && warnings().length > 0) {
+                      <span>, </span>
+                    }
+                    @if (warnings().length > 0) {
+                      <span class="text-warning">
+                        {{ warnings().length }} warning{{ warnings().length !== 1 ? 's' : '' }}
+                      </span>
+                    }
+                    @if ((errors().length > 0 || warnings().length > 0) && information().length > 0) {
+                      <span>, </span>
+                    }
+                    @if (information().length > 0) {
+                      <span class="text-info">{{ information().length }} info</span>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Issues List -->
+              @if (validationResult()!.issues.length === 0) {
+                <div class="alert alert-success">
+                  <i class="fas fa-thumbs-up me-2"></i>
+                  No issues found. Resource conforms to FHIR R4 specification.
+                </div>
+              } @else {
+                <!-- Errors -->
+                @if (errors().length > 0) {
+                  <div class="mb-4">
+                    <h6 class="text-danger mb-3">
+                      <i class="fas" [class]="'fa-' + getSeverityIcon('error') + ' me-2'"></i>
+                      Errors ({{ errors().length }})
+                    </h6>
+                    @for (issue of errors(); track $index) {
+                      <div class="card border-danger mb-2">
+                        <div class="card-body p-3">
+                          <div class="d-flex align-items-start">
+                            <i class="fas text-danger me-3 mt-1" [class]="'fa-' + getSeverityIcon(issue.severity)"></i>
+                            <div class="flex-grow-1">
+                              <div class="fw-bold mb-1">{{ issue.diagnostics }}</div>
+                              @if (issue.location && issue.location.length > 0) {
+                                <div class="small text-muted">
+                                  <i class="fas fa-map-marker-alt me-1"></i>
+                                  Location: <code>{{ issue.location.join(', ') }}</code>
+                                </div>
+                              }
+                              @if (issue.code) {
+                                <div class="small text-muted mt-1">
+                                  <i class="fas fa-tag me-1"></i>
+                                  Code: <code>{{ issue.code }}</code>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Warnings -->
+                @if (warnings().length > 0) {
+                  <div class="mb-4">
+                    <h6 class="text-warning mb-3">
+                      <i class="fas" [class]="'fa-' + getSeverityIcon('warning') + ' me-2'"></i>
+                      Warnings ({{ warnings().length }})
+                    </h6>
+                    @for (issue of warnings(); track $index) {
+                      <div class="card border-warning mb-2">
+                        <div class="card-body p-3">
+                          <div class="d-flex align-items-start">
+                            <i class="fas text-warning me-3 mt-1" [class]="'fa-' + getSeverityIcon(issue.severity)"></i>
+                            <div class="flex-grow-1">
+                              <div class="fw-bold mb-1">{{ issue.diagnostics }}</div>
+                              @if (issue.location && issue.location.length > 0) {
+                                <div class="small text-muted">
+                                  <i class="fas fa-map-marker-alt me-1"></i>
+                                  Location: <code>{{ issue.location.join(', ') }}</code>
+                                </div>
+                              }
+                              @if (issue.code) {
+                                <div class="small text-muted mt-1">
+                                  <i class="fas fa-tag me-1"></i>
+                                  Code: <code>{{ issue.code }}</code>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Information -->
+                @if (information().length > 0) {
+                  <div class="mb-4">
+                    <h6 class="text-info mb-3">
+                      <i class="fas" [class]="'fa-' + getSeverityIcon('information') + ' me-2'"></i>
+                      Information ({{ information().length }})
+                    </h6>
+                    @for (issue of information(); track $index) {
+                      <div class="card border-info mb-2">
+                        <div class="card-body p-3">
+                          <div class="d-flex align-items-start">
+                            <i class="fas text-info me-3 mt-1" [class]="'fa-' + getSeverityIcon(issue.severity)"></i>
+                            <div class="flex-grow-1">
+                              <div class="fw-bold mb-1">{{ issue.diagnostics }}</div>
+                              @if (issue.location && issue.location.length > 0) {
+                                <div class="small text-muted">
+                                  <i class="fas fa-map-marker-alt me-1"></i>
+                                  Location: <code>{{ issue.location.join(', ') }}</code>
+                                </div>
+                              }
+                              @if (issue.code) {
+                                <div class="small text-muted mt-1">
+                                  <i class="fas fa-tag me-1"></i>
+                                  Code: <code>{{ issue.code }}</code>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              }
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

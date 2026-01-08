@@ -1,0 +1,15 @@
+.profiles-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+.accordion-button:not(.collapsed) {
+  background-color: var(--bs-primary-bg-subtle);
+}
+
+/*# sourceMappingURL=profiles.component.css.map */

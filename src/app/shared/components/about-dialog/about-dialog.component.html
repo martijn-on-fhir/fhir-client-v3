@@ -1,0 +1,36 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <div>
+          <h2 class="modal-title">About FHIR Client</h2>
+          <p class="version-text">Version {{ version }}</p>
+        </div>
+        <button type="button" class="btn-close" (click)="close()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <div class="about-content">
+          <div class="author-info">
+            <img src="avatar.png" alt="Martijn Schimmel" class="avatar" />
+            <div class="author-details">
+              <p class="author-label">
+                <strong>Author:</strong> Martijn Schimmel
+              </p>
+              <p class="author-email">
+                <strong>Email:</strong> m.schimmel&#64;proton.me
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+}

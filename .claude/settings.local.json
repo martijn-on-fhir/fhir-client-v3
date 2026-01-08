@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dir /b \"C:\\\\projects\\\\fhir-client-v2\")",
+      "Bash(ng generate:*)",
+      "Bash(npx -p @angular/cli ng:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)"
+    ]
+  }
+}

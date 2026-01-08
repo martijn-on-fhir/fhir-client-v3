@@ -1,0 +1,139 @@
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 1040;
+  animation: fadeIn 0.2s ease;
+}
+
+.modal-dialog {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 400px;
+  z-index: 1050;
+  animation: slideIn 0.3s ease;
+}
+
+.modal-content {
+  background: var(--bs-body-bg);
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--bs-border-color);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  .modal-title {
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem 0;
+    color: var(--bs-body-color);
+  }
+
+  .version-text {
+    font-size: 0.875rem;
+    color: var(--bs-secondary-color);
+    margin: 0;
+  }
+
+  .btn-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--bs-secondary-color);
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.2s;
+
+    &:hover {
+      color: var(--bs-body-color);
+    }
+  }
+}
+
+.modal-body {
+  padding: 2rem;
+}
+
+.about-content {
+  .author-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+
+    .avatar {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      object-fit: cover;
+      flex-shrink: 0;
+    }
+
+    .author-details {
+      flex: 1;
+
+      .author-label,
+      .author-email {
+        font-size: 0.875rem;
+        color: var(--bs-secondary-color);
+        margin: 0 0 0.5rem 0;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        strong {
+          color: var(--bs-body-color);
+        }
+
+        a {
+          color: var(--bs-primary);
+          text-decoration: none;
+
+          &:hover {
+            text-decoration: underline;
+          }
+        }
+      }
+    }
+  }
+}
+
+.modal-footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--bs-border-color);
+  display: flex;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideIn {
+  from {
+    transform: translate(-50%, -45%);
+    opacity: 0;
+  }
+  to {
+    transform: translate(-50%, -50%);
+    opacity: 1;
+  }
+}
+

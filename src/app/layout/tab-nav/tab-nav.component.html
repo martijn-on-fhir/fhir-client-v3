@@ -1,0 +1,17 @@
+<nav class="tab-nav">
+  <div class="tab-nav-content">
+    @for (tab of tabs(); track tab.id) {
+      <a
+        [routerLink]="tab.route"
+        class="tab-item"
+        [class.active]="isActive(tab)"
+        [title]="tab.label">
+        <i class="fas fa-{{ tab.icon }} tab-icon"></i>
+        <span class="tab-label">{{ tab.label }}</span>
+        @if (tab.badge) {
+          <span class="tab-badge">{{ tab.badge }}</span>
+        }
+      </a>
+    }
+  </div>
+</nav>

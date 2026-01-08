@@ -1,0 +1,63 @@
+<div class="sidebar" [style.width.px]="sidebarWidth()">
+  <!-- Sidebar Header with Filter -->
+  <div class="sidebar-header">
+    <div class="filter-container">
+      <i class="fas fa-search filter-icon"></i>
+      <input
+        type="text"
+        class="filter-input"
+        placeholder="Filter resources..."
+        [(ngModel)]="filterText"
+        [value]="filterText()"
+        (input)="filterText.set($any($event.target).value)"
+      />
+      @if (filterText()) {
+        <button type="button" class="btn-clear" (click)="clearFilter()" title="Clear filter">
+          <i class="fas fa-times"></i>
+        </button>
+      }
+    </div>
+  </div>
+
+  <!-- Resource Types List -->
+  <div class="sidebar-content">
+    @if (loading()) {
+      <div class="loading-state">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p>Loading resource types...</p>
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <i class="fas fa-exclamation-triangle"></i>
+        <p>{{ error() }}</p>
+        <button type="button" class="btn btn-sm btn-primary" (click)="loadResourceTypes()">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+    } @else if (filteredResourceTypes().length === 0) {
+      <div class="empty-state">
+        <i class="fas fa-search"></i>
+        <p>No matching resources</p>
+      </div>
+    } @else {
+      <ul class="resource-list">
+        @for (resourceType of filteredResourceTypes(); track resourceType) {
+          <li class="resource-item" (click)="selectResourceType(resourceType)">
+            <i class="fas fa-file resource-icon"></i>
+            <span class="resource-name">{{ resourceType }}</span>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>
+
+<!-- Resize Handle -->
+<div
+  class="resize-handle"
+  [class.resizing]="isResizing()"
+  (mousedown)="startResizing($event)"
+  title="Drag to resize"
+></div>

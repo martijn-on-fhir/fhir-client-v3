@@ -1,0 +1,37 @@
+.logs-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+.log-container {
+  background-color: #f8f9fa;
+
+  .log-entry {
+    font-size: 0.9em;
+    transition: background-color 0.15s ease;
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+  }
+}
+
+// Dark theme support (if needed)
+@media (prefers-color-scheme: dark) {
+  .log-container {
+    background-color: #1a1a1a;
+
+    .log-entry:hover {
+      background-color: rgba(255, 255, 255, 0.05);
+    }
+  }
+}
