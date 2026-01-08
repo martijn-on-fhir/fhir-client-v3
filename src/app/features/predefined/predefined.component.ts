@@ -5,6 +5,8 @@ import { TemplateService } from '../../core/services/template.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } from '../../core/models/smart-template.model';
+import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 
 /**
  * Predefined Tab Component
@@ -15,7 +17,7 @@ import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } fro
 @Component({
   selector: 'app-predefined',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
   templateUrl: './predefined.component.html',
   styleUrl: './predefined.component.scss'
 })
@@ -81,6 +83,17 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   result = signal<any>(null);
   loading = signal(false);
   error = signal<string | null>(null);
+
+  // JSON viewer settings
+  collapsedLevel = signal<number | false>(4);
+  showSearch = signal(false);
+  searchTerm = signal('');
+
+  // Monaco editor JSON content
+  jsonContent = computed(() => {
+    const res = this.result();
+    return res ? JSON.stringify(res, null, 2) : '';
+  });
 
   ngOnInit() {
     this.logger.info('Predefined tab initialized');
@@ -251,6 +264,31 @@ export class PredefinedComponent implements OnInit, OnDestroy {
       this.isResizing.set(false);
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
+    }
+  }
+
+  /**
+   * Expand one level
+   */
+  expandOneLevel() {
+    const level = this.collapsedLevel();
+    if (level === false) return;
+    if (level === 1) {
+      this.collapsedLevel.set(false);
+    } else {
+      this.collapsedLevel.set((level as number) - 1);
+    }
+  }
+
+  /**
+   * Collapse one level
+   */
+  collapseOneLevel() {
+    const level = this.collapsedLevel();
+    if (level === false) {
+      this.collapsedLevel.set(1);
+    } else {
+      this.collapsedLevel.set((level as number) + 1);
     }
   }
 }

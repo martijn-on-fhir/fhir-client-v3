@@ -5,7 +5,9 @@
       "Bash(ng generate:*)",
       "Bash(npx -p @angular/cli ng:*)",
       "Bash(npm install:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(git checkout:*)",
+      "Bash(echo.:*)"
     ]
   }
 }
