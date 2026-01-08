@@ -94,7 +94,8 @@ export class FhirService {
     const encodedUrl = encodeURIComponent(url);
 
     // Try multiple strategies (just like React version)
-    return this.executeQuery(`/administration/StructureDefinition?url=${encodedUrl}`).pipe(
+    // Use _summary=false to ensure we get the full snapshot
+    return this.executeQuery(`/administration/StructureDefinition?url=${encodedUrl}&_summary=false`).pipe(
       map(response => {
         if (response.entry && response.entry.length > 0) {
           return response.entry[0].resource;

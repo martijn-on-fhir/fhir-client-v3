@@ -120,8 +120,6 @@ export class NictizComponent implements OnInit {
         return;
       }
 
-      this.structureDefinition.set(sd);
-
       // Fetch base definition chain
       let baseChain: any[] = [];
       if (sd.baseDefinition) {
@@ -135,6 +133,15 @@ export class NictizComponent implements OnInit {
 
       this.mergedElements.set(merged);
       this.constraints.set(extractedConstraints);
+
+      // Update StructureDefinition with merged snapshot
+      const fullSD = {
+        ...sd,
+        snapshot: {
+          element: merged
+        }
+      };
+      this.structureDefinition.set(fullSD);
 
       // Cache the merged profile
       try {
@@ -215,14 +222,29 @@ export class NictizComponent implements OnInit {
   getSortedProfiles() {
     return [...this.nictizService.structureDefinitions()]
       .sort((a, b) => {
-        const titleA = a.title.replace(/^Zib\s+/i, '');
-        const titleB = b.title.replace(/^Zib\s+/i, '');
+        const titleA = this.formatTitle(a.title);
+        const titleB = this.formatTitle(b.title);
         return titleA.localeCompare(titleB);
       });
   }
 
   getProfileDisplayName(title: string): string {
-    return title.replace(/^Zib\s+/i, '');
+    return this.formatTitle(title);
+  }
+
+  formatTitle(title: string): string {
+    let entity = title;
+
+    if (title.startsWith('HCIM')) {
+      entity = title.replace('HCIM ', '').trim();
+    } else if (title.startsWith('nl-core-')) {
+      const label = title.replace('nl-core-', '').trim();
+      entity = label.charAt(0).toUpperCase() + label.slice(1);
+    } else if (title.startsWith('Zib ')) {
+      entity = title.replace(/^Zib\s+/i, '').trim();
+    }
+
+    return entity;
   }
 
   openSimplifierUrl(url: string) {

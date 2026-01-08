@@ -21,6 +21,7 @@ export class NictizService {
 
   /**
    * Fetch all Nictiz StructureDefinitions from server
+   * Fetches in batches of 50 until all profiles are retrieved
    */
   async fetchStructureDefinitions(): Promise<void> {
     if (this.isLoading() || this.isFetched()) {
@@ -31,37 +32,69 @@ export class NictizService {
     this.error.set(null);
 
     try {
-      // Fetch from server
-      const query = '/administration/StructureDefinition?publisher=Nictiz&_summary=true&_count=1000';
+      const allProfiles: NictizProfile[] = [];
+      const seenUrls = new Set<string>(); // Track URLs to detect duplicates
+      let nextUrl: string | null = `/administration/StructureDefinition?publisher=Nictiz,HL7 Netherlands&status=active&kind=resource&_summary=data&_count=50`;
+      let batchCount = 0;
+      const maxBatches = 100; // Safety limit: max 5000 profiles
 
-      this.fhirService.executeQuery(query).subscribe({
-        next: async (bundle: any) => {
-          const profiles: NictizProfile[] = [];
+      // Keep fetching batches using FHIR pagination links
+      while (nextUrl && batchCount < maxBatches) {
+        batchCount++;
 
-          if (bundle.entry) {
-            bundle.entry.forEach((entry: any) => {
-              const resource = entry.resource;
-              if (resource.resourceType === 'StructureDefinition') {
-                profiles.push({
+        // Convert Observable to Promise
+        const bundle: any = await new Promise((resolve, reject) => {
+          this.fhirService.executeQuery(nextUrl!).subscribe({
+            next: (bundle) => resolve(bundle),
+            error: (err) => reject(err)
+          });
+        });
+
+        const totalEntries = bundle.entry?.length || 0;
+        let newProfilesCount = 0;
+        let structureDefCount = 0;
+
+        // Process entries from this batch
+        if (bundle.entry && bundle.entry.length > 0) {
+          bundle.entry.forEach((entry: any) => {
+            const resource = entry.resource;
+            if (resource.resourceType === 'StructureDefinition') {
+              structureDefCount++;
+
+              // Only add if we haven't seen this URL before
+              if (!seenUrls.has(resource.url)) {
+                seenUrls.add(resource.url);
+                newProfilesCount++;
+                allProfiles.push({
                   url: resource.url,
                   title: resource.title || resource.name,
                   name: resource.name,
                   type: resource.type
                 });
               }
-            });
-          }
-
-          this.structureDefinitions.set(profiles);
-          this.isFetched.set(true);
-          this.isLoading.set(false);
-        },
-        error: (err) => {
-          this.error.set(err.message || 'Failed to fetch Nictiz profiles');
-          this.isLoading.set(false);
+            }
+          });
         }
-      });
+
+        // Look for next link in bundle
+        nextUrl = null;
+        if (bundle.link && Array.isArray(bundle.link)) {
+          const nextLink = bundle.link.find((link: any) => link.relation === 'next');
+          if (nextLink && nextLink.url) {
+            nextUrl = nextLink.url;
+          }
+        }
+
+        // Also stop if we got no new profiles (all duplicates)
+        if (newProfilesCount === 0 && nextUrl) {
+          nextUrl = null;
+        }
+      }
+      this.structureDefinitions.set(allProfiles);
+      this.isFetched.set(true);
+      this.isLoading.set(false);
     } catch (err: any) {
+      console.error('Error fetching StructureDefinitions:', err);
       this.error.set(err.message || 'Failed to fetch Nictiz profiles');
       this.isLoading.set(false);
     }
@@ -83,17 +116,19 @@ export class NictizService {
 
   /**
    * Fetch a single StructureDefinition by URL
+   * Uses _summary=false to ensure we get the full snapshot
    */
   async fetchSingleStructureDefinition(url: string): Promise<any | null> {
     try {
       const encodedUrl = encodeURIComponent(url);
-      const query = `/administration/StructureDefinition?url=${encodedUrl}`;
+      const query = `/administration/StructureDefinition?url=${encodedUrl}&_summary=false`;
 
       return new Promise((resolve, reject) => {
         this.fhirService.executeQuery(query).subscribe({
           next: (response: any) => {
             if (response.entry && response.entry.length > 0) {
-              resolve(response.entry[0].resource);
+              const sd = response.entry[0].resource;
+              resolve(sd);
             } else {
               resolve(null);
             }
