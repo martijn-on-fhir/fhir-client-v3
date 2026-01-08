@@ -64,10 +64,6 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   requiredProperties = signal<ElementProperty[]>([]);
   optionalProperties = signal<ElementProperty[]>([]);
 
-  // Property accordion state
-  requiredExpanded = signal(true);
-  optionalExpanded = signal(false);
-
   // Property search/filter
   propertySearchQuery = signal('');
   filteredRequiredProperties = computed(() => {

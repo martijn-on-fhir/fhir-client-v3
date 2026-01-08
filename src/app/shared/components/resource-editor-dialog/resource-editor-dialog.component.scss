@@ -140,39 +140,21 @@
 .properties-panel {
   border-right: 1px solid var(--bs-border-color);
 
+  .properties-header {
+    padding: 0.75rem 1rem;
+    margin: 0 0 0.5rem 0;
+    background: #cfe2ff; // Light blue background (Bootstrap primary light)
+    color: #084298; // Dark blue text
+    font-weight: 600;
+    font-size: 0.9rem;
+    border-radius: 0.375rem;
+  }
+
   .property-section {
-    margin-bottom: 0.5rem;
+    margin-bottom: 1rem;
     border: 1px solid var(--bs-border-color);
     border-radius: 0.375rem;
     overflow: hidden;
-
-    .property-section-header {
-      padding: 0.75rem 1rem;
-      background: #cfe2ff; // Light blue background (Bootstrap primary light)
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      transition: background 0.2s;
-      border-bottom: 1px solid var(--bs-border-color);
-
-      &:hover {
-        background: #b6d4fe; // Slightly darker blue on hover
-      }
-
-      i {
-        color: #084298; // Dark blue icon
-      }
-
-      strong {
-        flex: 1;
-        color: #084298; // Dark blue text
-        font-weight: 600;
-      }
-
-      .badge {
-        font-weight: 600;
-      }
-    }
 
     .property-section-body {
       background: var(--bs-body-bg);
@@ -236,19 +218,9 @@
 
   // Dark mode adjustments
   @media (prefers-color-scheme: dark) {
-    .property-section {
-      .property-section-header {
-        background: #0a3d62; // Dark blue for dark mode
-        border-bottom-color: rgba(255, 255, 255, 0.1);
-
-        &:hover {
-          background: #0d4873;
-        }
-
-        i, strong {
-          color: #6ea8fe; // Light blue text for dark mode
-        }
-      }
+    .properties-header {
+      background: #0a3d62; // Dark blue for dark mode
+      color: #6ea8fe; // Light blue text for dark mode
     }
   }
 }
