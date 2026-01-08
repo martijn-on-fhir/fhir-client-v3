@@ -23,28 +23,28 @@
 
 ### High Priority
 
-- [ ] **Context-Aware Autocomplete** (autocomplete.ts uit v2)
-  - [ ] Detect cursor position in JSON
-  - [ ] Suggest property names based on current context
-  - [ ] Extract enum values from StructureDefinition
-    - [ ] From element.short (e.g., "active | inactive")
-    - [ ] From element.binding.valueSet
-    - [ ] From element.constraint
-  - [ ] Type-aware suggestions (string, code, boolean, etc.)
-  - [ ] Snippet insertion for complex types
-  - [ ] Array item insertion with proper comma handling
+- [x] **Context-Aware Autocomplete** (autocomplete.ts uit v2) ✅ COMPLETED (commit bfb0dc5)
+  - [x] Detect cursor position in JSON
+  - [x] Suggest property names based on current context
+  - [x] Extract enum values from StructureDefinition
+    - [x] From element.short (e.g., "active | inactive")
+    - [x] From element.binding.valueSet
+    - [x] From element.constraint
+  - [x] Type-aware suggestions (string, code, boolean, etc.)
+  - [x] Snippet insertion for complex types
+  - [x] Array item insertion with proper comma handling
 
-- [ ] **Template System** (uit v2)
-  - [ ] Parse r3.d.ts TypeScript interfaces
-  - [ ] Extract FHIR type definitions
-  - [ ] Generate templates for complex types:
-    - [ ] CodeableConcept with coding array
-    - [ ] Identifier with system/value
-    - [ ] HumanName with family/given
-    - [ ] Address with line/city/postalCode
-    - [ ] Quantity with value/unit/system/code
-  - [ ] Cache parsed templates
-  - [ ] Fallback to hardcoded templates
+- [x] **Template System** (uit v2) ✅ COMPLETED (commit bfb0dc5)
+  - [x] ~~Parse r3.d.ts TypeScript interfaces~~ (using hardcoded templates instead)
+  - [x] ~~Extract FHIR type definitions~~ (hardcoded in fhir-templates.ts)
+  - [x] Generate templates for complex types:
+    - [x] CodeableConcept with coding array
+    - [x] Identifier with system/value
+    - [x] HumanName with family/given
+    - [x] Address with line/city/postalCode
+    - [x] Quantity with value/unit/system/code
+  - [x] ~~Cache parsed templates~~ (not needed with hardcoded approach)
+  - [x] Fallback to hardcoded templates (using hardcoded as primary)
 
 - [ ] **Reference Selector Dialog** (ReferenceSelectorDialog.tsx uit v2)
   - [ ] Alt+Enter keyboard shortcut detection
@@ -263,31 +263,37 @@
 
 ## 📋 Immediate Next Steps (Priority Order)
 
-1. **Test Current Implementation**
-   - Manual testing in Electron app
-   - Fix any runtime bugs found
-   - Verify all basic functionality works
+1. ~~**Test Current Implementation**~~ ✅ DONE
+   - ~~Manual testing in Electron app~~
+   - ~~Fix any runtime bugs found~~ (cache reconstruction fix applied)
+   - ~~Verify all basic functionality works~~ (properties panel now populated)
 
-2. **Context-Aware Autocomplete** (Biggest impact on usability)
-   - Start with property name suggestions
-   - Then add enum value suggestions
-   - Use v2's autocomplete.ts as reference
+2. ~~**Context-Aware Autocomplete**~~ ✅ DONE (commit bfb0dc5)
+   - ~~Start with property name suggestions~~
+   - ~~Then add enum value suggestions~~
+   - ~~Use v2's autocomplete.ts as reference~~
 
-3. **Reference Selector Dialog** (Critical for creating valid resources)
+3. ~~**Template System**~~ ✅ DONE (commit bfb0dc5)
+   - ~~Parse r3.d.ts or use hardcoded templates~~ (used hardcoded)
+   - ~~Integrate with property addition~~ (integrated in autocomplete)
+
+4. **Test Autocomplete in Electron** 🎯 NEXT
+   - Open Resource Editor dialog
+   - Test property name suggestions
+   - Test enum value suggestions
+   - Test nested context detection
+
+5. **Reference Selector Dialog** (Critical for creating valid resources)
    - Implement basic search
    - Alt+Enter shortcut
    - Reference insertion
 
-4. **Template System** (Speeds up resource creation)
-   - Parse r3.d.ts or use hardcoded templates
-   - Integrate with property addition
-
-5. **Error Handling** (Production readiness)
+6. **Error Handling** (Production readiness)
    - Better error messages
    - Graceful degradation
    - User-friendly error display
 
-6. **Documentation** (Onboarding)
+7. **Documentation** (Onboarding)
    - User guide
    - Developer documentation
    - Keyboard shortcuts reference
