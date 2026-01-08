@@ -71,10 +71,27 @@ this.loggerService.error('Fatal error occurred', error);
 
 ### Implementation Details
 
-The logging system uses electron-log with proper IPC setup:
-- **Main process**: `electron-log/main` with `log.initialize()` for IPC
-- **Preload script**: `electron-log/preload` for proper context bridge integration
-- **Renderer process**: Logs via exposed `window.electronAPI.log` API
+The logging system uses electron-log with IPC communication:
+
+**Logging Flow:**
+1. **Renderer** → Calls `window.electronAPI.log.info(...)`
+2. **Preload** → Forwards via `ipcRenderer.invoke('log:info', ...)`
+3. **Main Process** → Receives IPC and logs via `electron-log`
+4. **File System** → electron-log writes to log file
+
+**Components:**
+- **Main process**: `electron-log/main` with `log.initialize()` + IPC handlers
+- **Preload script**: IPC forwarding via `ipcRenderer.invoke`
+- **Renderer process**: Type-safe API via `window.electronAPI.log`
+
+**IPC Handlers:**
+```javascript
+ipcMain.handle('log:error', (event, ...args) => log.error('[Renderer]', ...args));
+ipcMain.handle('log:warn', (event, ...args) => log.warn('[Renderer]', ...args));
+ipcMain.handle('log:info', (event, ...args) => log.info('[Renderer]', ...args));
+ipcMain.handle('log:debug', (event, ...args) => log.debug('[Renderer]', ...args));
+ipcMain.handle('log:verbose', (event, ...args) => log.verbose('[Renderer]', ...args));
+```
 
 ## Sensitive Data Protection
 
