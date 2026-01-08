@@ -1,6 +1,8 @@
 import {
   Component,
   Input,
+  Output,
+  EventEmitter,
   OnInit,
   OnChanges,
   SimpleChanges,
@@ -61,6 +63,8 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   @Input() language: string = 'json';
   @Input() readOnly: boolean = true;
   @Input() theme: string = 'vs-dark';
+
+  @Output() valueChange = new EventEmitter<string>();
 
   private themeService = inject(ThemeService);
   private editor: monaco.editor.IStandaloneCodeEditor | null = null;
@@ -166,6 +170,14 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       links: false,
       formatOnPaste: false,
       formatOnType: false
+    });
+
+    // Listen for content changes
+    this.editor.onDidChangeModelContent(() => {
+      if (this.editor) {
+        const newValue = this.editor.getValue();
+        this.valueChange.emit(newValue);
+      }
     });
   }
 }

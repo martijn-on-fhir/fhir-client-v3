@@ -29,11 +29,22 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "**/*.ttf",
+                "input": "node_modules/monaco-editor/esm/vs",
+                "output": "vs"
+              },
+              {
+                "glob": "**/*",
+                "input": "node_modules/monaco-editor/min/vs",
+                "output": "vs"
               }
             ],
             "styles": [
               "node_modules/bootstrap/dist/css/bootstrap.min.css",
               "node_modules/@fortawesome/fontawesome-free/css/all.min.css",
+              "node_modules/monaco-editor/min/vs/editor/editor.main.css",
               "src/styles.scss"
             ],
             "scripts": []

@@ -1,30 +1,293 @@
-@if (isOpen()) {
-  <div class="modal-backdrop" (click)="close()"></div>
+@if (show) {
+  <!-- Full-screen modal backdrop -->
+  <div class="modal-backdrop d-block" style="background: rgba(0,0,0,0.5)"></div>
 
-  <div class="modal-dialog">
-    <div class="modal-content">
-      <!-- Header -->
-      <div class="modal-header">
-        <h2 class="modal-title">
-          <i class="fas fa-edit me-2"></i>
-          Resource Editor
-        </h2>
-        <button type="button" class="btn-close" (click)="close()">
-          <i class="fas fa-times"></i>
-        </button>
-      </div>
+  <!-- Full-screen modal -->
+  <div class="modal d-block" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-{{ isEditing() ? 'edit' : 'plus' }} me-2"></i>
+            {{ isEditing() ? 'Edit' : 'Create' }} {{ resourceType() }}
+          </h5>
+          <div class="d-flex gap-2">
+            @if (structureDefinition) {
+              <span class="badge bg-secondary">{{ structureDefinition.title || structureDefinition.name }}</span>
+            }
+            <button type="button" class="btn-close" (click)="closeDialog()"></button>
+          </div>
+        </div>
 
-      <!-- Body -->
-      <div class="modal-body">
-        <!-- Empty for now -->
-      </div>
+        <!-- Body with 3-panel layout -->
+        <div class="modal-body p-0" id="resource-editor-container">
+          <div class="d-flex h-100">
+            <!-- Left Panel: Properties Browser -->
+            <div [style.width.%]="leftWidth()" class="panel properties-panel">
+              <div class="panel-header">
+                <h6 class="mb-0">
+                  <i class="fas fa-list me-2"></i>Properties
+                </h6>
+              </div>
+              <div class="panel-body">
+                <!-- Required Properties Accordion -->
+                <div class="property-section">
+                  <div
+                    class="property-section-header"
+                    (click)="requiredExpanded.set(!requiredExpanded())">
+                    <i class="fas fa-{{ requiredExpanded() ? 'chevron-down' : 'chevron-right' }} me-2"></i>
+                    <strong>Required</strong>
+                    <span class="badge bg-danger ms-2">{{ requiredProperties().length }}</span>
+                  </div>
+                  @if (requiredExpanded()) {
+                    <div class="property-section-body">
+                      @for (prop of requiredProperties(); track prop.path) {
+                        <div class="property-item">
+                          <div class="property-info">
+                            <div class="property-name">
+                              {{ prop.name }}
+                              @if (prop.isArray) {
+                                <span class="text-muted">[]</span>
+                              }
+                            </div>
+                            <div class="property-type">{{ prop.type }}</div>
+                            @if (prop.short) {
+                              <div class="property-description">{{ prop.short }}</div>
+                            }
+                          </div>
+                          <button
+                            class="btn btn-sm btn-outline-primary"
+                            (click)="addProperty(prop)"
+                            title="Add property">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      } @empty {
+                        <div class="text-muted small p-2">No required properties</div>
+                      }
+                    </div>
+                  }
+                </div>
 
-      <!-- Footer -->
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" (click)="close()">
-          <i class="fas fa-times me-2"></i>
-          Close
-        </button>
+                <!-- Optional Properties Accordion -->
+                <div class="property-section">
+                  <div
+                    class="property-section-header"
+                    (click)="optionalExpanded.set(!optionalExpanded())">
+                    <i class="fas fa-{{ optionalExpanded() ? 'chevron-down' : 'chevron-right' }} me-2"></i>
+                    <strong>Optional</strong>
+                    <span class="badge bg-secondary ms-2">{{ optionalProperties().length }}</span>
+                  </div>
+                  @if (optionalExpanded()) {
+                    <div class="property-section-body">
+                      @for (prop of optionalProperties(); track prop.path) {
+                        <div class="property-item">
+                          <div class="property-info">
+                            <div class="property-name">
+                              {{ prop.name }}
+                              @if (prop.isArray) {
+                                <span class="text-muted">[]</span>
+                              }
+                            </div>
+                            <div class="property-type">{{ prop.type }}</div>
+                            @if (prop.short) {
+                              <div class="property-description">{{ prop.short }}</div>
+                            }
+                          </div>
+                          <button
+                            class="btn btn-sm btn-outline-primary"
+                            (click)="addProperty(prop)"
+                            title="Add property">
+                            <i class="fas fa-plus"></i>
+                          </button>
+                        </div>
+                      } @empty {
+                        <div class="text-muted small p-2">No optional properties</div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Left Resize Handle -->
+            <div
+              (mousedown)="startResizeLeft($event)"
+              [style.background-color]="isResizingLeft() ? '#6c757d' : '#dee2e6'"
+              style="width: 2px; min-width: 2px; cursor: col-resize; flex-shrink: 0"></div>
+
+            <!-- Center Panel: Monaco Editor -->
+            <div [style.width.%]="centerWidth()" class="panel editor-panel">
+              <div class="panel-header">
+                <h6 class="mb-0">
+                  <i class="fas fa-code me-2"></i>JSON Editor
+                </h6>
+                <div class="d-flex gap-2">
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="formatJson()"
+                    title="Format JSON (Ctrl+Alt+L)">
+                    <i class="fas fa-indent me-1"></i>Format
+                  </button>
+                </div>
+              </div>
+              <div class="panel-body p-0">
+                <app-monaco-editor
+                  [value]="editorContent()"
+                  (valueChange)="editorContent.set($event)"
+                  [language]="'json'"
+                  [readOnly]="false">
+                </app-monaco-editor>
+              </div>
+            </div>
+
+            <!-- Right Resize Handle -->
+            <div
+              (mousedown)="startResizeRight($event)"
+              [style.background-color]="isResizingRight() ? '#6c757d' : '#dee2e6'"
+              style="width: 2px; min-width: 2px; cursor: col-resize; flex-shrink: 0"></div>
+
+            <!-- Right Panel: Validation & Info -->
+            <div [style.width.%]="rightWidth()" class="panel validation-panel">
+              <div class="panel-header">
+                <h6 class="mb-0">
+                  <i class="fas fa-check-circle me-2"></i>Validation
+                </h6>
+                <button
+                  class="btn btn-sm btn-outline-primary"
+                  (click)="validateResource()"
+                  [disabled]="validationLoading()">
+                  @if (validationLoading()) {
+                    <span class="spinner-border spinner-border-sm me-1"></span>
+                    Validating...
+                  } @else {
+                    <i class="fas fa-play me-1"></i>Validate
+                  }
+                </button>
+              </div>
+              <div class="panel-body">
+                <!-- Validation Error -->
+                @if (validationError()) {
+                  <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    {{ validationError() }}
+                  </div>
+                }
+
+                <!-- Validation Loading -->
+                @if (validationLoading()) {
+                  <div class="text-center p-3">
+                    <div class="spinner-border text-primary"></div>
+                  </div>
+                }
+
+                <!-- Validation Results -->
+                @if (validationResult() && !validationLoading()) {
+                  <div class="validation-results">
+                    <!-- Errors -->
+                    @if (getIssuesBySeverity('error'); as errors) {
+                      @if (errors.length > 0) {
+                        <div class="issue-section">
+                          <h6 class="issue-section-header text-danger">
+                            <i class="fas fa-times-circle me-2"></i>
+                            Errors ({{ errors.length }})
+                          </h6>
+                          @for (issue of errors; track $index) {
+                            <div class="issue-item alert alert-danger">
+                              <div class="issue-location">{{ issue.location?.[0] || 'Unknown' }}</div>
+                              <div class="issue-message">{{ issue.diagnostics || issue.details?.text }}</div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    }
+
+                    <!-- Warnings -->
+                    @if (getIssuesBySeverity('warning'); as warnings) {
+                      @if (warnings.length > 0) {
+                        <div class="issue-section">
+                          <h6 class="issue-section-header text-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Warnings ({{ warnings.length }})
+                          </h6>
+                          @for (issue of warnings; track $index) {
+                            <div class="issue-item alert alert-warning">
+                              <div class="issue-location">{{ issue.location?.[0] || 'Unknown' }}</div>
+                              <div class="issue-message">{{ issue.diagnostics || issue.details?.text }}</div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    }
+
+                    <!-- Information -->
+                    @if (getIssuesBySeverity('information'); as info) {
+                      @if (info.length > 0) {
+                        <div class="issue-section">
+                          <h6 class="issue-section-header text-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            Information ({{ info.length }})
+                          </h6>
+                          @for (issue of info; track $index) {
+                            <div class="issue-item alert alert-info">
+                              <div class="issue-location">{{ issue.location?.[0] || 'Unknown' }}</div>
+                              <div class="issue-message">{{ issue.diagnostics || issue.details?.text }}</div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    }
+
+                    <!-- Success (no issues) -->
+                    @if (validationResult().issue?.length === 0) {
+                      <div class="alert alert-success">
+                        <i class="fas fa-check-circle me-2"></i>
+                        Resource is valid!
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- No validation yet -->
+                @if (!validationResult() && !validationLoading() && !validationError()) {
+                  <div class="text-center text-muted p-3">
+                    <i class="fas fa-info-circle fa-2x mb-2"></i>
+                    <p>Click Validate to check your resource</p>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <!-- Save Error -->
+          @if (saveError()) {
+            <div class="alert alert-danger mb-0 me-auto">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              {{ saveError() }}
+            </div>
+          }
+
+          <button type="button" class="btn btn-secondary" (click)="closeDialog()">
+            <i class="fas fa-times me-2"></i>Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="saveResource()"
+            [disabled]="saveLoading()">
+            @if (saveLoading()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              {{ isEditing() ? 'Updating...' : 'Creating...' }}
+            } @else {
+              <i class="fas fa-save me-2"></i>
+              {{ isEditing() ? 'Update' : 'Create' }}
+            }
+          </button>
+        </div>
       </div>
     </div>
   </div>

@@ -25,4 +25,10 @@
   overflow-y: auto;
 }
 
+.card-body app-monaco-editor {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
 /*# sourceMappingURL=predefined.component.css.map */

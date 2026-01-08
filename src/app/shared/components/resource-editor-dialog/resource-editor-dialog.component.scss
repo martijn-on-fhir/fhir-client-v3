@@ -95,3 +95,199 @@
     opacity: 1;
   }
 }
+
+// 3-Panel Layout
+#resource-editor-container {
+  height: 100%;
+  overflow: hidden;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+
+  .panel-header {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid var(--bs-border-color);
+    background: var(--bs-tertiary-bg);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+
+    h6 {
+      display: flex;
+      align-items: center;
+      color: var(--bs-body-color);
+      font-weight: 600;
+
+      i {
+        color: var(--bs-primary);
+      }
+    }
+  }
+
+  .panel-body {
+    flex: 1;
+    overflow: auto;
+    min-height: 0;
+  }
+}
+
+// Properties Panel
+.properties-panel {
+  border-right: 1px solid var(--bs-border-color);
+
+  .property-section {
+    border-bottom: 1px solid var(--bs-border-color);
+
+    .property-section-header {
+      padding: 0.75rem 1rem;
+      background: var(--bs-body-bg);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      transition: background 0.2s;
+
+      &:hover {
+        background: var(--bs-tertiary-bg);
+      }
+
+      i {
+        color: var(--bs-secondary-color);
+      }
+
+      strong {
+        flex: 1;
+      }
+    }
+
+    .property-section-body {
+      background: var(--bs-body-bg);
+    }
+
+    .property-item {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--bs-border-color-translucent);
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      transition: background 0.2s;
+
+      &:hover {
+        background: var(--bs-tertiary-bg);
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .property-info {
+        flex: 1;
+        min-width: 0;
+
+        .property-name {
+          font-weight: 600;
+          color: var(--bs-body-color);
+          font-size: 0.875rem;
+          margin-bottom: 0.25rem;
+        }
+
+        .property-type {
+          font-size: 0.75rem;
+          color: var(--bs-primary);
+          font-family: monospace;
+          margin-bottom: 0.25rem;
+        }
+
+        .property-description {
+          font-size: 0.75rem;
+          color: var(--bs-secondary-color);
+          line-height: 1.3;
+        }
+      }
+
+      button {
+        flex-shrink: 0;
+        align-self: flex-start;
+      }
+    }
+  }
+}
+
+// Editor Panel
+.editor-panel {
+  .panel-body {
+    padding: 0;
+    display: flex;
+
+    app-monaco-editor {
+      flex: 1;
+      display: flex;
+      min-height: 0;
+    }
+  }
+}
+
+// Validation Panel
+.validation-panel {
+  border-left: 1px solid var(--bs-border-color);
+
+  .validation-results {
+    .issue-section {
+      margin-bottom: 1.5rem;
+
+      &:last-child {
+        margin-bottom: 0;
+      }
+
+      .issue-section-header {
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+        padding: 0.5rem 1rem;
+        background: var(--bs-tertiary-bg);
+        border-radius: 4px;
+        display: flex;
+        align-items: center;
+      }
+
+      .issue-item {
+        margin-bottom: 0.5rem;
+        padding: 0.75rem;
+        font-size: 0.875rem;
+
+        .issue-location {
+          font-weight: 600;
+          margin-bottom: 0.25rem;
+          font-family: monospace;
+          font-size: 0.75rem;
+        }
+
+        .issue-message {
+          color: var(--bs-body-color);
+          line-height: 1.4;
+        }
+      }
+    }
+  }
+}
+
+// Resize handles
+div[style*="cursor: col-resize"] {
+  transition: background-color 0.2s;
+
+  &:hover {
+    background-color: #6c757d !important;
+  }
+}
+
+// Full-screen modal
+.modal-fullscreen {
+  .modal-content {
+    border-radius: 0;
+    height: 100vh;
+  }
+}

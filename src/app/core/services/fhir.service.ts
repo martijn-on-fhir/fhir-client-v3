@@ -143,4 +143,54 @@ export class FhirService {
     const url = `${this.baseUrl}/${resource.resourceType}/${resource.id}`;
     return this.http.put(url, resource);
   }
+
+  /**
+   * Create a new resource (explicit method for ResourceEditorDialog)
+   */
+  createResource(resourceType: string, resource: any): Observable<any> {
+    const url = `${this.baseUrl}/${resourceType}`;
+    return this.http.post(url, resource).pipe(
+      catchError(error => {
+        this.logger.error('Create failed:', error);
+        return throwError(() => new Error(error.message || 'Failed to create resource'));
+      })
+    );
+  }
+
+  /**
+   * Update an existing resource (explicit method for ResourceEditorDialog)
+   */
+  updateResource(resourceType: string, id: string, resource: any): Observable<any> {
+    const url = `${this.baseUrl}/${resourceType}/${id}`;
+    return this.http.put(url, resource).pipe(
+      catchError(error => {
+        this.logger.error('Update failed:', error);
+        return throwError(() => new Error(error.message || 'Failed to update resource'));
+      })
+    );
+  }
+
+  /**
+   * Validate a resource using FHIR $validate operation
+   *
+   * @example
+   * ```typescript
+   * this.fhirService.validateResource('Patient', patientResource)
+   *   .subscribe(operationOutcome => console.log(operationOutcome));
+   * ```
+   */
+  validateResource(resourceType: string, resource: any): Observable<any> {
+    const url = `${this.baseUrl}/${resourceType}/$validate`;
+    return this.http.post(url, resource).pipe(
+      catchError(error => {
+        this.logger.error('Validation failed:', error);
+        // Even if validation fails, the server might return an OperationOutcome
+        // If so, we want to return it, not throw
+        if (error.error && error.error.resourceType === 'OperationOutcome') {
+          return from([error.error]);
+        }
+        return throwError(() => new Error(error.message || 'Validation failed'));
+      })
+    );
+  }
 }

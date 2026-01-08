@@ -26,3 +26,12 @@
 .modal.d-block {
   overflow-y: auto;
 }
+
+// Monaco editor in results card
+.card-body {
+  app-monaco-editor {
+    flex: 1;
+    display: flex;
+    min-height: 0;
+  }
+}
