@@ -1,0 +1,321 @@
+# ResourceEditorDialog - TODO List
+
+## ✅ Completed Features
+
+- [x] 3-panel resizable layout (Properties | Editor | Validation)
+- [x] Property browser (Required/Optional accordions)
+- [x] Monaco editor integration (CDN loader)
+- [x] Blueprint generation with meta.profile
+- [x] Type-aware default values (33+ FHIR types)
+- [x] FHIR $validate operation
+- [x] OperationOutcome display by severity
+- [x] CREATE (POST) operation
+- [x] UPDATE (PUT) operation
+- [x] Keyboard shortcuts (Ctrl+Alt+L, Escape)
+- [x] Signal-based reactivity
+- [x] Memory leak prevention
+- [x] Integration in Nictiz tab
+- [x] Integration in Profiles tab
+
+---
+
+## 🚧 Advanced Features (From v2)
+
+### High Priority
+
+- [ ] **Context-Aware Autocomplete** (autocomplete.ts uit v2)
+  - [ ] Detect cursor position in JSON
+  - [ ] Suggest property names based on current context
+  - [ ] Extract enum values from StructureDefinition
+    - [ ] From element.short (e.g., "active | inactive")
+    - [ ] From element.binding.valueSet
+    - [ ] From element.constraint
+  - [ ] Type-aware suggestions (string, code, boolean, etc.)
+  - [ ] Snippet insertion for complex types
+  - [ ] Array item insertion with proper comma handling
+
+- [ ] **Template System** (uit v2)
+  - [ ] Parse r3.d.ts TypeScript interfaces
+  - [ ] Extract FHIR type definitions
+  - [ ] Generate templates for complex types:
+    - [ ] CodeableConcept with coding array
+    - [ ] Identifier with system/value
+    - [ ] HumanName with family/given
+    - [ ] Address with line/city/postalCode
+    - [ ] Quantity with value/unit/system/code
+  - [ ] Cache parsed templates
+  - [ ] Fallback to hardcoded templates
+
+- [ ] **Reference Selector Dialog** (ReferenceSelectorDialog.tsx uit v2)
+  - [ ] Alt+Enter keyboard shortcut detection
+  - [ ] Detect if cursor is on Reference type
+  - [ ] Extract target resource types from element.type[].targetProfile
+  - [ ] Search dialog with resource type filter
+  - [ ] Real-time search with debounce
+  - [ ] Display search results in table
+  - [ ] Insert selected reference into JSON
+  - [ ] Format: `{ reference: "Patient/123", display: "John Doe" }`
+
+### Medium Priority
+
+- [ ] **Smart Auto-Correct** (keyListeners.ts uit v2)
+  - [ ] Detect content after closing `}` or `]`
+  - [ ] Move content back inside bracket
+  - [ ] Auto-insert commas in arrays
+  - [ ] Remove trailing commas
+  - [ ] Smart Enter key behavior (comma insertion)
+
+- [ ] **Navigate Empty Values** (keyListeners.ts uit v2)
+  - [ ] Ctrl+↑ - Jump to previous empty value (`""`, `[]`, `{}`, `null`)
+  - [ ] Ctrl+↓ - Jump to next empty value
+  - [ ] Highlight empty value for easy filling
+
+- [ ] **Error Handling Improvements**
+  - [ ] Better error messages for invalid JSON
+  - [ ] Highlight JSON syntax errors in editor
+  - [ ] Show validation errors inline in editor (markers)
+  - [ ] Auto-scroll to first error on validation
+
+- [ ] **Property Browser Enhancements**
+  - [ ] Search/filter properties
+  - [ ] Show cardinality in property list (0..1, 1..1, 0..*, 1..*)
+  - [ ] Show binding strength (required, extensible, preferred, example)
+  - [ ] Show value set URL on hover
+  - [ ] Click property to jump to location in JSON
+  - [ ] Show property path (e.g., Patient.name.given)
+
+### Low Priority
+
+- [ ] **Copy/Paste Support**
+  - [ ] Copy current resource to clipboard (formatted JSON)
+  - [ ] Paste resource from clipboard
+  - [ ] Import from file
+  - [ ] Export to file
+
+- [ ] **History/Undo**
+  - [ ] Undo/Redo for property additions
+  - [ ] History of validation results
+  - [ ] Compare with previous version
+
+- [ ] **Multi-Resource Support**
+  - [ ] Create contained resources
+  - [ ] Reference contained resources
+  - [ ] Bundle creation
+
+---
+
+## 🐛 Known Issues / Bugs to Fix
+
+- [ ] **Monaco Editor Loading**
+  - [ ] Test CDN fallback if jsDelivr is down
+  - [ ] Add loading indicator while Monaco loads
+  - [ ] Handle Monaco load failure gracefully
+
+- [ ] **Validation Edge Cases**
+  - [ ] Handle validation timeout
+  - [ ] Handle server errors (500, 404)
+  - [ ] Test with resources that have no StructureDefinition
+  - [ ] Test with custom profiles
+
+- [ ] **Property Extraction Edge Cases**
+  - [ ] Handle StructureDefinitions without snapshot
+  - [ ] Handle elements with choice types (e.g., value[x])
+  - [ ] Handle elements with slicing
+  - [ ] Handle backbone elements properly
+
+- [ ] **Resource Creation Edge Cases**
+  - [ ] Handle resources without required fields
+  - [ ] Handle server-side validation failures
+  - [ ] Handle authentication errors
+  - [ ] Handle network errors
+
+---
+
+## 🎨 UI/UX Improvements
+
+- [ ] **Visual Polish**
+  - [ ] Add animations for panel resize
+  - [ ] Add transitions for accordion expand/collapse
+  - [ ] Improve loading states (skeleton screens)
+  - [ ] Add success/error toast notifications
+  - [ ] Improve button states (loading, disabled, success)
+
+- [ ] **Accessibility**
+  - [ ] Keyboard navigation for property list
+  - [ ] Focus management (trap focus in dialog)
+  - [ ] ARIA labels for screen readers
+  - [ ] High contrast mode support
+
+- [ ] **Responsive Design**
+  - [ ] Mobile layout (stack panels vertically?)
+  - [ ] Tablet layout
+  - [ ] Test on different screen sizes
+
+- [ ] **Dark Mode**
+  - [ ] Test all UI elements in dark mode
+  - [ ] Ensure proper contrast
+  - [ ] Monaco editor theme sync
+
+---
+
+## 📚 Documentation
+
+- [ ] **User Documentation**
+  - [ ] How to create a resource
+  - [ ] How to use property browser
+  - [ ] How to validate
+  - [ ] Keyboard shortcuts reference
+  - [ ] Common workflows
+
+- [ ] **Developer Documentation**
+  - [ ] Architecture overview
+  - [ ] Component API documentation
+  - [ ] Signal flow diagram
+  - [ ] How to add new FHIR types
+  - [ ] How to extend autocomplete
+
+- [ ] **Code Comments**
+  - [ ] Add JSDoc comments to all public methods
+  - [ ] Document complex algorithms (autocomplete, template parsing)
+  - [ ] Add examples in comments
+
+---
+
+## 🧪 Testing
+
+- [ ] **Unit Tests**
+  - [ ] Property extraction logic
+  - [ ] Blueprint generation
+  - [ ] Default value generation for all types
+  - [ ] Signal reactivity
+  - [ ] Template parsing
+
+- [ ] **Integration Tests**
+  - [ ] Dialog open/close flow
+  - [ ] Property addition
+  - [ ] Validation flow
+  - [ ] Create resource flow
+  - [ ] Update resource flow
+
+- [ ] **E2E Tests**
+  - [ ] Full create resource workflow
+  - [ ] Full edit resource workflow
+  - [ ] Error handling scenarios
+
+- [ ] **Performance Tests**
+  - [ ] Large StructureDefinitions (100+ elements)
+  - [ ] Large resources (deep nesting)
+  - [ ] Rapid open/close (memory leak check)
+  - [ ] Monaco editor performance
+
+---
+
+## 🔧 Technical Debt
+
+- [ ] **Type Safety**
+  - [ ] Replace `any` types with proper FHIR interfaces
+  - [ ] Create ElementProperty interface in separate file
+  - [ ] Use discriminated unions for different element types
+
+- [ ] **Code Organization**
+  - [ ] Extract autocomplete logic to separate service
+  - [ ] Extract template system to separate service
+  - [ ] Extract default value logic to utility file
+  - [ ] Create models for StructureDefinition, Element, etc.
+
+- [ ] **Error Handling**
+  - [ ] Create custom error types
+  - [ ] Centralized error handling
+  - [ ] Error reporting to external service?
+
+- [ ] **Performance Optimization**
+  - [ ] Lazy load Monaco editor (only when dialog opens)
+  - [ ] Cache StructureDefinition parsing
+  - [ ] Debounce editor changes for validation
+  - [ ] Virtual scrolling for large property lists
+
+---
+
+## 🚀 Future Enhancements
+
+- [ ] **AI-Powered Features**
+  - [ ] Smart field suggestions based on existing data
+  - [ ] Auto-complete based on similar resources
+  - [ ] Validation with AI-powered suggestions
+
+- [ ] **Collaboration Features**
+  - [ ] Real-time collaborative editing
+  - [ ] Comments on specific fields
+  - [ ] Review/approval workflow
+
+- [ ] **Advanced Validation**
+  - [ ] Custom validation rules
+  - [ ] Cross-resource validation
+  - [ ] Business rule validation
+
+- [ ] **Import/Export**
+  - [ ] Import from HL7v2
+  - [ ] Import from CSV
+  - [ ] Export to different formats
+  - [ ] Bulk create from template
+
+---
+
+## 📋 Immediate Next Steps (Priority Order)
+
+1. **Test Current Implementation**
+   - Manual testing in Electron app
+   - Fix any runtime bugs found
+   - Verify all basic functionality works
+
+2. **Context-Aware Autocomplete** (Biggest impact on usability)
+   - Start with property name suggestions
+   - Then add enum value suggestions
+   - Use v2's autocomplete.ts as reference
+
+3. **Reference Selector Dialog** (Critical for creating valid resources)
+   - Implement basic search
+   - Alt+Enter shortcut
+   - Reference insertion
+
+4. **Template System** (Speeds up resource creation)
+   - Parse r3.d.ts or use hardcoded templates
+   - Integrate with property addition
+
+5. **Error Handling** (Production readiness)
+   - Better error messages
+   - Graceful degradation
+   - User-friendly error display
+
+6. **Documentation** (Onboarding)
+   - User guide
+   - Developer documentation
+   - Keyboard shortcuts reference
+
+---
+
+## 🎯 Success Metrics
+
+- [ ] Can create a valid Patient resource in < 2 minutes
+- [ ] Can create a valid Observation resource in < 3 minutes
+- [ ] No console errors during normal operation
+- [ ] Monaco editor loads within 2 seconds
+- [ ] Validation completes within 3 seconds
+- [ ] Dialog opens/closes smoothly without lag
+- [ ] No memory leaks after 10+ open/close cycles
+
+---
+
+## 📝 Notes
+
+- Keep v2 implementation as reference: `C:\projects\fhir-client-v2\src\components\resource-editor\`
+- Focus on core functionality first, polish later
+- Prioritize features that improve usability over visual polish
+- Test with real FHIR servers, not just mock data
+- Consider backwards compatibility with FHIR R4, R5
+
+---
+
+**Last Updated:** 2026-01-08
+**Current Branch:** `feature/resource-editor-dialog`
+**Status:** Core functionality complete, advanced features pending

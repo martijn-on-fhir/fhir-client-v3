@@ -137,18 +137,31 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     const existing = this.existingResource();
     const sd = this.structureDefinition();
 
+    this.logger.info('Initializing editor', {
+      hasExisting: !!existing,
+      hasSD: !!sd,
+      sdType: sd?.type,
+      sdId: sd?.id,
+      sdUrl: sd?.url
+    });
+
     if (existing) {
       // Editing existing resource
       this.editorContent.set(JSON.stringify(existing, null, 2));
+      this.logger.info('Loaded existing resource');
     } else if (sd) {
       // Creating new resource - generate blueprint
       const blueprint = this.generateBlueprint();
       this.editorContent.set(JSON.stringify(blueprint, null, 2));
+      this.logger.info('Generated blueprint', blueprint);
     }
 
     // Extract properties from StructureDefinition
     if (sd) {
+      this.logger.info('Calling extractProperties...');
       this.extractProperties();
+    } else {
+      this.logger.warn('No StructureDefinition available, skipping property extraction');
     }
   }
 
@@ -173,24 +186,50 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   private extractProperties() {
     const sd = this.structureDefinition();
+
+    this.logger.info('Extracting properties from StructureDefinition', {
+      hasSD: !!sd,
+      hasSnapshot: !!sd?.snapshot,
+      hasElements: !!sd?.snapshot?.element,
+      elementCount: sd?.snapshot?.element?.length,
+      resourceType: this.resourceType(),
+      sdKeys: sd ? Object.keys(sd) : [],
+      snapshotKeys: sd?.snapshot ? Object.keys(sd.snapshot) : []
+    });
+
     if (!sd?.snapshot?.element) {
+      this.logger.warn('No snapshot elements found in StructureDefinition', {
+        structureDefinition: sd,
+        hasSnapshot: !!sd?.snapshot,
+        hasDifferential: !!sd?.differential,
+        snapshot: sd?.snapshot
+      });
       return;
     }
 
     const elements = sd.snapshot.element;
     const required: ElementProperty[] = [];
     const optional: ElementProperty[] = [];
+    const resourceType = this.resourceType();
+
+    this.logger.info('Processing elements', {
+      totalElements: elements.length,
+      resourceType
+    });
 
     elements.forEach((element: any) => {
       // Skip root element
-      if (element.path === this.resourceType()) {
+      if (element.path === resourceType) {
+        this.logger.debug('Skipping root element', element.path);
         return;
       }
 
       // Only include first-level properties (e.g., Patient.name, not Patient.name.given)
       const path = element.path;
       const parts = path.split('.');
+
       if (parts.length !== 2) {
+        this.logger.debug('Skipping nested element', { path, parts: parts.length });
         return;
       }
 
@@ -213,9 +252,16 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
       if (isRequired) {
         required.push(property);
+        this.logger.debug('Added required property', propertyName);
       } else {
         optional.push(property);
+        this.logger.debug('Added optional property', propertyName);
       }
+    });
+
+    this.logger.info('Property extraction complete', {
+      required: required.length,
+      optional: optional.length
     });
 
     this.requiredProperties.set(required);

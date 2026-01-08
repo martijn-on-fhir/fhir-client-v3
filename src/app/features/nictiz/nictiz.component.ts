@@ -95,7 +95,15 @@ export class NictizComponent implements OnInit {
       const cached = await window.electronAPI?.profileCache?.getProfile(profileTitle);
 
       if (cached) {
-        this.structureDefinition.set(cached.profile);
+        // Reconstruct full StructureDefinition with snapshot from cache
+        const fullSD = {
+          ...cached.profile,
+          snapshot: {
+            element: cached.mergedElements || []
+          }
+        };
+
+        this.structureDefinition.set(fullSD);
         this.baseDefinitions.set(cached.baseChain || []);
         this.mergedElements.set(cached.mergedElements || []);
         this.constraints.set(cached.constraints || []);
