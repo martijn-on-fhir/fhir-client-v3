@@ -58,12 +58,12 @@
 
 ### Medium Priority
 
-- [ ] **Smart Auto-Correct** (keyListeners.ts uit v2)
-  - [ ] Detect content after closing `}` or `]`
-  - [ ] Move content back inside bracket
-  - [ ] Auto-insert commas in arrays
-  - [ ] Remove trailing commas
-  - [ ] Smart Enter key behavior (comma insertion)
+- [x] **Smart Auto-Correct** (keyListeners.ts uit v2) ✅ COMPLETED (commit 30915f6)
+  - [x] ~~Detect content after closing `}` or `]`~~ (checks next line instead)
+  - [x] ~~Move content back inside bracket~~ (prevents issue via smart comma)
+  - [x] Auto-insert commas in arrays (after closing bracket)
+  - [x] ~~Remove trailing commas~~ (Monaco handles this)
+  - [x] Smart Enter key behavior (comma insertion)
 
 - [x] **Navigate Empty Values** (keyListeners.ts uit v2) ✅ COMPLETED (commit 250cdd1)
   - [x] Ctrl+↑ - Jump to previous empty value (`""`, `[]`, `{}`, `null`)
