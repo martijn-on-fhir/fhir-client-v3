@@ -64,6 +64,10 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   requiredProperties = signal<ElementProperty[]>([]);
   optionalProperties = signal<ElementProperty[]>([]);
 
+  // Accordion expand/collapse state
+  expandedRequiredIndex = signal<number>(0); // First item expanded by default
+  expandedOptionalIndex = signal<number>(-1); // All collapsed by default
+
   // Property search/filter
   propertySearchQuery = signal('');
   filteredRequiredProperties = computed(() => {
@@ -335,6 +339,17 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
     // Multiple types - return comma-separated
     return element.type.map((t: any) => t.code).join(' | ');
+  }
+
+  /**
+   * Toggle accordion item
+   */
+  toggleRequiredAccordion(index: number) {
+    this.expandedRequiredIndex.set(this.expandedRequiredIndex() === index ? -1 : index);
+  }
+
+  toggleOptionalAccordion(index: number) {
+    this.expandedOptionalIndex.set(this.expandedOptionalIndex() === index ? -1 : index);
   }
 
   /**

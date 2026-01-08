@@ -58,21 +58,16 @@
                         <h2 class="accordion-header">
                           <button
                             class="accordion-button"
-                            [class.collapsed]="i !== 0"
+                            [class.collapsed]="expandedRequiredIndex() !== i"
                             type="button"
-                            [attr.data-bs-toggle]="'collapse'"
-                            [attr.data-bs-target]="'#requiredCollapse' + i"
-                            [attr.aria-expanded]="i === 0"
-                            [attr.aria-controls]="'requiredCollapse' + i">
+                            (click)="toggleRequiredAccordion(i)">
                             <i class="far fa-file me-2"></i>
                             {{ prop.name }}
                           </button>
                         </h2>
                         <div
-                          [id]="'requiredCollapse' + i"
                           class="accordion-collapse collapse"
-                          [class.show]="i === 0"
-                          [attr.data-bs-parent]="'#requiredPropertiesAccordion'">
+                          [class.show]="expandedRequiredIndex() === i">
                           <div class="accordion-body">
                             @if (prop.short) {
                               <p class="small mb-2"><strong>{{ prop.short }}</strong></p>
@@ -127,20 +122,17 @@
                       <div class="accordion-item">
                         <h2 class="accordion-header">
                           <button
-                            class="accordion-button collapsed"
+                            class="accordion-button"
+                            [class.collapsed]="expandedOptionalIndex() !== i"
                             type="button"
-                            [attr.data-bs-toggle]="'collapse'"
-                            [attr.data-bs-target]="'#optionalCollapse' + i"
-                            [attr.aria-expanded]="false"
-                            [attr.aria-controls]="'optionalCollapse' + i">
+                            (click)="toggleOptionalAccordion(i)">
                             <i class="far fa-file me-2"></i>
                             {{ prop.name }}
                           </button>
                         </h2>
                         <div
-                          [id]="'optionalCollapse' + i"
                           class="accordion-collapse collapse"
-                          [attr.data-bs-parent]="'#optionalPropertiesAccordion'">
+                          [class.show]="expandedOptionalIndex() === i">
                           <div class="accordion-body">
                             @if (prop.short) {
                               <p class="small mb-2"><strong>{{ prop.short }}</strong></p>
