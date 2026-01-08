@@ -67,6 +67,14 @@ this.loggerService.error('Fatal error occurred', error);
 - **Max file size**: 5 MB
 - **Auto rotation**: Yes
 - **Format**: `[YYYY-MM-DD HH:mm:ss.SSS] [LEVEL] message`
+- **IPC Communication**: Enabled (logs from renderer process go to main process)
+
+### Implementation Details
+
+The logging system uses electron-log with proper IPC setup:
+- **Main process**: `electron-log/main` with `log.initialize()` for IPC
+- **Preload script**: `electron-log/preload` for proper context bridge integration
+- **Renderer process**: Logs via exposed `window.electronAPI.log` API
 
 ## Sensitive Data Protection
 

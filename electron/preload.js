@@ -1,5 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
-const log = require('electron-log/renderer');
+const log = require('electron-log/preload');
 
 /**
  * Electron Preload Script

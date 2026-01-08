@@ -1,11 +1,14 @@
 const { app, BrowserWindow, session } = require('electron');
 const path = require('path');
-const log = require('electron-log');
+const log = require('electron-log/main');
 const { registerAuthHandlers } = require('./auth/auth-handler');
 const { registerTerminologyHandlers } = require('./terminology/terminology-handler');
 const { registerFileHandlers } = require('./file/file-handler');
 const { registerProfileHandlers } = require('./profile/profile-handler');
 const { createApplicationMenu } = require('./menu/menu-handler');
+
+// Initialize electron-log for IPC communication
+log.initialize();
 
 // Configure electron-log
 log.transports.file.level = 'info';
