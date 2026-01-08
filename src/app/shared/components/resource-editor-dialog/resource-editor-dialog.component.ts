@@ -32,10 +32,10 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     return this.loggerService.component('ResourceEditorDialog');
   }
 
-  // Inputs
-  @Input() show = false;
-  @Input() structureDefinition: any = null;
-  @Input() existingResource: any = null; // For editing existing resources
+  // Dialog state
+  show = signal(false);
+  structureDefinition: any = null;
+  existingResource: any = null; // For editing existing resources
 
   // Outputs
   @Output() close = new EventEmitter<void>();
@@ -94,7 +94,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.logger.info('ResourceEditorDialog initialized');
-    if (this.show && this.structureDefinition) {
+    if (this.show() && this.structureDefinition) {
       this.initializeEditor();
     }
   }
@@ -109,7 +109,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   open(structureDefinition: any, existingResource?: any) {
     this.structureDefinition = structureDefinition;
     this.existingResource = existingResource || null;
-    this.show = true;
+    this.show.set(true);
     this.initializeEditor();
   }
 
@@ -441,7 +441,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    * Close dialog
    */
   closeDialog() {
-    this.show = false;
+    this.show.set(false);
     this.resetDialog();
     this.close.emit();
   }
@@ -524,7 +524,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (!this.show) return;
+    if (!this.show()) return;
 
     // Ctrl+Alt+L - Format JSON
     if (event.ctrlKey && event.altKey && event.key === 'l') {
