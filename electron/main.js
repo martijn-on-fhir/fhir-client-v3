@@ -1,10 +1,17 @@
 const { app, BrowserWindow, session } = require('electron');
 const path = require('path');
+const log = require('electron-log');
 const { registerAuthHandlers } = require('./auth/auth-handler');
 const { registerTerminologyHandlers } = require('./terminology/terminology-handler');
 const { registerFileHandlers } = require('./file/file-handler');
 const { registerProfileHandlers } = require('./profile/profile-handler');
 const { createApplicationMenu } = require('./menu/menu-handler');
+
+// Configure electron-log
+log.transports.file.level = 'info';
+log.transports.console.level = 'debug';
+log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB
+log.info('Application starting...');
 
 let mainWindow;
 

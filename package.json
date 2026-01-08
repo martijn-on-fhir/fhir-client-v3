@@ -29,6 +29,7 @@
     "@types/prismjs": "^1.26.5",
     "axios": "^1.13.2",
     "bootstrap": "^5.3.8",
+    "electron-log": "^5.4.3",
     "electron-store": "^11.0.2",
     "fhirclient": "^2.6.3",
     "fhirpath": "^4.8.2",

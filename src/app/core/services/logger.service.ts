@@ -125,27 +125,49 @@ export class LoggerService {
   }
 
   /**
-   * Log to console (respecting development/production mode)
+   * Log using electron-log (with console fallback)
    */
   private logToConsole(level: LogLevel, ...args: any[]): void {
     const sanitized = this.sanitizeArgs(...args);
 
+    // Use electron-log if available, otherwise fall back to console
+    const electronLog = (window as any).electronAPI?.log;
+
     // In development, log everything
     // In production, only warn and error
     if (this.isDevelopment || level === 'warn' || level === 'error') {
-      switch (level) {
-        case 'debug':
-          console.debug(...sanitized);
-          break;
-        case 'info':
-          console.log(...sanitized);
-          break;
-        case 'warn':
-          console.warn(...sanitized);
-          break;
-        case 'error':
-          console.error(...sanitized);
-          break;
+      if (electronLog) {
+        // Use electron-log
+        switch (level) {
+          case 'debug':
+            electronLog.debug(...sanitized);
+            break;
+          case 'info':
+            electronLog.info(...sanitized);
+            break;
+          case 'warn':
+            electronLog.warn(...sanitized);
+            break;
+          case 'error':
+            electronLog.error(...sanitized);
+            break;
+        }
+      } else {
+        // Fallback to console (e.g., during tests or in browser)
+        switch (level) {
+          case 'debug':
+            console.debug(...sanitized);
+            break;
+          case 'info':
+            console.log(...sanitized);
+            break;
+          case 'warn':
+            console.warn(...sanitized);
+            break;
+          case 'error':
+            console.error(...sanitized);
+            break;
+        }
       }
     }
   }
