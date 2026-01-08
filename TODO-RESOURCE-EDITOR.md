@@ -65,10 +65,10 @@
   - [ ] Remove trailing commas
   - [ ] Smart Enter key behavior (comma insertion)
 
-- [ ] **Navigate Empty Values** (keyListeners.ts uit v2)
-  - [ ] Ctrl+↑ - Jump to previous empty value (`""`, `[]`, `{}`, `null`)
-  - [ ] Ctrl+↓ - Jump to next empty value
-  - [ ] Highlight empty value for easy filling
+- [x] **Navigate Empty Values** (keyListeners.ts uit v2) ✅ COMPLETED (commit 250cdd1)
+  - [x] Ctrl+↑ - Jump to previous empty value (`""`, `[]`, `{}`, `null`)
+  - [x] Ctrl+↓ - Jump to next empty value
+  - [x] ~~Highlight empty value for easy filling~~ (cursor positioned inside value instead)
 
 - [ ] **Error Handling Improvements**
   - [ ] Better error messages for invalid JSON
