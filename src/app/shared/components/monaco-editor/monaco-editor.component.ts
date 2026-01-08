@@ -383,6 +383,20 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         this.formatJson();
         return;
       }
+
+      // Ctrl + Arrow Down: Navigate to next empty value
+      if (e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.DownArrow) {
+        e.preventDefault();
+        this.navigateToNextEmptyValue();
+        return;
+      }
+
+      // Ctrl + Arrow Up: Navigate to previous empty value
+      if (e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.UpArrow) {
+        e.preventDefault();
+        this.navigateToPreviousEmptyValue();
+        return;
+      }
     });
   }
 
@@ -450,6 +464,111 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       this.editor.focus();
     } catch (error) {
       console.warn('Cannot format JSON:', error);
+    }
+  }
+
+  /**
+   * Navigate to the next empty value in the document
+   * Searches for "", [], {}, or null
+   */
+  private navigateToNextEmptyValue() {
+    if (!this.editor || !this.monaco) {
+      return;
+    }
+
+    const model = this.editor.getModel();
+    if (!model) {
+      return;
+    }
+
+    try {
+      const currentContent = this.editor.getValue();
+      const position = this.editor.getPosition();
+
+      if (!position) return;
+
+      // Get current offset in the document
+      const currentOffset = model.getOffsetAt(position);
+
+      // Search for next occurrence of empty values after current position
+      const patterns = ['""', '[]', '{}', 'null'];
+      let nextIndex = -1;
+      let cursorOffset = 1; // Default: position between quotes or brackets
+
+      for (const pattern of patterns) {
+        const index = currentContent.indexOf(pattern, currentOffset);
+        if (index !== -1 && (nextIndex === -1 || index < nextIndex)) {
+          nextIndex = index;
+          // For null, position at the start
+          cursorOffset = pattern === 'null' ? 0 : 1;
+        }
+      }
+
+      if (nextIndex !== -1) {
+        // Position cursor inside the empty value
+        const targetPosition = model.getPositionAt(nextIndex + cursorOffset);
+        this.editor.setPosition(targetPosition);
+        this.editor.revealPositionInCenter(targetPosition);
+        this.editor.focus();
+        console.log('Navigated to next empty value at offset:', nextIndex);
+      } else {
+        console.log('No more empty values found');
+      }
+    } catch (error) {
+      console.error('Error navigating to next empty value:', error);
+    }
+  }
+
+  /**
+   * Navigate to the previous empty value in the document
+   * Searches for "", [], {}, or null
+   */
+  private navigateToPreviousEmptyValue() {
+    if (!this.editor || !this.monaco) {
+      return;
+    }
+
+    const model = this.editor.getModel();
+    if (!model) {
+      return;
+    }
+
+    try {
+      const currentContent = this.editor.getValue();
+      const position = this.editor.getPosition();
+
+      if (!position) return;
+
+      // Get current offset in the document
+      const currentOffset = model.getOffsetAt(position);
+
+      // Search for previous occurrence of empty values before current position
+      const textBeforeCursor = currentContent.substring(0, currentOffset - 1);
+      const patterns = ['""', '[]', '{}', 'null'];
+      let prevIndex = -1;
+      let cursorOffset = 1; // Default: position between quotes or brackets
+
+      for (const pattern of patterns) {
+        const index = textBeforeCursor.lastIndexOf(pattern);
+        if (index !== -1 && index > prevIndex) {
+          prevIndex = index;
+          // For null, position at the start
+          cursorOffset = pattern === 'null' ? 0 : 1;
+        }
+      }
+
+      if (prevIndex !== -1) {
+        // Position cursor inside the empty value
+        const targetPosition = model.getPositionAt(prevIndex + cursorOffset);
+        this.editor.setPosition(targetPosition);
+        this.editor.revealPositionInCenter(targetPosition);
+        this.editor.focus();
+        console.log('Navigated to previous empty value at offset:', prevIndex);
+      } else {
+        console.log('No previous empty values found');
+      }
+    } catch (error) {
+      console.error('Error navigating to previous empty value:', error);
     }
   }
 }
