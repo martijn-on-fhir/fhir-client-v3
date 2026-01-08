@@ -70,6 +70,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   private themeService = inject(ThemeService);
   private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   private monaco: typeof Monaco | null = null;
+  private initInterval: any = null;
 
   isDarkMode = computed(() => this.themeService.currentTheme() === 'dark');
 
@@ -103,11 +104,18 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     if (this.monaco) {
       this.initMonaco();
     } else {
-      // Monaco not loaded yet, wait for it
-      const interval = setInterval(() => {
+      // Monaco not loaded yet, wait for it (max 10 seconds)
+      let attempts = 0;
+      this.initInterval = setInterval(() => {
+        attempts++;
         if (this.monaco) {
-          clearInterval(interval);
+          clearInterval(this.initInterval);
+          this.initInterval = null;
           this.initMonaco();
+        } else if (attempts > 100) { // 10 seconds
+          clearInterval(this.initInterval);
+          this.initInterval = null;
+          console.error('Monaco failed to load after 10 seconds');
         }
       }, 100);
     }
@@ -127,6 +135,13 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnDestroy() {
+    // Clear init interval if still running
+    if (this.initInterval) {
+      clearInterval(this.initInterval);
+      this.initInterval = null;
+    }
+
+    // Dispose editor
     if (this.editor) {
       this.editor.dispose();
       this.editor = null;

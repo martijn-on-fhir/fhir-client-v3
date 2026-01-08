@@ -13,8 +13,8 @@
             {{ isEditing() ? 'Edit' : 'Create' }} {{ resourceType() }}
           </h5>
           <div class="d-flex gap-2">
-            @if (structureDefinition) {
-              <span class="badge bg-secondary">{{ structureDefinition.title || structureDefinition.name }}</span>
+            @if (structureDefinition()) {
+              <span class="badge bg-secondary">{{ structureDefinition()!.title || structureDefinition()!.name }}</span>
             }
             <button type="button" class="btn-close" (click)="closeDialog()"></button>
           </div>

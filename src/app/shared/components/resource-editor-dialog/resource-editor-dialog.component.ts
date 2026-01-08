@@ -34,8 +34,8 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
   // Dialog state
   show = signal(false);
-  structureDefinition: any = null;
-  existingResource: any = null; // For editing existing resources
+  structureDefinition = signal<any>(null);
+  existingResource = signal<any>(null); // For editing existing resources
 
   // Outputs
   @Output() close = new EventEmitter<void>();
@@ -78,8 +78,9 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
   // Resource type
   resourceType = computed(() => {
-    if (!this.structureDefinition) return '';
-    return this.structureDefinition.type || this.structureDefinition.id || '';
+    const sd = this.structureDefinition();
+    if (!sd) return '';
+    return sd.type || sd.id || '';
   });
 
   // Is editing (vs creating)
@@ -94,7 +95,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.logger.info('ResourceEditorDialog initialized');
-    if (this.show() && this.structureDefinition) {
+    if (this.show() && this.structureDefinition()) {
       this.initializeEditor();
     }
   }
@@ -107,8 +108,8 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    * Open the dialog with a StructureDefinition (for creating new resource)
    */
   open(structureDefinition: any, existingResource?: any) {
-    this.structureDefinition = structureDefinition;
-    this.existingResource = existingResource || null;
+    this.structureDefinition.set(structureDefinition);
+    this.existingResource.set(existingResource || null);
     this.show.set(true);
     this.initializeEditor();
   }
@@ -117,6 +118,8 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    * Reset dialog state
    */
   private resetDialog() {
+    this.structureDefinition.set(null);
+    this.existingResource.set(null);
     this.editorContent.set('');
     this.requiredProperties.set([]);
     this.optionalProperties.set([]);
@@ -131,17 +134,20 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    * Initialize editor with blueprint or existing resource
    */
   private initializeEditor() {
-    if (this.existingResource) {
+    const existing = this.existingResource();
+    const sd = this.structureDefinition();
+
+    if (existing) {
       // Editing existing resource
-      this.editorContent.set(JSON.stringify(this.existingResource, null, 2));
-    } else if (this.structureDefinition) {
+      this.editorContent.set(JSON.stringify(existing, null, 2));
+    } else if (sd) {
       // Creating new resource - generate blueprint
       const blueprint = this.generateBlueprint();
       this.editorContent.set(JSON.stringify(blueprint, null, 2));
     }
 
     // Extract properties from StructureDefinition
-    if (this.structureDefinition) {
+    if (sd) {
       this.extractProperties();
     }
   }
@@ -151,7 +157,8 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   private generateBlueprint(): any {
     const resourceType = this.resourceType();
-    const profileUrl = this.structureDefinition.url;
+    const sd = this.structureDefinition();
+    const profileUrl = sd?.url;
 
     return {
       resourceType,
@@ -165,11 +172,12 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    * Extract required and optional properties from StructureDefinition
    */
   private extractProperties() {
-    if (!this.structureDefinition?.snapshot?.element) {
+    const sd = this.structureDefinition();
+    if (!sd?.snapshot?.element) {
       return;
     }
 
-    const elements = this.structureDefinition.snapshot.element;
+    const elements = sd.snapshot.element;
     const required: ElementProperty[] = [];
     const optional: ElementProperty[] = [];
 
