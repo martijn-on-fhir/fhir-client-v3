@@ -15,7 +15,8 @@ import {
   effect
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import * as monaco from 'monaco-editor';
+import loader from '@monaco-editor/loader';
+import type * as Monaco from 'monaco-editor';
 import { ThemeService } from '../../../core/services/theme.service';
 
 /**
@@ -67,7 +68,8 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   @Output() valueChange = new EventEmitter<string>();
 
   private themeService = inject(ThemeService);
-  private editor: monaco.editor.IStandaloneCodeEditor | null = null;
+  private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
+  private monaco: typeof Monaco | null = null;
 
   isDarkMode = computed(() => this.themeService.currentTheme() === 'dark');
 
@@ -75,44 +77,40 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     // React to theme changes
     effect(() => {
       const theme = this.isDarkMode() ? 'vs-dark' : 'vs';
-      if (this.editor) {
-        monaco.editor.setTheme(theme);
+      if (this.editor && this.monaco) {
+        this.monaco.editor.setTheme(theme);
       }
     });
   }
 
-  ngOnInit() {
-    // TODO: Enable Monaco workers for advanced features (color decorators, format on type, etc.)
-    // Current Issues:
-    // 1. CSP: Workers need 'worker-src blob: data:' and 'script-src unsafe-eval'
-    // 2. Module Workers: Monaco uses importScripts() which fails with module workers
-    // 3. Asset Serving: Workers need proper bundling in angular.json or CDN loading
-    //
-    // Possible Solutions:
-    // - Configure Monaco worker assets in angular.json
-    // - Use @monaco-editor/react wrapper like v2 (C:\projects\fhir-client-v2\src\components\resource-editor\ResourceEditorDialog.tsx)
-    // - Properly configure getWorkerUrl to serve worker files
-    //
-    // For now: Stub worker prevents postMessage errors while keeping editor functional for read-only JSON
-    (self as any).MonacoEnvironment = {
-      getWorker: function () {
-        // Return a stub worker object instead of null
-        return {
-          postMessage: () => {},
-          terminate: () => {},
-          addEventListener: () => {},
-          removeEventListener: () => {},
-          dispatchEvent: () => true,
-          onerror: null,
-          onmessage: null,
-          onmessageerror: null
-        };
+  async ngOnInit() {
+    // Configure Monaco to load from CDN
+    loader.config({
+      paths: {
+        vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs'
       }
-    };
+    });
+
+    try {
+      this.monaco = await loader.init();
+    } catch (error) {
+      console.error('Monaco failed to load:', error);
+    }
   }
 
   ngAfterViewInit() {
-    this.initMonaco();
+    // Wait for Monaco to load, then initialize editor
+    if (this.monaco) {
+      this.initMonaco();
+    } else {
+      // Monaco not loaded yet, wait for it
+      const interval = setInterval(() => {
+        if (this.monaco) {
+          clearInterval(interval);
+          this.initMonaco();
+        }
+      }, 100);
+    }
   }
 
   ngOnChanges(changes: SimpleChanges) {
@@ -135,14 +133,14 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     }
   }
 
-  private initMonaco() {
-    if (!this.editorContainer) {
+  private async initMonaco() {
+    if (!this.editorContainer || !this.monaco) {
       return;
     }
 
     const currentTheme = this.isDarkMode() ? 'vs-dark' : 'vs';
 
-    this.editor = monaco.editor.create(this.editorContainer.nativeElement, {
+    this.editor = this.monaco.editor.create(this.editorContainer.nativeElement, {
       value: this.value,
       language: this.language,
       theme: currentTheme,
@@ -165,11 +163,11 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         verticalScrollbarSize: 10,
         horizontalScrollbarSize: 10
       },
-      // Disable all features that require workers
-      colorDecorators: false,
-      links: false,
-      formatOnPaste: false,
-      formatOnType: false
+      // Enable all features since we're loading from CDN with workers
+      colorDecorators: true,
+      links: true,
+      formatOnPaste: true,
+      formatOnType: true
     });
 
     // Listen for content changes
