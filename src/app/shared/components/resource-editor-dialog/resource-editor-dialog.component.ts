@@ -93,6 +93,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   validationResult = signal<any>(null);
   validationLoading = signal(false);
   validationError = signal<string | null>(null);
+  showValidationResults = signal(false);
 
   // Save state
   saveLoading = signal(false);
@@ -101,8 +102,9 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   // Autocomplete state
   autocompleteEnabled = signal(true);
 
-  // Keyboard shortcuts help
-  showKeyboardShortcuts = signal(false);
+  // StructureDefinition info
+  sdDescription = signal('');
+  sdPurpose = signal('');
 
   // Resource type
   resourceType = computed(() => {
@@ -167,6 +169,8 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   open(structureDefinition: any, existingResource?: any) {
     this.structureDefinition.set(structureDefinition);
     this.existingResource.set(existingResource || null);
+    this.sdDescription.set(structureDefinition?.description || '');
+    this.sdPurpose.set(structureDefinition?.purpose || '');
     this.show.set(true);
     this.initializeEditor();
   }
@@ -182,7 +186,10 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     this.optionalProperties.set([]);
     this.validationResult.set(null);
     this.validationError.set(null);
+    this.showValidationResults.set(false);
     this.saveError.set(null);
+    this.sdDescription.set('');
+    this.sdPurpose.set('');
     this.leftWidth.set(25);
     this.centerWidth.set(50);
   }
@@ -495,6 +502,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     this.validationLoading.set(true);
     this.validationError.set(null);
     this.validationResult.set(null);
+    this.showValidationResults.set(true);
 
     try {
       const resource = JSON.parse(this.editorContent());
@@ -588,6 +596,33 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     } catch (err) {
       this.logger.error('Failed to format JSON:', err);
     }
+  }
+
+  /**
+   * Copy JSON to clipboard
+   */
+  async copyJson() {
+    try {
+      await navigator.clipboard.writeText(this.editorContent());
+      this.logger.info('JSON copied to clipboard');
+    } catch (err) {
+      this.logger.error('Failed to copy JSON to clipboard', err);
+    }
+  }
+
+  /**
+   * Open find dialog in Monaco editor
+   */
+  findInJson() {
+    // Monaco's find is triggered by Ctrl+F, we'll dispatch that event
+    const event = new KeyboardEvent('keydown', {
+      key: 'f',
+      code: 'KeyF',
+      ctrlKey: true,
+      bubbles: true
+    });
+    document.dispatchEvent(event);
+    this.logger.debug('Find triggered in editor');
   }
 
   /**
@@ -761,13 +796,6 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.logger.error('Failed to insert reference:', error);
     }
-  }
-
-  /**
-   * Toggle keyboard shortcuts help modal
-   */
-  toggleKeyboardShortcuts() {
-    this.showKeyboardShortcuts.set(!this.showKeyboardShortcuts());
   }
 
   /**

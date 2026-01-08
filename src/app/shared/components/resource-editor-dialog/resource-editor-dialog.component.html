@@ -13,9 +13,6 @@
             {{ isEditing() ? 'Edit' : 'Create' }} {{ resourceType() }}
           </h5>
           <div class="d-flex gap-2">
-            @if (structureDefinition()) {
-              <span class="badge bg-secondary">{{ structureDefinition()!.title || structureDefinition()!.name }}</span>
-            }
             <button type="button" class="btn-close" (click)="closeDialog()"></button>
           </div>
         </div>
@@ -26,23 +23,31 @@
             <!-- Left Panel: Properties Browser -->
             <div [style.width.%]="leftWidth()" class="panel properties-panel">
               <div class="panel-header">
-                <h6 class="mb-0">
-                  <i class="fas fa-list me-2"></i>Properties
-                </h6>
+                <div class="row">
+                  <div class="12">
+                    <h6 class="mb-0">
+                      <i class="fas fa-list me-2"></i>Properties
+                    </h6>
+                  </div>
+                </div>
+
+                <div class="row">
+                  <div class="col-auto">
+                    <!-- Search/Filter Input -->
+                    <input
+                      type="text"
+                      class="form-control form-control-sm"
+                      placeholder="Search properties..."
+                      style="max-width: 200px;"
+                      [value]="propertySearchQuery()"
+                      (input)="propertySearchQuery.set($any($event.target).value)"
+                    />
+                  </div>
+                </div>
               </div>
               <div class="panel-body">
-                <!-- Search/Filter Input -->
-                <div class="mb-3">
-                  <input
-                    type="text"
-                    class="form-control form-control-sm"
-                    placeholder="Search properties..."
-                    [value]="propertySearchQuery()"
-                    (input)="propertySearchQuery.set($any($event.target).value)"
-                  />
-                </div>
                 <!-- Required Properties -->
-                <h6 class="properties-header mb-3 mt-4 ms-2">Required Properties</h6>
+                <h6 class="properties-header mb-3 mt-2 ms-2">Required Properties</h6>
                 @if (filteredRequiredProperties().length === 0) {
                   <p class="text-muted small">
                     @if (propertySearchQuery()) {
@@ -185,18 +190,29 @@
                 <h6 class="mb-0">
                   <i class="fas fa-code me-2"></i>JSON Editor
                 </h6>
-                <div class="d-flex gap-2">
+                <div class="d-flex gap-2 align-items-center">
+                  <!-- Find/Search button -->
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="findInJson()"
+                    title="Find (Ctrl+F)">
+                    <i class="fas fa-search"></i>
+                  </button>
+
+                  <!-- Format JSON button -->
                   <button
                     class="btn btn-sm btn-outline-secondary"
                     (click)="formatJson()"
                     title="Format JSON (Ctrl+Alt+L)">
-                    <i class="fas fa-indent me-1"></i>Format
+                    <i class="fas fa-indent"></i>
                   </button>
+
+                  <!-- Copy button -->
                   <button
-                    class="btn btn-sm btn-outline-info"
-                    (click)="toggleKeyboardShortcuts()"
-                    title="Keyboard Shortcuts">
-                    <i class="fas fa-keyboard"></i>
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="copyJson()"
+                    title="Copy to Clipboard">
+                    <i class="fas fa-copy"></i>
                   </button>
                 </div>
               </div>
@@ -222,109 +238,190 @@
             <div [style.width.%]="rightWidth()" class="panel validation-panel">
               <div class="panel-header">
                 <h6 class="mb-0">
-                  <i class="fas fa-check-circle me-2"></i>Validation
+                  <i class="fas fa-info-circle me-2"></i>Information
                 </h6>
-                <button
-                  class="btn btn-sm btn-outline-primary"
-                  (click)="validateResource()"
-                  [disabled]="validationLoading()">
-                  @if (validationLoading()) {
-                    <span class="spinner-border spinner-border-sm me-1"></span>
-                    Validating...
-                  } @else {
-                    <i class="fas fa-play me-1"></i>Validate
-                  }
-                </button>
               </div>
-              <div class="panel-body">
-                <!-- Validation Error -->
-                @if (validationError()) {
-                  <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    {{ validationError() }}
-                  </div>
-                }
-
-                <!-- Validation Loading -->
-                @if (validationLoading()) {
-                  <div class="text-center p-3">
-                    <div class="spinner-border text-primary"></div>
-                  </div>
-                }
-
-                <!-- Validation Results -->
-                @if (validationResult() && !validationLoading()) {
-                  <div class="validation-results">
-                    <!-- Errors -->
-                    @if (getIssuesBySeverity('error'); as errors) {
-                      @if (errors.length > 0) {
-                        <div class="issue-section">
-                          <h6 class="issue-section-header text-danger">
-                            <i class="fas fa-times-circle me-2"></i>
-                            Errors ({{ errors.length }})
-                          </h6>
-                          @for (issue of errors; track $index) {
-                            <div class="issue-item alert alert-danger">
-                              <div class="issue-location">{{ issue.location?.[0] || 'Unknown' }}</div>
-                              <div class="issue-message">{{ issue.diagnostics || issue.details?.text }}</div>
-                            </div>
-                          }
-                        </div>
-                      }
-                    }
-
-                    <!-- Warnings -->
-                    @if (getIssuesBySeverity('warning'); as warnings) {
-                      @if (warnings.length > 0) {
-                        <div class="issue-section">
-                          <h6 class="issue-section-header text-warning">
-                            <i class="fas fa-exclamation-triangle me-2"></i>
-                            Warnings ({{ warnings.length }})
-                          </h6>
-                          @for (issue of warnings; track $index) {
-                            <div class="issue-item alert alert-warning">
-                              <div class="issue-location">{{ issue.location?.[0] || 'Unknown' }}</div>
-                              <div class="issue-message">{{ issue.diagnostics || issue.details?.text }}</div>
-                            </div>
-                          }
-                        </div>
-                      }
-                    }
-
-                    <!-- Information -->
-                    @if (getIssuesBySeverity('information'); as info) {
-                      @if (info.length > 0) {
-                        <div class="issue-section">
-                          <h6 class="issue-section-header text-info">
-                            <i class="fas fa-info-circle me-2"></i>
-                            Information ({{ info.length }})
-                          </h6>
-                          @for (issue of info; track $index) {
-                            <div class="issue-item alert alert-info">
-                              <div class="issue-location">{{ issue.location?.[0] || 'Unknown' }}</div>
-                              <div class="issue-message">{{ issue.diagnostics || issue.details?.text }}</div>
-                            </div>
-                          }
-                        </div>
-                      }
-                    }
-
-                    <!-- Success (no issues) -->
-                    @if (validationResult().issue?.length === 0) {
-                      <div class="alert alert-success">
-                        <i class="fas fa-check-circle me-2"></i>
-                        Resource is valid!
+              <div class="panel-body p-2">
+                <!-- Info Cards - Only show when not showing validation results -->
+                @if (!showValidationResults()) {
+                  <!-- Description Card -->
+                  @if (sdDescription()) {
+                    <div class="card mb-3">
+                      <div class="card-body">
+                        <h6 class="card-title">
+                          <i class="fas fa-align-left me-2"></i>Description
+                        </h6>
+                        <p class="card-text small">{{ sdDescription() }}</p>
                       </div>
-                    }
+                    </div>
+                  }
+
+                  <!-- Purpose Card -->
+                  @if (sdPurpose()) {
+                    <div class="card mb-3">
+                      <div class="card-body">
+                        <h6 class="card-title">
+                          <i class="fas fa-bullseye me-2"></i>Purpose
+                        </h6>
+                        <p class="card-text small">{{ sdPurpose() }}</p>
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Keyboard Shortcuts Card -->
+                  <div class="card mb-3">
+                    <div class="card-body">
+                      <h6 class="card-title">
+                        <i class="fas fa-keyboard me-2"></i>Keyboard Shortcuts
+                      </h6>
+                      <table class="table table-sm small mb-0">
+                        <tbody>
+                        <tr>
+                          <td style="width: 50%"><kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>L</kbd></td>
+                          <td>Format JSON</td>
+                        </tr>
+                        <tr>
+                          <td><kbd>Alt</kbd>+<kbd>Enter</kbd></td>
+                          <td>Reference Selector</td>
+                        </tr>
+                        <tr>
+                          <td><kbd>Ctrl</kbd>+<kbd>↓</kbd></td>
+                          <td>Next empty value</td>
+                        </tr>
+                        <tr>
+                          <td><kbd>Ctrl</kbd>+<kbd>↑</kbd></td>
+                          <td>Previous empty value</td>
+                        </tr>
+                        <tr>
+                          <td><kbd>Ctrl</kbd>+<kbd>F</kbd></td>
+                          <td>Find in editor</td>
+                        </tr>
+                        <tr>
+                          <td><kbd>Escape</kbd></td>
+                          <td>Close dialog</td>
+                        </tr>
+                        </tbody>
+                      </table>
+                    </div>
                   </div>
                 }
 
-                <!-- No validation yet -->
-                @if (!validationResult() && !validationLoading() && !validationError()) {
-                  <div class="text-center text-muted p-3">
-                    <i class="fas fa-info-circle fa-2x mb-2"></i>
-                    <p>Click Validate to check your resource</p>
-                  </div>
+                <!-- Validation Results - Only show when validation has been triggered -->
+                @if (showValidationResults()) {
+                  <!-- Validation Error -->
+                  @if (validationError()) {
+                    <div class="alert alert-danger">
+                      <i class="fas fa-exclamation-triangle me-2"></i>
+                      {{ validationError() }}
+                    </div>
+                  }
+
+                  <!-- Validation Loading -->
+                  @if (validationLoading()) {
+                    <div class="text-center p-3">
+                      <div class="spinner-border text-primary"></div>
+                    </div>
+                  }
+
+                  <!-- Validation Results -->
+                  @if (validationResult() && !validationLoading()) {
+                    <div class="validation-results">
+                      <!-- Errors -->
+                      @if (getIssuesBySeverity('error'); as errors) {
+                        @if (errors.length > 0) {
+                          <div class="issue-section">
+                            <h6 class="issue-section-header text-danger">
+                              <i class="fas fa-times-circle me-2"></i>
+                              Errors ({{ errors.length }})
+                            </h6>
+                            @for (issue of errors; track $index) {
+                              <div class="card mb-2">
+                                <div class="card-body p-2">
+                                  <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-danger">
+                                      <i class="fas fa-times-circle"></i>
+                                    </span>
+                                    <div class="flex-grow-1">
+                                      <div class="issue-location small text-muted mb-1">{{ issue.location?.[0] || 'Unknown' }}</div>
+                                      <div class="issue-message small">{{ issue.diagnostics || issue.details?.text }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      }
+
+                      <!-- Warnings -->
+                      @if (getIssuesBySeverity('warning'); as warnings) {
+                        @if (warnings.length > 0) {
+                          <div class="issue-section">
+                            <h6 class="issue-section-header text-warning">
+                              <i class="fas fa-exclamation-triangle me-2"></i>
+                              Warnings ({{ warnings.length }})
+                            </h6>
+                            @for (issue of warnings; track $index) {
+                              <div class="card mb-2">
+                                <div class="card-body p-2">
+                                  <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-warning text-dark">
+                                      <i class="fas fa-exclamation-triangle"></i>
+                                    </span>
+                                    <div class="flex-grow-1">
+                                      <div class="issue-location small text-muted mb-1">{{ issue.location?.[0] || 'Unknown' }}</div>
+                                      <div class="issue-message small">{{ issue.diagnostics || issue.details?.text }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      }
+
+                      <!-- Information -->
+                      @if (getIssuesBySeverity('information'); as info) {
+                        @if (info.length > 0) {
+                          <div class="issue-section">
+                            <h6 class="issue-section-header text-info">
+                              <i class="fas fa-info-circle me-2"></i>
+                              Information ({{ info.length }})
+                            </h6>
+                            @for (issue of info; track $index) {
+                              <div class="card mb-2">
+                                <div class="card-body p-2">
+                                  <div class="d-flex align-items-start gap-2">
+                                    <span class="badge bg-info text-dark">
+                                      <i class="fas fa-info-circle"></i>
+                                    </span>
+                                    <div class="flex-grow-1">
+                                      <div class="issue-location small text-muted mb-1">{{ issue.location?.[0] || 'Unknown' }}</div>
+                                      <div class="issue-message small">{{ issue.diagnostics || issue.details?.text }}</div>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            }
+                          </div>
+                        }
+                      }
+
+                      <!-- Success (no issues) -->
+                      @if (validationResult().issue?.length === 0) {
+                        <div class="card mb-2">
+                          <div class="card-body p-2">
+                            <div class="d-flex align-items-center gap-2">
+                              <span class="badge bg-success">
+                                <i class="fas fa-check-circle"></i> Success
+                              </span>
+                              <span class="small">Resource is valid!</span>
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
                 }
               </div>
             </div>
@@ -341,14 +438,18 @@
             </div>
           }
 
-          <button type="button" class="btn btn-secondary" (click)="closeDialog()">
-            <i class="fas fa-times me-2"></i>Cancel
+
+          <button type="button" class="btn btn-primary" (click)="validateResource()"
+            [disabled]="validationLoading()">
+            @if (validationLoading()) {
+              <span class="spinner-border spinner-border-sm me-2"></span>
+              Validating...
+            } @else {
+              <i class="fas fa-check-circle me-2"></i>
+              Validate
+            }
           </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="saveResource()"
-            [disabled]="saveLoading()">
+          <button type="button" class="btn btn-success" (click)="saveResource()" [disabled]="saveLoading()">
             @if (saveLoading()) {
               <span class="spinner-border spinner-border-sm me-2"></span>
               {{ isEditing() ? 'Updating...' : 'Creating...' }}
@@ -356,6 +457,9 @@
               <i class="fas fa-save me-2"></i>
               {{ isEditing() ? 'Update' : 'Create' }}
             }
+          </button>
+          <button type="button" class="btn btn-danger" (click)="closeDialog()">
+            <i class="fas fa-times me-2"></i>Cancel
           </button>
         </div>
       </div>
@@ -366,79 +470,4 @@
   <app-reference-selector-dialog
     (select)="handleReferenceSelect($event)">
   </app-reference-selector-dialog>
-
-  <!-- Keyboard Shortcuts Help Modal -->
-  @if (showKeyboardShortcuts()) {
-    <div class="modal-backdrop d-block" style="background: rgba(0,0,0,0.5); z-index: 1070"></div>
-    <div class="modal d-block" style="z-index: 1071" tabindex="-1">
-      <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-keyboard me-2"></i>
-              Keyboard Shortcuts
-            </h5>
-            <button type="button" class="btn-close" (click)="toggleKeyboardShortcuts()"></button>
-          </div>
-          <div class="modal-body">
-            <div class="table-responsive">
-              <table class="table table-sm">
-                <thead>
-                  <tr>
-                    <th style="width: 40%">Shortcut</th>
-                    <th>Description</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd></td>
-                    <td>Format JSON</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>Alt</kbd> + <kbd>Enter</kbd></td>
-                    <td>Open Reference Selector (on Reference properties)</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>↓</kbd></td>
-                    <td>Navigate to next empty value</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>Ctrl</kbd> + <kbd>↑</kbd></td>
-                    <td>Navigate to previous empty value</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>"</kbd></td>
-                    <td>Trigger property name autocomplete</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>Enter</kbd></td>
-                    <td>Smart comma insertion after brackets</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>,</kbd></td>
-                    <td>Auto-format JSON (if valid)</td>
-                  </tr>
-                  <tr>
-                    <td><kbd>Escape</kbd></td>
-                    <td>Close dialog</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="alert alert-info mt-3 mb-0">
-              <i class="fas fa-lightbulb me-2"></i>
-              <strong>Tip:</strong> Use the Properties panel on the left to quickly add fields,
-              then use Ctrl+↓ to jump through empty values and fill them in!
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="toggleKeyboardShortcuts()">
-              Close
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
 }

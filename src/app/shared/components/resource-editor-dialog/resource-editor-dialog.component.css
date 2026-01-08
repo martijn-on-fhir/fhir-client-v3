@@ -36,15 +36,16 @@
 }
 
 .modal-header {
-  padding: 1rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--bs-border-color);
+  background-color: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
 }
 .modal-header .modal-title {
-  font-size: 1.25rem;
+  font-size: 1rem;
   font-weight: 600;
   margin: 0;
   color: var(--bs-body-color);
@@ -75,8 +76,9 @@
 }
 
 .modal-footer {
-  padding: 1rem 1.5rem;
+  padding: 0.5rem 1rem;
   border-top: 1px solid var(--bs-border-color);
+  background-color: #f8f9fa;
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
@@ -103,19 +105,19 @@
   overflow: hidden;
 }
 .panel .panel-header {
-  padding: 0.75rem 1rem;
+  padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--bs-border-color);
-  background: var(--bs-tertiary-bg);
+  background-color: #f8f9fa;
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-shrink: 0;
+  height: 42px;
 }
 .panel .panel-header h6 {
-  display: flex;
-  align-items: center;
   color: var(--bs-body-color);
   font-weight: 600;
+  font-size: 0.9rem;
 }
 .panel .panel-header h6 i {
   color: var(--bs-primary);
@@ -124,13 +126,24 @@
   flex: 1;
   overflow: auto;
   min-height: 0;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+.panel .panel-body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 .properties-panel {
   border-right: 1px solid var(--bs-border-color);
+  background-color: #f8f9fa;
 }
 .properties-panel .panel-body {
   padding: 1rem;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+.properties-panel .panel-body::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 .properties-panel .properties-header {
   padding: 0;
@@ -143,20 +156,28 @@
 }
 .properties-panel .accordion .accordion-item {
   border: 1px solid var(--bs-border-color);
-  margin-bottom: 0.5rem;
-  border-radius: 0.375rem;
+  margin-bottom: 0;
+  border-radius: 0;
   overflow: hidden;
 }
+.properties-panel .accordion .accordion-item:first-child {
+  border-top-left-radius: 0.375rem;
+  border-top-right-radius: 0.375rem;
+}
 .properties-panel .accordion .accordion-item:last-child {
-  margin-bottom: 0;
+  border-bottom-left-radius: 0.375rem;
+  border-bottom-right-radius: 0.375rem;
+}
+.properties-panel .accordion .accordion-item + .accordion-item {
+  border-top: none;
 }
 .properties-panel .accordion .accordion-button {
   font-size: 0.9rem;
   padding: 0.75rem 1rem;
 }
 .properties-panel .accordion .accordion-button:not(.collapsed) {
-  background-color: var(--bs-tertiary-bg);
-  color: var(--bs-body-color);
+  background-color: #cfe2ff;
+  color: #084298;
 }
 .properties-panel .accordion .accordion-button:focus {
   box-shadow: none;
@@ -179,6 +200,7 @@
 
 .validation-panel {
   border-left: 1px solid var(--bs-border-color);
+  background-color: #f8f9fa;
 }
 .validation-panel .validation-results .issue-section {
   margin-bottom: 1.5rem;
@@ -190,26 +212,41 @@
   font-size: 0.875rem;
   font-weight: 600;
   margin-bottom: 0.75rem;
-  padding: 0.5rem 1rem;
+  padding: 0.5rem 0.75rem;
   background: var(--bs-tertiary-bg);
   border-radius: 4px;
   display: flex;
   align-items: center;
 }
-.validation-panel .validation-results .issue-section .issue-item {
-  margin-bottom: 0.5rem;
-  padding: 0.75rem;
-  font-size: 0.875rem;
+.validation-panel .validation-results .issue-section .card {
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.375rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  transition: box-shadow 0.2s ease;
 }
-.validation-panel .validation-results .issue-section .issue-item .issue-location {
+.validation-panel .validation-results .issue-section .card:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+.validation-panel .validation-results .issue-section .card .card-body .badge {
+  font-size: 0.7rem;
+  padding: 0.35rem 0.5rem;
+  white-space: nowrap;
+  align-self: flex-start;
   font-weight: 600;
-  margin-bottom: 0.25rem;
-  font-family: monospace;
-  font-size: 0.75rem;
 }
-.validation-panel .validation-results .issue-section .issue-item .issue-message {
+.validation-panel .validation-results .issue-section .card .card-body .badge i {
+  font-size: 0.65rem;
+}
+.validation-panel .validation-results .issue-section .card .card-body .issue-location {
+  font-weight: 600;
+  font-family: "Courier New", Courier, monospace;
+  font-size: 0.75rem;
+  color: var(--bs-secondary-color);
+}
+.validation-panel .validation-results .issue-section .card .card-body .issue-message {
   color: var(--bs-body-color);
-  line-height: 1.4;
+  line-height: 1.5;
+  font-size: 0.875rem;
 }
 
 div[style*="cursor: col-resize"] {
