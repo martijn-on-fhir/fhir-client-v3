@@ -338,6 +338,37 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Check if property is a Reference type
+   */
+  isReferenceType(property: ElementProperty): boolean {
+    const element = property.element;
+    if (!element?.type || element.type.length === 0) {
+      return false;
+    }
+    return element.type.some((t: any) => t.code === 'Reference');
+  }
+
+  /**
+   * Get allowed reference types for a Reference property
+   */
+  getAllowedReferences(property: ElementProperty): string {
+    const element = property.element;
+    if (!element?.type) {
+      return '';
+    }
+
+    const referenceTypes = element.type
+      .filter((t: any) => t.code === 'Reference')
+      .flatMap((t: any) => t.targetProfile || [])
+      .map((profileUrl: string) => {
+        // Extract resource type from URL (e.g., "http://hl7.org/fhir/StructureDefinition/Patient" -> "Patient")
+        return profileUrl.split('/').pop() || profileUrl;
+      });
+
+    return referenceTypes.join(', ');
+  }
+
+  /**
    * Add property to editor
    */
   addProperty(property: ElementProperty) {

@@ -42,94 +42,142 @@
                   />
                 </div>
                 <!-- Required Properties -->
-                <h6 class="properties-header">Required properties</h6>
-                <div class="property-section p-2">
-                  <div class="property-section-body">
-                    @for (prop of filteredRequiredProperties(); track prop.path) {
-                      <div class="property-item" [class.clickable]="true" (click)="jumpToProperty(prop.name)">
-                        <div class="property-info">
-                          <div class="property-name">
+                <h6 class="properties-header">Required Properties</h6>
+                @if (filteredRequiredProperties().length === 0) {
+                  <p class="text-muted small px-2">
+                    @if (propertySearchQuery()) {
+                      No matching required properties
+                    } @else {
+                      No required properties
+                    }
+                  </p>
+                } @else {
+                  <div class="accordion" id="requiredPropertiesAccordion">
+                    @for (prop of filteredRequiredProperties(); track prop.path; let i = $index) {
+                      <div class="accordion-item">
+                        <h2 class="accordion-header">
+                          <button
+                            class="accordion-button"
+                            [class.collapsed]="i !== 0"
+                            type="button"
+                            [attr.data-bs-toggle]="'collapse'"
+                            [attr.data-bs-target]="'#requiredCollapse' + i"
+                            [attr.aria-expanded]="i === 0"
+                            [attr.aria-controls]="'requiredCollapse' + i">
+                            <i class="far fa-file me-2"></i>
                             {{ prop.name }}
-                            @if (prop.isArray) {
-                              <span class="text-muted">[]</span>
+                          </button>
+                        </h2>
+                        <div
+                          [id]="'requiredCollapse' + i"
+                          class="accordion-collapse collapse"
+                          [class.show]="i === 0"
+                          [attr.data-bs-parent]="'#requiredPropertiesAccordion'">
+                          <div class="accordion-body">
+                            @if (prop.short) {
+                              <p class="small mb-2"><strong>{{ prop.short }}</strong></p>
                             }
-                            <span [class]="getCardinalityClass(prop)" class="ms-1 small">
-                              {{ getCardinality(prop) }}
-                            </span>
-                            @if (getBindingStrength(prop); as binding) {
-                              <span [class]="getBindingStrengthClass(binding)" class="ms-1 small" [title]="getValueSetUrl(prop) || 'Bound to value set'">
-                                {{ binding }}
-                              </span>
+                            @if (prop.definition) {
+                              <p class="small text-muted mb-2">{{ prop.definition }}</p>
                             }
+                            @if (!prop.short && !prop.definition) {
+                              <p class="small text-muted mb-2">No description available</p>
+                            }
+
+                            <!-- Display allowed reference types if this is a Reference property -->
+                            @if (isReferenceType(prop)) {
+                              <div class="mb-2">
+                                <span class="small text-muted">
+                                  <strong>Allowed References:</strong><br/>
+                                  {{ getAllowedReferences(prop) }}
+                                </span>
+                              </div>
+                            }
+
+                            <div class="mt-2 d-flex align-items-center justify-content-between">
+                              <span class="badge bg-secondary">{{ getCardinality(prop) }}</span>
+                              <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                style="padding: 0.125rem 0.375rem; font-size: 0.75rem"
+                                (click)="addProperty(prop)">
+                                <i class="fas fa-plus"></i>
+                              </button>
+                            </div>
                           </div>
-                          <div class="property-type">{{ prop.type }}</div>
-                          @if (prop.short) {
-                            <div class="property-description">{{ prop.short }}</div>
-                          }
                         </div>
-                        <button
-                          class="btn btn-sm btn-outline-primary"
-                          (click)="addProperty(prop); $event.stopPropagation()"
-                          title="Add property">
-                          <i class="fas fa-plus"></i>
-                        </button>
-                      </div>
-                    } @empty {
-                      <div class="text-muted small p-2">
-                        @if (propertySearchQuery()) {
-                          No matching required properties
-                        } @else {
-                          No required properties
-                        }
                       </div>
                     }
                   </div>
-                </div>
+                }
 
                 <!-- Optional Properties -->
-                <h6 class="properties-header">Optional properties</h6>
-                <div class="property-section">
-                  <div class="property-section-body">
-                    @for (prop of filteredOptionalProperties(); track prop.path) {
-                      <div class="property-item" [class.clickable]="true" (click)="jumpToProperty(prop.name)">
-                        <div class="property-info">
-                          <div class="property-name">
+                <h6 class="properties-header">Optional Properties</h6>
+                @if (filteredOptionalProperties().length === 0) {
+                  <p class="text-muted small px-2">
+                    @if (propertySearchQuery()) {
+                      No matching optional properties
+                    } @else {
+                      No optional properties
+                    }
+                  </p>
+                } @else {
+                  <div class="accordion" id="optionalPropertiesAccordion">
+                    @for (prop of filteredOptionalProperties(); track prop.path; let i = $index) {
+                      <div class="accordion-item">
+                        <h2 class="accordion-header">
+                          <button
+                            class="accordion-button collapsed"
+                            type="button"
+                            [attr.data-bs-toggle]="'collapse'"
+                            [attr.data-bs-target]="'#optionalCollapse' + i"
+                            [attr.aria-expanded]="false"
+                            [attr.aria-controls]="'optionalCollapse' + i">
+                            <i class="far fa-file me-2"></i>
                             {{ prop.name }}
-                            @if (prop.isArray) {
-                              <span class="text-muted">[]</span>
+                          </button>
+                        </h2>
+                        <div
+                          [id]="'optionalCollapse' + i"
+                          class="accordion-collapse collapse"
+                          [attr.data-bs-parent]="'#optionalPropertiesAccordion'">
+                          <div class="accordion-body">
+                            @if (prop.short) {
+                              <p class="small mb-2"><strong>{{ prop.short }}</strong></p>
                             }
-                            <span [class]="getCardinalityClass(prop)" class="ms-1 small">
-                              {{ getCardinality(prop) }}
-                            </span>
-                            @if (getBindingStrength(prop); as binding) {
-                              <span [class]="getBindingStrengthClass(binding)" class="ms-1 small" [title]="getValueSetUrl(prop) || 'Bound to value set'">
-                                {{ binding }}
-                              </span>
+                            @if (prop.definition) {
+                              <p class="small text-muted mb-2">{{ prop.definition }}</p>
                             }
+                            @if (!prop.short && !prop.definition) {
+                              <p class="small text-muted mb-2">No description available</p>
+                            }
+
+                            <!-- Display allowed reference types if this is a Reference property -->
+                            @if (isReferenceType(prop)) {
+                              <div class="mb-2">
+                                <span class="small text-muted">
+                                  <strong>Allowed References:</strong><br/>
+                                  {{ getAllowedReferences(prop) }}
+                                </span>
+                              </div>
+                            }
+
+                            <div class="mt-2 d-flex align-items-center justify-content-between">
+                              <span class="badge bg-secondary">{{ getCardinality(prop) }}</span>
+                              <button
+                                type="button"
+                                class="btn btn-sm btn-outline-secondary"
+                                style="padding: 0.125rem 0.375rem; font-size: 0.75rem"
+                                (click)="addProperty(prop)">
+                                <i class="fas fa-plus"></i>
+                              </button>
+                            </div>
                           </div>
-                          <div class="property-type">{{ prop.type }}</div>
-                          @if (prop.short) {
-                            <div class="property-description">{{ prop.short }}</div>
-                          }
                         </div>
-                        <button
-                          class="btn btn-sm btn-outline-primary"
-                          (click)="addProperty(prop); $event.stopPropagation()"
-                          title="Add property">
-                          <i class="fas fa-plus"></i>
-                        </button>
-                      </div>
-                    } @empty {
-                      <div class="text-muted small p-2">
-                        @if (propertySearchQuery()) {
-                          No matching optional properties
-                        } @else {
-                          No optional properties
-                        }
                       </div>
                     }
                   </div>
-                </div>
+                }
               </div>
             </div>
 
