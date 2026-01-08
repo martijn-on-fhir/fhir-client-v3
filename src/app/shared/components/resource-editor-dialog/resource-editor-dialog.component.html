@@ -138,7 +138,8 @@
                   (valueChange)="editorContent.set($event)"
                   [language]="'json'"
                   [readOnly]="false"
-                  [autocompleteConfig]="autocompleteConfig()">
+                  [autocompleteConfig]="autocompleteConfig()"
+                  (altEnterPressed)="handleAltEnter($event)">
                 </app-monaco-editor>
               </div>
             </div>
@@ -292,4 +293,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Reference Selector Dialog -->
+  <app-reference-selector-dialog
+    (select)="handleReferenceSelect($event)">
+  </app-reference-selector-dialog>
 }

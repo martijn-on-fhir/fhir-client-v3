@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, signal, computed, HostListener, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, signal, computed, HostListener, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MonacoEditorComponent, AutocompleteConfig } from '../monaco-editor/monaco-editor.component';
+import { ReferenceSelectorDialogComponent } from '../reference-selector-dialog/reference-selector-dialog.component';
 import { FhirService } from '../../../core/services/fhir.service';
 import { LoggerService } from '../../../core/services/logger.service';
 import { FHIR_TEMPLATES } from '../../../core/utils/fhir-templates';
@@ -22,11 +23,13 @@ import { FHIR_TEMPLATES } from '../../../core/utils/fhir-templates';
 @Component({
   selector: 'app-resource-editor-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ReferenceSelectorDialogComponent],
   templateUrl: './resource-editor-dialog.component.html',
   styleUrl: './resource-editor-dialog.component.scss'
 })
 export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
+  @ViewChild(ReferenceSelectorDialogComponent) referenceSelectorDialog!: ReferenceSelectorDialogComponent;
+
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
   private get logger() {
@@ -620,6 +623,77 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     if (event.key === 'Escape') {
       event.preventDefault();
       this.closeDialog();
+    }
+  }
+
+  /**
+   * Handle Alt+Enter keyboard shortcut from Monaco editor
+   */
+  handleAltEnter(event: { propertyName: string; lineNumber: number }) {
+    const sd = this.structureDefinition();
+    if (!sd || !sd.snapshot?.element) {
+      this.logger.warn('No structure definition available');
+      return;
+    }
+
+    const resourceType = this.resourceType();
+    const propertyPath = `${resourceType}.${event.propertyName}`;
+
+    // Find the matching element in structure definition
+    const element = sd.snapshot.element.find((el: any) => el.path === propertyPath);
+
+    if (!element) {
+      this.logger.warn(`Property "${event.propertyName}" not found in structure definition`);
+      return;
+    }
+
+    // Check if element is a Reference type
+    const isReference = element.type?.some((t: any) => t.code === 'Reference');
+
+    if (!isReference) {
+      this.logger.info(`Property "${event.propertyName}" is not a Reference type`);
+      return;
+    }
+
+    // Open reference selector dialog
+    this.referenceSelectorDialog.open(event.propertyName);
+  }
+
+  /**
+   * Handle reference selection from Reference Selector dialog
+   */
+  handleReferenceSelect(event: { reference: string; display: string }) {
+    try {
+      const currentContent = this.editorContent();
+      const parsedJson = JSON.parse(currentContent);
+
+      // Get property name from dialog
+      const propertyName = this.referenceSelectorDialog.propertyName;
+
+      // Create Reference object
+      const referenceObject = {
+        reference: event.reference,
+        display: event.display,
+      };
+
+      // Check if current value is an array
+      const currentValue = parsedJson[propertyName];
+
+      if (Array.isArray(currentValue)) {
+        // Push to existing array
+        currentValue.push(referenceObject);
+        this.logger.info('Reference pushed to array for property:', propertyName);
+      } else {
+        // Replace the property value
+        parsedJson[propertyName] = referenceObject;
+        this.logger.info('Reference inserted for property:', propertyName);
+      }
+
+      // Format and update editor
+      const formatted = JSON.stringify(parsedJson, null, 2);
+      this.editorContent.set(formatted);
+    } catch (error) {
+      this.logger.error('Failed to insert reference:', error);
     }
   }
 

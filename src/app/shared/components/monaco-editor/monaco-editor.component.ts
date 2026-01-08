@@ -78,6 +78,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   @Input() autocompleteConfig?: AutocompleteConfig;
 
   @Output() valueChange = new EventEmitter<string>();
+  @Output() altEnterPressed = new EventEmitter<{ propertyName: string; lineNumber: number }>();
 
   private themeService = inject(ThemeService);
   private autocompleteService = inject(AutocompleteService);
@@ -219,6 +220,9 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
     // Register autocomplete provider if config provided
     this.registerAutocompleteProvider();
+
+    // Register keyboard shortcuts
+    this.registerKeyboardShortcuts();
   }
 
   /**
@@ -355,5 +359,97 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         }
       },
     });
+  }
+
+  /**
+   * Registers keyboard shortcuts for Monaco editor
+   */
+  private registerKeyboardShortcuts() {
+    if (!this.editor || !this.monaco) {
+      return;
+    }
+
+    this.editor.onKeyDown((e) => {
+      // Alt + Enter: Open Reference Selector
+      if (e.altKey && !e.ctrlKey && e.keyCode === this.monaco!.KeyCode.Enter) {
+        e.preventDefault();
+        this.handleAltEnter();
+        return;
+      }
+
+      // Ctrl + Alt + L: Format JSON (already handled via button, but add keyboard support)
+      if (e.ctrlKey && e.altKey && e.keyCode === this.monaco!.KeyCode.KeyL) {
+        e.preventDefault();
+        this.formatJson();
+        return;
+      }
+    });
+  }
+
+  /**
+   * Handle Alt+Enter key press - detect property name and emit event
+   */
+  private handleAltEnter() {
+    if (!this.editor || !this.monaco) {
+      return;
+    }
+
+    const position = this.editor.getPosition();
+    if (!position) {
+      return;
+    }
+
+    const model = this.editor.getModel();
+    if (!model) {
+      return;
+    }
+
+    // Get the line content at cursor position
+    const lineContent = model.getLineContent(position.lineNumber);
+
+    // Extract property name from the line (e.g., "subject": ... -> "subject")
+    const propertyMatch = lineContent.match(/"([^"]+)"\s*:/);
+
+    if (!propertyMatch) {
+      console.warn('No property found at cursor position');
+      return;
+    }
+
+    const propertyName = propertyMatch[1];
+
+    // Emit event with property name
+    this.altEnterPressed.emit({
+      propertyName,
+      lineNumber: position.lineNumber
+    });
+  }
+
+  /**
+   * Format JSON content
+   */
+  private formatJson() {
+    if (!this.editor) {
+      return;
+    }
+
+    try {
+      const currentContent = this.editor.getValue();
+      const parsed = JSON.parse(currentContent);
+      const formatted = JSON.stringify(parsed, null, 2);
+
+      // Save cursor position
+      const position = this.editor.getPosition();
+
+      // Update the editor with formatted content
+      this.editor.setValue(formatted);
+
+      // Restore cursor position (approximately)
+      if (position) {
+        this.editor.setPosition(position);
+      }
+      this.editor.focus();
+    } catch (error) {
+      console.warn('Cannot format JSON:', error);
+    }
   }
 }
