@@ -1,9 +1,10 @@
 import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, signal, computed, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MonacoEditorComponent } from '../monaco-editor/monaco-editor.component';
+import { MonacoEditorComponent, AutocompleteConfig } from '../monaco-editor/monaco-editor.component';
 import { FhirService } from '../../../core/services/fhir.service';
 import { LoggerService } from '../../../core/services/logger.service';
+import { FHIR_TEMPLATES } from '../../../core/utils/fhir-templates';
 
 /**
  * Resource Editor Dialog Component
@@ -91,6 +92,35 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     } catch {
       return false;
     }
+  });
+
+  // Autocomplete configuration
+  autocompleteConfig = computed<AutocompleteConfig | undefined>(() => {
+    const sd = this.structureDefinition();
+    if (!sd || !sd.snapshot?.element) {
+      return undefined;
+    }
+
+    // Extract property names from first-level elements
+    const resourceType = this.resourceType();
+    const firstLevelElements = sd.snapshot.element.filter((el: any) => {
+      const path = el.path || '';
+      const parts = path.split('.');
+      return parts.length === 2 && parts[0] === resourceType;
+    });
+
+    const propertySuggestions = firstLevelElements.map((el: any) => {
+      const path = el.path || '';
+      const parts = path.split('.');
+      return parts[1];
+    });
+
+    return {
+      propertySuggestions,
+      structureElements: sd.snapshot.element,
+      templates: FHIR_TEMPLATES,
+      contextPrefix: resourceType,
+    };
   });
 
   ngOnInit() {

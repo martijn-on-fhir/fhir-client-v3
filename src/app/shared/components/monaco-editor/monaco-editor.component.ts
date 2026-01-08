@@ -18,6 +18,17 @@ import { CommonModule } from '@angular/common';
 import loader from '@monaco-editor/loader';
 import type * as Monaco from 'monaco-editor';
 import { ThemeService } from '../../../core/services/theme.service';
+import { AutocompleteService } from '../../../core/services/autocomplete.service';
+
+/**
+ * Autocomplete configuration for Monaco Editor
+ */
+export interface AutocompleteConfig {
+  propertySuggestions: string[];
+  structureElements: any[];
+  templates: Record<string, any>;
+  contextPrefix?: string;
+}
 
 /**
  * JSON Viewer Component with Monaco Editor
@@ -64,13 +75,16 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   @Input() language: string = 'json';
   @Input() readOnly: boolean = true;
   @Input() theme: string = 'vs-dark';
+  @Input() autocompleteConfig?: AutocompleteConfig;
 
   @Output() valueChange = new EventEmitter<string>();
 
   private themeService = inject(ThemeService);
+  private autocompleteService = inject(AutocompleteService);
   private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   private monaco: typeof Monaco | null = null;
   private initInterval: any = null;
+  private completionProvider: Monaco.IDisposable | null = null;
 
   isDarkMode = computed(() => this.themeService.currentTheme() === 'dark');
 
@@ -132,6 +146,10 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     if (changes['readOnly'] && !changes['readOnly'].firstChange && this.editor) {
       this.editor.updateOptions({ readOnly: this.readOnly });
     }
+
+    if (changes['autocompleteConfig'] && !changes['autocompleteConfig'].firstChange && this.monaco) {
+      this.registerAutocompleteProvider();
+    }
   }
 
   ngOnDestroy() {
@@ -139,6 +157,12 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     if (this.initInterval) {
       clearInterval(this.initInterval);
       this.initInterval = null;
+    }
+
+    // Dispose completion provider
+    if (this.completionProvider) {
+      this.completionProvider.dispose();
+      this.completionProvider = null;
     }
 
     // Dispose editor
@@ -191,6 +215,145 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         const newValue = this.editor.getValue();
         this.valueChange.emit(newValue);
       }
+    });
+
+    // Register autocomplete provider if config provided
+    this.registerAutocompleteProvider();
+  }
+
+  /**
+   * Registers autocomplete provider for JSON editing
+   */
+  private registerAutocompleteProvider() {
+    if (!this.monaco || !this.autocompleteConfig) {
+      return;
+    }
+
+    const { propertySuggestions, structureElements, templates, contextPrefix = 'Patient' } = this.autocompleteConfig;
+
+    // Dispose previous provider if exists
+    if (this.completionProvider) {
+      this.completionProvider.dispose();
+      this.completionProvider = null;
+    }
+
+    // Register autocomplete provider for JSON
+    this.completionProvider = this.monaco.languages.registerCompletionItemProvider('json', {
+      triggerCharacters: ['"'],
+      provideCompletionItems: (model, position) => {
+        const lineContent = model.getLineContent(position.lineNumber);
+        const textBeforeCursor = lineContent.substring(0, position.column - 1);
+
+        // First, check if we're typing a property VALUE (enum autocomplete)
+        const propertyNameForValue = this.autocompleteService.getPropertyNameForValue(model, position);
+
+        if (propertyNameForValue) {
+          // Find the element for this property in structure definition
+          const element = structureElements.find((el: any) => {
+            const path = el.path || '';
+            return path.endsWith(`.${propertyNameForValue}`);
+          });
+
+          // Get enum values if available
+          const enumValues = this.autocompleteService.getEnumValuesFromElement(element);
+
+          if (enumValues && enumValues.length > 0) {
+            const word = model.getWordUntilPosition(position);
+            const textAfterCursor = lineContent.substring(position.column - 1);
+            const hasClosingQuote = textAfterCursor.startsWith('"');
+
+            // Create suggestions for enum values
+            const suggestions = enumValues.map((enumValue, index) => {
+              const insertText = enumValue;
+              const endColumn = hasClosingQuote ? word.endColumn + 1 : word.endColumn;
+              const range = new this.monaco!.Range(position.lineNumber, word.startColumn, position.lineNumber, endColumn);
+
+              return {
+                label: enumValue,
+                kind: this.monaco!.languages.CompletionItemKind.EnumMember,
+                insertText: insertText,
+                detail: `${propertyNameForValue} enum value`,
+                sortText: `b_${index.toString().padStart(3, '0')}`,
+                range: range as any,
+              };
+            });
+
+            return {
+              suggestions: suggestions,
+            };
+          }
+        }
+
+        // Check if we're inside quotes for a property name
+        const match = textBeforeCursor.match(/"([^"]*)$/);
+
+        if (match) {
+          // Determine context - are we in a nested type?
+          const contextType = this.autocompleteService.getTypeContext(model, position, structureElements);
+
+          // Determine which properties to suggest based on context
+          let suggestionsToUse = propertySuggestions;
+          let currentContextPrefix = contextPrefix;
+
+          if (contextType) {
+            // We're in a nested context - use template properties
+            const template = templates[contextType] || templates[contextType.toLowerCase()];
+
+            if (template && typeof template === 'object') {
+              // Extract property names from template
+              suggestionsToUse = Object.keys(template);
+              currentContextPrefix = contextType;
+            }
+          }
+
+          // Word info for replacement
+          const word = model.getWordUntilPosition(position);
+
+          // Check if there's a closing quote after the cursor
+          const textAfterCursor = lineContent.substring(position.column - 1);
+          const hasClosingQuote = textAfterCursor.startsWith('"');
+
+          // Generate property name suggestions
+          const suggestions = suggestionsToUse.map((propertyName, index) => {
+            // Find the element in structure definition
+            const element = structureElements.find((el: any) => {
+              const path = el.path || '';
+              return path === `${currentContextPrefix}.${propertyName}`;
+            });
+
+            const { defaultValue, typeDetail } = this.autocompleteService.getDefaultValue(
+              propertyName,
+              element,
+              contextType,
+              currentContextPrefix,
+              templates
+            );
+
+            return this.autocompleteService.createCompletionItem(
+              propertyName,
+              defaultValue,
+              typeDetail,
+              currentContextPrefix,
+              index,
+              model,
+              position,
+              word,
+              this.monaco!,
+              hasClosingQuote
+            );
+          });
+
+          return {
+            suggestions: suggestions,
+          };
+        } else {
+          // Return empty suggestions but mark as incomplete to suppress defaults
+          return {
+            suggestions: [],
+            incomplete: false,
+          };
+        }
+      },
     });
   }
 }

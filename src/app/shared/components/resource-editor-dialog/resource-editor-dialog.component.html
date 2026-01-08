@@ -137,7 +137,8 @@
                   [value]="editorContent()"
                   (valueChange)="editorContent.set($event)"
                   [language]="'json'"
-                  [readOnly]="false">
+                  [readOnly]="false"
+                  [autocompleteConfig]="autocompleteConfig()">
                 </app-monaco-editor>
               </div>
             </div>
