@@ -130,6 +130,12 @@
                     title="Format JSON (Ctrl+Alt+L)">
                     <i class="fas fa-indent me-1"></i>Format
                   </button>
+                  <button
+                    class="btn btn-sm btn-outline-info"
+                    (click)="toggleKeyboardShortcuts()"
+                    title="Keyboard Shortcuts">
+                    <i class="fas fa-keyboard"></i>
+                  </button>
                 </div>
               </div>
               <div class="panel-body p-0">
@@ -298,4 +304,71 @@
   <app-reference-selector-dialog
     (select)="handleReferenceSelect($event)">
   </app-reference-selector-dialog>
+
+  <!-- Keyboard Shortcuts Help Modal -->
+  @if (showKeyboardShortcuts()) {
+    <div class="modal-backdrop d-block" style="background: rgba(0,0,0,0.5); z-index: 1070"></div>
+    <div class="modal d-block" style="z-index: 1071" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">
+              <i class="fas fa-keyboard me-2"></i>
+              Keyboard Shortcuts
+            </h5>
+            <button type="button" class="btn-close" (click)="toggleKeyboardShortcuts()"></button>
+          </div>
+          <div class="modal-body">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th style="width: 40%">Shortcut</th>
+                    <th>Description</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><kbd>Ctrl</kbd> + <kbd>Alt</kbd> + <kbd>L</kbd></td>
+                    <td>Format JSON</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>Alt</kbd> + <kbd>Enter</kbd></td>
+                    <td>Open Reference Selector (on Reference properties)</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>Ctrl</kbd> + <kbd>↓</kbd></td>
+                    <td>Navigate to next empty value</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>Ctrl</kbd> + <kbd>↑</kbd></td>
+                    <td>Navigate to previous empty value</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>"</kbd></td>
+                    <td>Trigger property name autocomplete</td>
+                  </tr>
+                  <tr>
+                    <td><kbd>Escape</kbd></td>
+                    <td>Close dialog</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="alert alert-info mt-3 mb-0">
+              <i class="fas fa-lightbulb me-2"></i>
+              <strong>Tip:</strong> Use the Properties panel on the left to quickly add fields,
+              then use Ctrl+↓ to jump through empty values and fill them in!
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" (click)="toggleKeyboardShortcuts()">
+              Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 }

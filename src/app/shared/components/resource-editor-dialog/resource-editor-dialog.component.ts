@@ -80,6 +80,9 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   // Autocomplete state
   autocompleteEnabled = signal(true);
 
+  // Keyboard shortcuts help
+  showKeyboardShortcuts = signal(false);
+
   // Resource type
   resourceType = computed(() => {
     const sd = this.structureDefinition();
@@ -695,6 +698,13 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     } catch (error) {
       this.logger.error('Failed to insert reference:', error);
     }
+  }
+
+  /**
+   * Toggle keyboard shortcuts help modal
+   */
+  toggleKeyboardShortcuts() {
+    this.showKeyboardShortcuts.set(!this.showKeyboardShortcuts());
   }
 
   /**
