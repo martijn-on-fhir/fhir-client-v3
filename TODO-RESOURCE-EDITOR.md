@@ -46,15 +46,15 @@
   - [x] ~~Cache parsed templates~~ (not needed with hardcoded approach)
   - [x] Fallback to hardcoded templates (using hardcoded as primary)
 
-- [ ] **Reference Selector Dialog** (ReferenceSelectorDialog.tsx uit v2)
-  - [ ] Alt+Enter keyboard shortcut detection
-  - [ ] Detect if cursor is on Reference type
-  - [ ] Extract target resource types from element.type[].targetProfile
-  - [ ] Search dialog with resource type filter
-  - [ ] Real-time search with debounce
-  - [ ] Display search results in table
-  - [ ] Insert selected reference into JSON
-  - [ ] Format: `{ reference: "Patient/123", display: "John Doe" }`
+- [x] **Reference Selector Dialog** (ReferenceSelectorDialog.tsx uit v2) ✅ COMPLETED (commit dab09df)
+  - [x] Alt+Enter keyboard shortcut detection
+  - [x] Detect if cursor is on Reference type
+  - [x] ~~Extract target resource types from element.type[].targetProfile~~ (user searches manually)
+  - [x] Search dialog with resource type filter
+  - [x] ~~Real-time search with debounce~~ (search on Execute button)
+  - [x] Display search results in table
+  - [x] Insert selected reference into JSON
+  - [x] Format: `{ reference: "Patient/123", display: "John Doe" }`
 
 ### Medium Priority
 
@@ -277,16 +277,16 @@
    - ~~Parse r3.d.ts or use hardcoded templates~~ (used hardcoded)
    - ~~Integrate with property addition~~ (integrated in autocomplete)
 
-4. **Test Autocomplete in Electron** 🎯 NEXT
-   - Open Resource Editor dialog
-   - Test property name suggestions
-   - Test enum value suggestions
-   - Test nested context detection
+4. ~~**Test Autocomplete in Electron**~~ ✅ DONE
+   - ~~Open Resource Editor dialog~~
+   - ~~Test property name suggestions~~
+   - ~~Test enum value suggestions~~
+   - ~~Test nested context detection~~
 
-5. **Reference Selector Dialog** (Critical for creating valid resources)
-   - Implement basic search
-   - Alt+Enter shortcut
-   - Reference insertion
+5. ~~**Reference Selector Dialog**~~ ✅ DONE (commit dab09df)
+   - ~~Implement basic search~~
+   - ~~Alt+Enter shortcut~~
+   - ~~Reference insertion~~
 
 6. **Error Handling** (Production readiness)
    - Better error messages
