@@ -37,6 +37,13 @@ declare global {
         clear: () => Promise<{ success: boolean }>;
         stats: () => Promise<{ fileCount: number; totalSize: number }>;
       };
+      log?: {
+        error: (...args: any[]) => void;
+        warn: (...args: any[]) => void;
+        info: (...args: any[]) => void;
+        debug: (...args: any[]) => void;
+        verbose: (...args: any[]) => void;
+      };
       logs?: {
         getPaths: () => Promise<{ mainLog: string; rendererLog: string } | { error: string }>;
         read: (options?: { tail?: number }) => Promise<
