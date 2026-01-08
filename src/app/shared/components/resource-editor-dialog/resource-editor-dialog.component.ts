@@ -68,6 +68,27 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   requiredExpanded = signal(true);
   optionalExpanded = signal(false);
 
+  // Property search/filter
+  propertySearchQuery = signal('');
+  filteredRequiredProperties = computed(() => {
+    const query = this.propertySearchQuery().toLowerCase();
+    if (!query) return this.requiredProperties();
+    return this.requiredProperties().filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.short?.toLowerCase().includes(query) ||
+      p.type.toLowerCase().includes(query)
+    );
+  });
+  filteredOptionalProperties = computed(() => {
+    const query = this.propertySearchQuery().toLowerCase();
+    if (!query) return this.optionalProperties();
+    return this.optionalProperties().filter(p =>
+      p.name.toLowerCase().includes(query) ||
+      p.short?.toLowerCase().includes(query) ||
+      p.type.toLowerCase().includes(query)
+    );
+  });
+
   // Validation state
   validationResult = signal<any>(null);
   validationLoading = signal(false);
@@ -705,6 +726,91 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   toggleKeyboardShortcuts() {
     this.showKeyboardShortcuts.set(!this.showKeyboardShortcuts());
+  }
+
+  /**
+   * Get cardinality display string (e.g., "0..1", "1..1", "0..*")
+   */
+  getCardinality(property: ElementProperty): string {
+    return `${property.min}..${property.max}`;
+  }
+
+  /**
+   * Get cardinality badge class
+   */
+  getCardinalityClass(property: ElementProperty): string {
+    if (property.required) {
+      return 'badge bg-danger'; // Required (1..1 or 1..*)
+    } else if (property.min === 0 && property.max === '1') {
+      return 'badge bg-secondary'; // Optional single (0..1)
+    } else {
+      return 'badge bg-info'; // Optional array (0..*)
+    }
+  }
+
+  /**
+   * Get binding strength from element
+   */
+  getBindingStrength(property: ElementProperty): string | null {
+    const element = property.element;
+    if (!element?.binding?.strength) return null;
+    return element.binding.strength;
+  }
+
+  /**
+   * Get binding strength badge class
+   */
+  getBindingStrengthClass(strength: string): string {
+    switch (strength) {
+      case 'required':
+        return 'badge bg-danger';
+      case 'extensible':
+        return 'badge bg-warning';
+      case 'preferred':
+        return 'badge bg-info';
+      case 'example':
+        return 'badge bg-secondary';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  /**
+   * Get value set URL from element binding
+   */
+  getValueSetUrl(property: ElementProperty): string | null {
+    const element = property.element;
+    if (!element?.binding) return null;
+    return element.binding.valueSet || element.binding.valueSetReference?.reference || null;
+  }
+
+  /**
+   * Jump to property in JSON editor
+   */
+  jumpToProperty(propertyName: string) {
+    try {
+      const content = this.editorContent();
+      const lines = content.split('\n');
+
+      // Find line containing property name
+      const lineIndex = lines.findIndex(line => {
+        const match = line.match(/"([^"]+)"\s*:/);
+        return match && match[1] === propertyName;
+      });
+
+      if (lineIndex !== -1) {
+        // Emit event to Monaco editor to scroll to line
+        // For now, we'll just log it - the Monaco editor would need to expose a method
+        console.log(`Property "${propertyName}" found at line ${lineIndex + 1}`);
+
+        // TODO: Add method to Monaco editor component to scroll to line
+        // this.monacoEditor.scrollToLine(lineIndex + 1);
+      } else {
+        console.log(`Property "${propertyName}" not found in JSON`);
+      }
+    } catch (error) {
+      console.error('Error jumping to property:', error);
+    }
   }
 
   /**

@@ -31,6 +31,16 @@
                 </h6>
               </div>
               <div class="panel-body">
+                <!-- Search/Filter Input -->
+                <div class="px-2 pb-2">
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    placeholder="Search properties..."
+                    [value]="propertySearchQuery()"
+                    (input)="propertySearchQuery.set($any($event.target).value)"
+                  />
+                </div>
                 <!-- Required Properties Accordion -->
                 <div class="property-section">
                   <div
@@ -38,17 +48,25 @@
                     (click)="requiredExpanded.set(!requiredExpanded())">
                     <i class="fas fa-{{ requiredExpanded() ? 'chevron-down' : 'chevron-right' }} me-2"></i>
                     <strong>Required</strong>
-                    <span class="badge bg-danger ms-2">{{ requiredProperties().length }}</span>
+                    <span class="badge bg-danger ms-2">{{ filteredRequiredProperties().length }}</span>
                   </div>
                   @if (requiredExpanded()) {
                     <div class="property-section-body">
-                      @for (prop of requiredProperties(); track prop.path) {
-                        <div class="property-item">
+                      @for (prop of filteredRequiredProperties(); track prop.path) {
+                        <div class="property-item" [class.clickable]="true" (click)="jumpToProperty(prop.name)">
                           <div class="property-info">
                             <div class="property-name">
                               {{ prop.name }}
                               @if (prop.isArray) {
                                 <span class="text-muted">[]</span>
+                              }
+                              <span [class]="getCardinalityClass(prop)" class="ms-1 small">
+                                {{ getCardinality(prop) }}
+                              </span>
+                              @if (getBindingStrength(prop); as binding) {
+                                <span [class]="getBindingStrengthClass(binding)" class="ms-1 small" [title]="getValueSetUrl(prop) || 'Bound to value set'">
+                                  {{ binding }}
+                                </span>
                               }
                             </div>
                             <div class="property-type">{{ prop.type }}</div>
@@ -58,13 +76,19 @@
                           </div>
                           <button
                             class="btn btn-sm btn-outline-primary"
-                            (click)="addProperty(prop)"
+                            (click)="addProperty(prop); $event.stopPropagation()"
                             title="Add property">
                             <i class="fas fa-plus"></i>
                           </button>
                         </div>
                       } @empty {
-                        <div class="text-muted small p-2">No required properties</div>
+                        <div class="text-muted small p-2">
+                          @if (propertySearchQuery()) {
+                            No matching required properties
+                          } @else {
+                            No required properties
+                          }
+                        </div>
                       }
                     </div>
                   }
@@ -77,17 +101,25 @@
                     (click)="optionalExpanded.set(!optionalExpanded())">
                     <i class="fas fa-{{ optionalExpanded() ? 'chevron-down' : 'chevron-right' }} me-2"></i>
                     <strong>Optional</strong>
-                    <span class="badge bg-secondary ms-2">{{ optionalProperties().length }}</span>
+                    <span class="badge bg-secondary ms-2">{{ filteredOptionalProperties().length }}</span>
                   </div>
                   @if (optionalExpanded()) {
                     <div class="property-section-body">
-                      @for (prop of optionalProperties(); track prop.path) {
-                        <div class="property-item">
+                      @for (prop of filteredOptionalProperties(); track prop.path) {
+                        <div class="property-item" [class.clickable]="true" (click)="jumpToProperty(prop.name)">
                           <div class="property-info">
                             <div class="property-name">
                               {{ prop.name }}
                               @if (prop.isArray) {
                                 <span class="text-muted">[]</span>
+                              }
+                              <span [class]="getCardinalityClass(prop)" class="ms-1 small">
+                                {{ getCardinality(prop) }}
+                              </span>
+                              @if (getBindingStrength(prop); as binding) {
+                                <span [class]="getBindingStrengthClass(binding)" class="ms-1 small" [title]="getValueSetUrl(prop) || 'Bound to value set'">
+                                  {{ binding }}
+                                </span>
                               }
                             </div>
                             <div class="property-type">{{ prop.type }}</div>
@@ -97,13 +129,19 @@
                           </div>
                           <button
                             class="btn btn-sm btn-outline-primary"
-                            (click)="addProperty(prop)"
+                            (click)="addProperty(prop); $event.stopPropagation()"
                             title="Add property">
                             <i class="fas fa-plus"></i>
                           </button>
                         </div>
                       } @empty {
-                        <div class="text-muted small p-2">No optional properties</div>
+                        <div class="text-muted small p-2">
+                          @if (propertySearchQuery()) {
+                            No matching optional properties
+                          } @else {
+                            No optional properties
+                          }
+                        </div>
                       }
                     </div>
                   }

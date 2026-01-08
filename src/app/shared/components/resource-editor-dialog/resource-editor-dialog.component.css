@@ -166,6 +166,12 @@
 .properties-panel .property-section .property-item:last-child {
   border-bottom: none;
 }
+.properties-panel .property-section .property-item.clickable {
+  cursor: pointer;
+}
+.properties-panel .property-section .property-item.clickable:hover {
+  background: rgba(13, 110, 253, 0.1);
+}
 .properties-panel .property-section .property-item .property-info {
   flex: 1;
   min-width: 0;

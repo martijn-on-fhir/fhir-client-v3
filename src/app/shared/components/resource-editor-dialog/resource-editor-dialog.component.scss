@@ -184,6 +184,14 @@
         border-bottom: none;
       }
 
+      &.clickable {
+        cursor: pointer;
+
+        &:hover {
+          background: rgba(13, 110, 253, 0.1);
+        }
+      }
+
       .property-info {
         flex: 1;
         min-width: 0;
