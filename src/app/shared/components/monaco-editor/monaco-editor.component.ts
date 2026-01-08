@@ -397,6 +397,19 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         this.navigateToPreviousEmptyValue();
         return;
       }
+
+      // Enter key: Smart comma insertion
+      if (!e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.Enter) {
+        const position = this.editor!.getPosition();
+        if (position) {
+          this.handleSmartEnter(position);
+        }
+      }
+
+      // Comma key: Auto-format after insertion
+      if (!e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.Comma) {
+        setTimeout(() => this.handleCommaKey(), 100);
+      }
     });
   }
 
@@ -569,6 +582,108 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       }
     } catch (error) {
       console.error('Error navigating to previous empty value:', error);
+    }
+  }
+
+  /**
+   * Handle smart Enter key behavior
+   * Automatically adds commas when needed after closing brackets
+   */
+  private handleSmartEnter(position: Monaco.Position) {
+    if (!this.editor || !this.monaco) {
+      return;
+    }
+
+    const model = this.editor.getModel();
+    if (!model) {
+      return;
+    }
+
+    try {
+      const lineContent = model.getLineContent(position.lineNumber);
+      const textBefore = lineContent.substring(0, position.column - 1).trim();
+      const textAfter = lineContent.substring(position.column - 1).trim();
+
+      // Check if cursor is between brackets (e.g., [█] or {█})
+      if ((textBefore.endsWith('[') && textAfter.startsWith(']')) ||
+          (textBefore.endsWith('{') && textAfter.startsWith('}'))) {
+
+        // After Enter is pressed, check if comma is needed
+        setTimeout(() => {
+          if (!this.editor || !this.monaco) return;
+
+          const model = this.editor.getModel();
+          if (!model) return;
+
+          const currentPos = this.editor.getPosition();
+          if (!currentPos) return;
+
+          // Check the next line (where the closing bracket moved to)
+          if (currentPos.lineNumber + 1 <= model.getLineCount()) {
+            const nextLineContent = model.getLineContent(currentPos.lineNumber + 1).trim();
+
+            // Check if there's a line after the closing bracket with content
+            if (currentPos.lineNumber + 2 <= model.getLineCount()) {
+              const lineAfterBracket = model.getLineContent(currentPos.lineNumber + 2).trim();
+
+              const needsComma = lineAfterBracket.length > 0 &&
+                                !lineAfterBracket.startsWith(',') &&
+                                !lineAfterBracket.startsWith('}') &&
+                                !lineAfterBracket.startsWith(']');
+
+              if (needsComma && (nextLineContent === ']' || nextLineContent === '}')) {
+                // Add comma after the closing bracket
+                const closingBracketLine = currentPos.lineNumber + 1;
+                const closingBracketColumn = model.getLineContent(closingBracketLine).indexOf(nextLineContent) + 2;
+
+                this.editor.executeEdits('auto-comma', [
+                  {
+                    range: new this.monaco.Range(
+                      closingBracketLine,
+                      closingBracketColumn,
+                      closingBracketLine,
+                      closingBracketColumn
+                    ),
+                    text: ',',
+                  },
+                ]);
+              }
+            }
+          }
+        }, 10);
+      }
+    } catch (error) {
+      console.error('Error in smart Enter handler:', error);
+    }
+  }
+
+  /**
+   * Handle comma key press with auto-formatting
+   * Attempts to format JSON after comma insertion
+   */
+  private handleCommaKey() {
+    if (!this.editor) {
+      return;
+    }
+
+    try {
+      const currentContent = this.editor.getValue();
+      const parsed = JSON.parse(currentContent);
+      const formatted = JSON.stringify(parsed, null, 2);
+
+      // Save cursor position
+      const position = this.editor.getPosition();
+
+      // Update the editor with formatted content
+      this.editor.setValue(formatted);
+
+      // Restore cursor position (approximately)
+      if (position) {
+        this.editor.setPosition(position);
+      }
+      this.editor.focus();
+    } catch {
+      // JSON is incomplete, skip formatting
     }
   }
 }
