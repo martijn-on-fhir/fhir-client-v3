@@ -140,14 +140,15 @@
 .properties-panel {
   border-right: 1px solid var(--bs-border-color);
 
+  .panel-body {
+    padding: 1rem;
+  }
+
   .properties-header {
-    padding: 0.75rem 1rem;
-    margin: 0 0 0.75rem 0;
-    background: #cfe2ff; // Light blue background (Bootstrap primary light)
-    color: #084298; // Dark blue text
+    padding: 0;
     font-weight: 600;
     font-size: 0.9rem;
-    border-radius: 0.375rem;
+    color: var(--bs-body-color);
   }
 
   .accordion {
@@ -182,14 +183,6 @@
     .accordion-body {
       padding: 1rem;
       font-size: 0.875rem;
-    }
-  }
-
-  // Dark mode adjustments
-  @media (prefers-color-scheme: dark) {
-    .properties-header {
-      background: #0a3d62; // Dark blue for dark mode
-      color: #6ea8fe; // Light blue text for dark mode
     }
   }
 }

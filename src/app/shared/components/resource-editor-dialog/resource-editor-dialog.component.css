@@ -129,14 +129,14 @@
 .properties-panel {
   border-right: 1px solid var(--bs-border-color);
 }
+.properties-panel .panel-body {
+  padding: 1rem;
+}
 .properties-panel .properties-header {
-  padding: 0.75rem 1rem;
-  margin: 0 0 0.75rem 0;
-  background: #cfe2ff;
-  color: #084298;
+  padding: 0;
   font-weight: 600;
   font-size: 0.9rem;
-  border-radius: 0.375rem;
+  color: var(--bs-body-color);
 }
 .properties-panel .accordion {
   margin-bottom: 1.5rem;
@@ -165,12 +165,6 @@
 .properties-panel .accordion .accordion-body {
   padding: 1rem;
   font-size: 0.875rem;
-}
-@media (prefers-color-scheme: dark) {
-  .properties-panel .properties-header {
-    background: #0a3d62;
-    color: #6ea8fe;
-  }
 }
 
 .editor-panel .panel-body {

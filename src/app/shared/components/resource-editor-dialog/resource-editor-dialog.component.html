@@ -32,7 +32,7 @@
               </div>
               <div class="panel-body">
                 <!-- Search/Filter Input -->
-                <div class="px-2 p-2">
+                <div class="mb-3">
                   <input
                     type="text"
                     class="form-control form-control-sm"
@@ -42,9 +42,9 @@
                   />
                 </div>
                 <!-- Required Properties -->
-                <h6 class="properties-header">Required Properties</h6>
+                <h6 class="properties-header mb-3 mt-4 ms-2">Required Properties</h6>
                 @if (filteredRequiredProperties().length === 0) {
-                  <p class="text-muted small px-2">
+                  <p class="text-muted small">
                     @if (propertySearchQuery()) {
                       No matching required properties
                     } @else {
@@ -107,9 +107,9 @@
                 }
 
                 <!-- Optional Properties -->
-                <h6 class="properties-header">Optional Properties</h6>
+                <h6 class="properties-header mb-3 mt-4 ms-2">Optional Properties</h6>
                 @if (filteredOptionalProperties().length === 0) {
-                  <p class="text-muted small px-2">
+                  <p class="text-muted small">
                     @if (propertySearchQuery()) {
                       No matching optional properties
                     } @else {
