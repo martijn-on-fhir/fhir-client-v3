@@ -11,6 +11,7 @@ import {
 } from '../models/auth.model';
 import { Environment } from '../config/environments';
 import { TotpService } from './totp.service';
+import { LoggerService } from './logger.service';
 
 /**
  * Authentication Service
@@ -26,6 +27,8 @@ import { TotpService } from './totp.service';
 export class AuthService {
   private router = inject(Router);
   private totpService = inject(TotpService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('AuthService');
 
   // Authentication state using Signals
   private authState = signal<AuthState>({
@@ -80,7 +83,7 @@ export class AuthService {
       }),
       map(() => true),
       catchError(error => {
-        console.error('[AuthService] Login failed:', error);
+        this.logger.error('Login failed:', error);
         return throwError(() => new Error(error.message || 'Authentication failed'));
       })
     );
@@ -193,7 +196,7 @@ export class AuthService {
       await this.login(credentials).toPromise();
       return true;
     } catch (error) {
-      console.error('[AuthService] Token refresh failed:', error);
+      this.logger.error('Token refresh failed:', error);
       await this.clearToken();
       return false;
     }

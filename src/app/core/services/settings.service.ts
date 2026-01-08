@@ -1,5 +1,6 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { Injectable, signal, computed, effect, inject } from '@angular/core';
 import { AppSettings, UISettings, DEFAULT_SETTINGS } from '../models/settings.model';
+import { LoggerService } from './logger.service';
 
 /**
  * Settings Service
@@ -12,6 +13,8 @@ import { AppSettings, UISettings, DEFAULT_SETTINGS } from '../models/settings.mo
 })
 export class SettingsService {
   private readonly STORAGE_KEY = 'fhir_app_settings';
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('SettingsService');
 
   // Settings state
   private settings = signal<AppSettings>(this.loadSettings());
@@ -182,7 +185,7 @@ export class SettingsService {
         };
       }
     } catch (error) {
-      console.error('[SettingsService] Failed to load settings:', error);
+      this.logger.error('Failed to load settings:', error);
     }
     return DEFAULT_SETTINGS;
   }
@@ -194,7 +197,7 @@ export class SettingsService {
     try {
       localStorage.setItem(this.STORAGE_KEY, JSON.stringify(settings));
     } catch (error) {
-      console.error('[SettingsService] Failed to save settings:', error);
+      this.logger.error('Failed to save settings:', error);
     }
   }
 }

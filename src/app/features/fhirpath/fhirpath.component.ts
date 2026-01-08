@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/services/theme.service';
+import { LoggerService } from '../../core/services/logger.service';
 // @ts-ignore - fhirpath doesn't have type definitions
 import * as fhirpath from 'fhirpath';
 
@@ -27,6 +28,9 @@ export class FhirpathComponent implements OnInit, OnDestroy {
   private mouseMoveHandler?: (e: MouseEvent) => void;
   private mouseUpHandler?: () => void;
   private fileOpenCleanup?: () => void;
+
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('FhirpathComponent');
 
   constructor(public themeService: ThemeService) {
     // Auto-parse JSON when input changes
@@ -94,7 +98,7 @@ export class FhirpathComponent implements OnInit, OnDestroy {
       const evaluationResult = fhirpath.evaluate(data, this.expression());
       this.result.set(evaluationResult);
     } catch (err: any) {
-      console.error('FHIRPath evaluation error:', err);
+      this.logger.error('FHIRPath evaluation error:', err);
       this.error.set(err.message || 'Failed to evaluate FHIRPath expression');
       this.result.set(null);
     } finally {

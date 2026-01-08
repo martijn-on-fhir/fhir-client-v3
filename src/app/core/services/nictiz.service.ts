@@ -1,5 +1,6 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { FhirService } from './fhir.service';
+import { LoggerService } from './logger.service';
 
 export interface NictizProfile {
   url: string;
@@ -12,12 +13,14 @@ export interface NictizProfile {
   providedIn: 'root'
 })
 export class NictizService {
+  private fhirService = inject(FhirService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('NictizService');
+
   structureDefinitions = signal<NictizProfile[]>([]);
   isLoading = signal<boolean>(false);
   isFetched = signal<boolean>(false);
   error = signal<string | null>(null);
-
-  constructor(private fhirService: FhirService) {}
 
   /**
    * Fetch all Nictiz StructureDefinitions from server
@@ -94,7 +97,7 @@ export class NictizService {
       this.isFetched.set(true);
       this.isLoading.set(false);
     } catch (err: any) {
-      console.error('Error fetching StructureDefinitions:', err);
+      this.logger.error('Error fetching StructureDefinitions:', err);
       this.error.set(err.message || 'Failed to fetch Nictiz profiles');
       this.isLoading.set(false);
     }
@@ -109,7 +112,7 @@ export class NictizService {
       this.structureDefinitions.set([]);
       this.isFetched.set(false);
     } catch (error) {
-      console.error('Failed to clear cache:', error);
+      this.logger.error('Failed to clear cache:', error);
       throw error;
     }
   }
@@ -139,7 +142,7 @@ export class NictizService {
         });
       });
     } catch (error) {
-      console.error('Error fetching StructureDefinition:', error);
+      this.logger.error('Error fetching StructureDefinition:', error);
       return null;
     }
   }

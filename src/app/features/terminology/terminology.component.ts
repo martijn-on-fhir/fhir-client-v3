@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, computed, HostListener } from '@angu
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams } from '../../core/services/terminology.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 
@@ -26,6 +27,8 @@ type OperationType = 'lookup' | 'expand' | 'validate-code' | 'translate';
 })
 export class TerminologyComponent implements OnInit {
   private terminologyService = inject(TerminologyService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('TerminologyComponent');
 
   // Operation selection
   operation = signal<OperationType>('lookup');
@@ -82,7 +85,7 @@ export class TerminologyComponent implements OnInit {
   translateTarget = signal('');
 
   ngOnInit() {
-    console.log('[TerminologyComponent] Component initialized');
+    this.logger.info('Component initialized');
   }
 
   /**
@@ -113,7 +116,7 @@ export class TerminologyComponent implements OnInit {
       this.result.set(result);
     } catch (err: any) {
       this.error.set(err.message || 'Operation failed');
-      console.error('[TerminologyComponent] Operation error:', err);
+      this.logger.error('Operation error:', err);
     }
   }
 

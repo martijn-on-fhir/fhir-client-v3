@@ -1,5 +1,6 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import type * as Monaco from 'monaco-editor';
+import { LoggerService } from './logger.service';
 
 /**
  * Autocomplete Service for Monaco Editor in Resource Editor
@@ -14,6 +15,8 @@ import type * as Monaco from 'monaco-editor';
   providedIn: 'root'
 })
 export class AutocompleteService {
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('AutocompleteService');
   /**
    * Common FHIR property names mapped to their types (fallback when structure definition lookup fails)
    */
@@ -167,7 +170,7 @@ export class AutocompleteService {
         return justStartedMatch[1];
       }
     } catch (error) {
-      console.error('Error getting property name for value:', error);
+      this.logger.error('Error getting property name for value:', error);
     }
 
     return null;
@@ -254,7 +257,7 @@ export class AutocompleteService {
         }
       }
     } catch (error) {
-      console.error('Error determining context:', error);
+      this.logger.error('Error determining context:', error);
     }
 
     return null;

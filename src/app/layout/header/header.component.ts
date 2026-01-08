@@ -5,6 +5,7 @@ import { ThemeService } from '../../core/services/theme.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { AuthService } from '../../core/services/auth.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
 
 /**
@@ -30,6 +31,8 @@ export class HeaderComponent {
   private settingsService = inject(SettingsService);
   private authService = inject(AuthService);
   private router = inject(Router);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('HeaderComponent');
 
   @ViewChild(SettingsDialogComponent) settingsDialog!: SettingsDialogComponent;
 
@@ -87,11 +90,11 @@ export class HeaderComponent {
       const result = await window.electronAPI.file.openFile();
       if (result && 'content' in result) {
         // TODO: Handle opened file content
-        console.log('File opened:', result.path);
-        console.log('Content:', result.content);
+        this.logger.info('File opened:', result.path);
+        this.logger.debug('Content:', result.content);
       }
     } catch (error) {
-      console.error('Failed to open file:', error);
+      this.logger.error('Failed to open file:', error);
     }
   }
 
@@ -109,10 +112,10 @@ export class HeaderComponent {
       const content = JSON.stringify({ message: 'Example content' }, null, 2);
       const result = await window.electronAPI.file.saveFile(content, 'export.json');
       if (result && 'success' in result && result.success) {
-        console.log('File saved:', result.path);
+        this.logger.info('File saved:', result.path);
       }
     } catch (error) {
-      console.error('Failed to save file:', error);
+      this.logger.error('Failed to save file:', error);
     }
   }
 }

@@ -2,6 +2,7 @@ import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { FhirService } from '../../core/services/fhir.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { ProfileInfo, StructureDefinition } from '../../core/models/profile.model';
 import { mergeProfileElements, extractConstraints } from '../../core/utils/profile-merge';
 import { formatElementPath, renderElementType, getCardinalityBadgeClass, getSeverityBadgeClass, loadCacheStats } from '../../core/utils/profile-utils';
@@ -23,6 +24,8 @@ import { ProfileCacheDropdownComponent } from '../../shared/components/profile-c
 })
 export class ProfilesComponent implements OnInit {
   private fhirService = inject(FhirService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('ProfilesComponent');
 
   @ViewChild(ResourceEditorDialogComponent) editorDialog!: ResourceEditorDialogComponent;
 
@@ -92,7 +95,7 @@ export class ProfilesComponent implements OnInit {
         this.loading.set(false);
       },
       error: (error) => {
-        console.error('Failed to load metadata:', error);
+        this.logger.error('Failed to load metadata:', error);
         this.loading.set(false);
       }
     });
@@ -190,7 +193,7 @@ export class ProfilesComponent implements OnInit {
 
             await this.loadCacheStatsData();
           } catch (cacheError) {
-            console.error('Failed to cache profile:', cacheError);
+            this.logger.error('Failed to cache profile:', cacheError);
           }
 
           this.loadingProfile.set(false);
@@ -201,7 +204,7 @@ export class ProfilesComponent implements OnInit {
         }
       });
     } catch (err: any) {
-      console.error('Error fetching StructureDefinition:', err);
+      this.logger.error('Error fetching StructureDefinition:', err);
       this.profileError.set(err.message || 'Failed to fetch StructureDefinition');
       this.loadingProfile.set(false);
     }
@@ -235,7 +238,7 @@ export class ProfilesComponent implements OnInit {
         currentUrl = baseDef.baseDefinition;
         depth++;
       } catch (error) {
-        console.error('Failed to fetch base definition:', currentUrl, error);
+        this.logger.error('Failed to fetch base definition:', currentUrl, error);
         break;
       }
     }
@@ -295,7 +298,7 @@ export class ProfilesComponent implements OnInit {
       this.constraints.set([]);
       alert('Cache cleared successfully');
     } catch (error) {
-      console.error('Failed to clear cache:', error);
+      this.logger.error('Failed to clear cache:', error);
       alert('Failed to clear cache');
     }
   }
@@ -323,7 +326,7 @@ export class ProfilesComponent implements OnInit {
       await this.loadCacheStatsData();
       alert('Profile refreshed successfully');
     } catch (error) {
-      console.error('Failed to refresh profile:', error);
+      this.logger.error('Failed to refresh profile:', error);
       alert('Failed to refresh profile');
     }
   }

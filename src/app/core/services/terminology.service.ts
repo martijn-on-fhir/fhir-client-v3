@@ -1,4 +1,5 @@
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
+import { LoggerService } from './logger.service';
 
 /**
  * Terminology Service
@@ -48,6 +49,9 @@ export interface TranslateParams {
   providedIn: 'root'
 })
 export class TerminologyService {
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('TerminologyService');
+
   // Loading state
   readonly loading = signal(false);
   readonly error = signal<string | null>(null);
@@ -61,12 +65,12 @@ export class TerminologyService {
 
     try {
       const result = await (window as any).electronAPI.terminology.lookup(params);
-      console.log('[TerminologyService] Lookup result:', result);
+      this.logger.info('Lookup result:', result);
       return result;
     } catch (err: any) {
       const errorMsg = err.message || 'Lookup operation failed';
       this.error.set(errorMsg);
-      console.error('[TerminologyService] Lookup failed:', errorMsg);
+      this.logger.error('Lookup failed:', errorMsg);
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);
@@ -82,12 +86,12 @@ export class TerminologyService {
 
     try {
       const result = await (window as any).electronAPI.terminology.expand(params);
-      console.log('[TerminologyService] Expand result:', result);
+      this.logger.info('Expand result:', result);
       return result;
     } catch (err: any) {
       const errorMsg = err.message || 'Expand operation failed';
       this.error.set(errorMsg);
-      console.error('[TerminologyService] Expand failed:', errorMsg);
+      this.logger.error('Expand failed:', errorMsg);
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);
@@ -103,12 +107,12 @@ export class TerminologyService {
 
     try {
       const result = await (window as any).electronAPI.terminology.validateCode(params);
-      console.log('[TerminologyService] Validate result:', result);
+      this.logger.info('Validate result:', result);
       return result;
     } catch (err: any) {
       const errorMsg = err.message || 'Validate operation failed';
       this.error.set(errorMsg);
-      console.error('[TerminologyService] Validate failed:', errorMsg);
+      this.logger.error('Validate failed:', errorMsg);
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);
@@ -124,12 +128,12 @@ export class TerminologyService {
 
     try {
       const result = await (window as any).electronAPI.terminology.translate(params);
-      console.log('[TerminologyService] Translate result:', result);
+      this.logger.info('Translate result:', result);
       return result;
     } catch (err: any) {
       const errorMsg = err.message || 'Translate operation failed';
       this.error.set(errorMsg);
-      console.error('[TerminologyService] Translate failed:', errorMsg);
+      this.logger.error('Translate failed:', errorMsg);
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);
@@ -145,12 +149,12 @@ export class TerminologyService {
 
     try {
       const result = await (window as any).electronAPI.terminology.getMetadata();
-      console.log('[TerminologyService] Metadata:', result);
+      this.logger.info('Metadata:', result);
       return result;
     } catch (err: any) {
       const errorMsg = err.message || 'Failed to fetch metadata';
       this.error.set(errorMsg);
-      console.error('[TerminologyService] Get metadata failed:', errorMsg);
+      this.logger.error('Get metadata failed:', errorMsg);
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);

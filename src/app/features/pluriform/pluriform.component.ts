@@ -1,7 +1,8 @@
-import { Component, OnInit, OnDestroy, signal, effect } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ThemeService } from '../../core/services/theme.service';
+import { LoggerService } from '../../core/services/logger.service';
 import Prism from 'prismjs';
 import 'prismjs/components/prism-markup';
 
@@ -24,6 +25,8 @@ export class PluriformComponent implements OnInit, OnDestroy {
   private mouseMoveHandler?: (e: MouseEvent) => void;
   private mouseUpHandler?: () => void;
   private fileOpenCleanup?: () => void;
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('PluriformComponent');
 
   constructor(public themeService: ThemeService) {
     // Update highlighted code whenever left content changes
@@ -56,7 +59,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
     try {
       return Prism.highlight(code, Prism.languages['markup'], 'markup');
     } catch (error) {
-      console.error('Error highlighting code:', error);
+      this.logger.error('Error highlighting code:', error);
       return code;
     }
   }

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { FhirService } from '../../core/services/fhir.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { LoggerService } from '../../core/services/logger.service';
 
 /**
  * Sidebar Component
@@ -25,6 +26,8 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private settingsService = inject(SettingsService);
   private navigationService = inject(NavigationService);
   private router = inject(Router);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('SidebarComponent');
 
   // Resource types
   resourceTypes = signal<string[]>([]);
@@ -92,7 +95,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
         localStorage.setItem(cacheKey, JSON.stringify(types));
       }
     } catch (err: any) {
-      console.error('[Sidebar] Failed to load resource types:', err);
+      this.logger.error('Failed to load resource types:', err);
       this.error.set('Failed to load resource types');
     } finally {
       this.loading.set(false);
@@ -111,7 +114,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
    * Handle resource type selection
    */
   selectResourceType(resourceType: string) {
-    console.log('[Sidebar] Selected resource type:', resourceType);
+    this.logger.info('Selected resource type:', resourceType);
 
     // Navigate to query tab
     this.navigationService.navigateToQuery(resourceType, 'text');

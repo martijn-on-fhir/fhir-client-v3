@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
 import { ThemeService } from '../../core/services/theme.service';
 import { FhirService } from '../../core/services/fhir.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import {
   validateFhirResource,
@@ -22,6 +23,8 @@ import {
 })
 export class ValidatorComponent implements OnInit, OnDestroy {
   private fhirService = inject(FhirService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('ValidatorComponent');
 
   // Signals for state management
   jsonInput = signal<string>('');
@@ -116,7 +119,7 @@ export class ValidatorComponent implements OnInit, OnDestroy {
         this.error.set('No server metadata available. Please connect to a FHIR server first.');
       }
     } catch (err) {
-      console.error('Failed to load server metadata:', err);
+      this.logger.error('Failed to load server metadata:', err);
       this.error.set('Failed to load server metadata');
     }
   }
@@ -250,7 +253,7 @@ export class ValidatorComponent implements OnInit, OnDestroy {
         }
       }
     } catch (err: any) {
-      console.error('Validation error:', err);
+      this.logger.error('Validation error:', err);
       this.error.set(err.message || 'Failed to validate resource');
       this.validationResult.set(null);
     } finally {

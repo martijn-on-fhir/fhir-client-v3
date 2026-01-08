@@ -19,6 +19,7 @@ import loader from '@monaco-editor/loader';
 import type * as Monaco from 'monaco-editor';
 import { ThemeService } from '../../../core/services/theme.service';
 import { AutocompleteService } from '../../../core/services/autocomplete.service';
+import { LoggerService } from '../../../core/services/logger.service';
 
 /**
  * Autocomplete configuration for Monaco Editor
@@ -82,6 +83,8 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
   private themeService = inject(ThemeService);
   private autocompleteService = inject(AutocompleteService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('MonacoEditorComponent');
   private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   private monaco: typeof Monaco | null = null;
   private initInterval: any = null;
@@ -110,7 +113,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     try {
       this.monaco = await loader.init();
     } catch (error) {
-      console.error('Monaco failed to load:', error);
+      this.logger.error('Monaco failed to load:', error);
     }
   }
 
@@ -130,7 +133,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         } else if (attempts > 100) { // 10 seconds
           clearInterval(this.initInterval);
           this.initInterval = null;
-          console.error('Monaco failed to load after 10 seconds');
+          this.logger.error('Monaco failed to load after 10 seconds');
         }
       }, 100);
     }
@@ -438,7 +441,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     const propertyMatch = lineContent.match(/"([^"]+)"\s*:/);
 
     if (!propertyMatch) {
-      console.warn('No property found at cursor position');
+      this.logger.warn('No property found at cursor position');
       return;
     }
 
@@ -476,7 +479,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       }
       this.editor.focus();
     } catch (error) {
-      console.warn('Cannot format JSON:', error);
+      this.logger.warn('Cannot format JSON:', error);
     }
   }
 
@@ -523,12 +526,12 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         this.editor.setPosition(targetPosition);
         this.editor.revealPositionInCenter(targetPosition);
         this.editor.focus();
-        console.log('Navigated to next empty value at offset:', nextIndex);
+        this.logger.debug('Navigated to next empty value at offset:', nextIndex);
       } else {
-        console.log('No more empty values found');
+        this.logger.debug('No more empty values found');
       }
     } catch (error) {
-      console.error('Error navigating to next empty value:', error);
+      this.logger.error('Error navigating to next empty value:', error);
     }
   }
 
@@ -576,12 +579,12 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         this.editor.setPosition(targetPosition);
         this.editor.revealPositionInCenter(targetPosition);
         this.editor.focus();
-        console.log('Navigated to previous empty value at offset:', prevIndex);
+        this.logger.debug('Navigated to previous empty value at offset:', prevIndex);
       } else {
-        console.log('No previous empty values found');
+        this.logger.debug('No previous empty values found');
       }
     } catch (error) {
-      console.error('Error navigating to previous empty value:', error);
+      this.logger.error('Error navigating to previous empty value:', error);
     }
   }
 
@@ -653,7 +656,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         }, 10);
       }
     } catch (error) {
-      console.error('Error in smart Enter handler:', error);
+      this.logger.error('Error in smart Enter handler:', error);
     }
   }
 

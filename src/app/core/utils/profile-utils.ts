@@ -59,7 +59,8 @@ export async function loadCacheStats(): Promise<any> {
     const stats = await window.electronAPI?.profileCache?.stats();
     return stats;
   } catch (error) {
-    console.error('Failed to load cache stats:', error);
+    // Use direct window.electronAPI?.log for utility functions without DI
+    window.electronAPI?.log?.error('Failed to load cache stats:', error);
     return null;
   }
 }

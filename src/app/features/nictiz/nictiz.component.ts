@@ -1,7 +1,8 @@
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, OnInit, signal, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { NictizService } from '../../core/services/nictiz.service';
+import { LoggerService } from '../../core/services/logger.service';
 import { mergeProfileElements, extractConstraints } from '../../core/utils/profile-merge';
 import { formatElementPath, renderElementType, getCardinalityBadgeClass, getSeverityBadgeClass, loadCacheStats } from '../../core/utils/profile-utils';
 import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
@@ -31,6 +32,9 @@ export class NictizComponent implements OnInit {
   renderElementType = renderElementType;
   getCardinalityBadgeClass = getCardinalityBadgeClass;
   getSeverityBadgeClass = getSeverityBadgeClass;
+
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('NictizComponent');
 
   constructor(public nictizService: NictizService) {}
 
@@ -166,10 +170,10 @@ export class NictizComponent implements OnInit {
 
         await this.loadCacheStatsData();
       } catch (cacheError) {
-        console.error('Failed to cache profile:', cacheError);
+        this.logger.error('Failed to cache profile:', cacheError);
       }
     } catch (err: any) {
-      console.error('Error fetching StructureDefinition:', err);
+      this.logger.error('Error fetching StructureDefinition:', err);
       this.profileError.set(err.message || 'Failed to fetch StructureDefinition');
     } finally {
       this.loadingProfile.set(false);
@@ -195,7 +199,7 @@ export class NictizComponent implements OnInit {
       await this.loadCacheStatsData();
       alert('Profiles refreshed successfully');
     } catch (error) {
-      console.error('Failed to refresh profiles:', error);
+      this.logger.error('Failed to refresh profiles:', error);
       alert('Failed to refresh profiles');
     }
   }
@@ -214,7 +218,7 @@ export class NictizComponent implements OnInit {
       this.constraints.set([]);
       alert('Cache cleared successfully');
     } catch (error) {
-      console.error('Failed to clear cache:', error);
+      this.logger.error('Failed to clear cache:', error);
       alert('Failed to clear cache');
     }
   }
@@ -250,7 +254,7 @@ export class NictizComponent implements OnInit {
   openSimplifierUrl(url: string) {
     const searchUrl = `https://simplifier.net/search?q=${encodeURIComponent(url)}`;
     window.electronAPI?.shell?.openExternal(searchUrl).catch((err) => {
-      console.error('Failed to open URL:', err);
+      this.logger.error('Failed to open URL:', err);
     });
   }
 

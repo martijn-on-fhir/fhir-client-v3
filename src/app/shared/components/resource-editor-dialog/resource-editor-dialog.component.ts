@@ -871,15 +871,15 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
       if (lineIndex !== -1) {
         // Emit event to Monaco editor to scroll to line
         // For now, we'll just log it - the Monaco editor would need to expose a method
-        console.log(`Property "${propertyName}" found at line ${lineIndex + 1}`);
+        this.logger.debug(`Property "${propertyName}" found at line ${lineIndex + 1}`);
 
         // TODO: Add method to Monaco editor component to scroll to line
         // this.monacoEditor.scrollToLine(lineIndex + 1);
       } else {
-        console.log(`Property "${propertyName}" not found in JSON`);
+        this.logger.debug(`Property "${propertyName}" not found in JSON`);
       }
     } catch (error) {
-      console.error('Error jumping to property:', error);
+      this.logger.error('Error jumping to property:', error);
     }
   }
 

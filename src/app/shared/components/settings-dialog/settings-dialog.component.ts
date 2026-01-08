@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { SettingsService } from '../../../core/services/settings.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { LoggerService } from '../../../core/services/logger.service';
 import { SavedAccount } from '../../../core/models/auth.model';
 import { Environment, getAvailableEnvironments } from '../../../core/config/environments';
 import { APP_TABS } from '../../../core/models/tab.model';
@@ -28,6 +29,8 @@ export class SettingsDialogComponent implements OnInit {
   private authService = inject(AuthService);
   private settingsService = inject(SettingsService);
   private themeService = inject(ThemeService);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('SettingsDialogComponent');
 
   // Dialog state
   isOpen = signal(false);
@@ -180,7 +183,7 @@ export class SettingsDialogComponent implements OnInit {
       await this.loadData();
       this.cancelAccountEdit();
     } catch (error) {
-      console.error('Failed to save account:', error);
+      this.logger.error('Failed to save account:', error);
     } finally {
       this.loading.set(false);
     }
@@ -200,7 +203,7 @@ export class SettingsDialogComponent implements OnInit {
       await this.authService.removeSavedAccount(accountId);
       await this.loadData();
     } catch (error) {
-      console.error('Failed to delete account:', error);
+      this.logger.error('Failed to delete account:', error);
     } finally {
       this.loading.set(false);
     }
@@ -286,7 +289,7 @@ export class SettingsDialogComponent implements OnInit {
       this.twoFactorEnabled.set(false);
       this.showQRCode.set(false);
     } catch (error) {
-      console.error('Failed to disable 2FA:', error);
+      this.logger.error('Failed to disable 2FA:', error);
     } finally {
       this.loading.set(false);
     }
@@ -311,7 +314,7 @@ export class SettingsDialogComponent implements OnInit {
       await navigator.clipboard.writeText(this.twoFactorSecret());
       alert('Secret copied to clipboard!');
     } catch (error) {
-      console.error('Failed to copy secret:', error);
+      this.logger.error('Failed to copy secret:', error);
     }
   }
 

@@ -2,6 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { from, switchMap, catchError, throwError } from 'rxjs';
 import { AuthService } from '../services/auth.service';
+import { LoggerService } from '../services/logger.service';
 
 /**
  * Authentication HTTP Interceptor
@@ -11,6 +12,8 @@ import { AuthService } from '../services/auth.service';
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const authService = inject(AuthService);
+  const loggerService = inject(LoggerService);
+  const logger = loggerService.component('AuthInterceptor');
 
   // Skip auth for login requests (token endpoint)
   if (req.url.includes('/protocol/openid-connect/token')) {
@@ -26,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   return from(authService.validateAndRefreshToken()).pipe(
     switchMap(token => {
       if (!token) {
-        console.warn('[AuthInterceptor] No valid token available');
+        logger.warn('No valid token available');
         return next(req);
       }
 
@@ -42,7 +45,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       return next(authReq);
     }),
     catchError(error => {
-      console.error('[AuthInterceptor] Request failed:', error);
+      logger.error('Request failed:', error);
       return throwError(() => error);
     })
   );

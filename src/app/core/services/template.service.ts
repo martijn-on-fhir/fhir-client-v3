@@ -5,8 +5,9 @@
  * with localStorage persistence for custom templates
  */
 
-import { Injectable, signal } from '@angular/core';
+import { Injectable, signal, inject } from '@angular/core';
 import { SmartQueryTemplate, SYSTEM_TEMPLATES, TemplateCategory } from '../models/smart-template.model';
+import { LoggerService } from './logger.service';
 
 const CUSTOM_TEMPLATES_KEY = 'smart-templates-custom';
 
@@ -15,6 +16,8 @@ const CUSTOM_TEMPLATES_KEY = 'smart-templates-custom';
 })
 export class TemplateService {
   private customTemplates = signal<SmartQueryTemplate[]>([]);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('TemplateService');
 
   constructor() {
     this.loadCustomTemplates();
@@ -137,7 +140,7 @@ export class TemplateService {
         this.customTemplates.set(templates);
       }
     } catch (error) {
-      console.error('Failed to load custom templates:', error);
+      this.logger.error('Failed to load custom templates:', error);
       this.customTemplates.set([]);
     }
   }
@@ -149,7 +152,7 @@ export class TemplateService {
     try {
       localStorage.setItem(CUSTOM_TEMPLATES_KEY, JSON.stringify(this.customTemplates()));
     } catch (error) {
-      console.error('Failed to persist custom templates:', error);
+      this.logger.error('Failed to persist custom templates:', error);
     }
   }
 

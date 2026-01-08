@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import * as OTPAuth from 'otpauth';
 import QRCode from 'qrcode';
+import { LoggerService } from './logger.service';
 
 /**
  * TOTP Service
@@ -12,6 +13,8 @@ import QRCode from 'qrcode';
   providedIn: 'root'
 })
 export class TotpService {
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('TotpService');
   /**
    * Generate a new TOTP secret
    * @param accountName - Account identifier (e.g., email or client ID)
@@ -56,7 +59,7 @@ export class TotpService {
     try {
       return await QRCode.toDataURL(otpauthUrl);
     } catch (error) {
-      console.error('[TotpService] QR code generation failed:', error);
+      this.logger.error('QR code generation failed:', error);
       throw new Error('Failed to generate QR code');
     }
   }
@@ -86,7 +89,7 @@ export class TotpService {
       // delta is null if invalid, or a number indicating time step difference
       return delta !== null;
     } catch (error) {
-      console.error('[TotpService] Code verification failed:', error);
+      this.logger.error('Code verification failed:', error);
       return false;
     }
   }

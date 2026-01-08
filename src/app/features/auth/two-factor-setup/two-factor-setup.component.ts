@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { LoggerService } from '../../../core/services/logger.service';
 
 /**
  * Two-Factor Setup Component
@@ -20,6 +21,8 @@ import { AuthService } from '../../../core/services/auth.service';
 export class TwoFactorSetupComponent implements OnInit {
   private authService = inject(AuthService);
   private router = inject(Router);
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('TwoFactorSetupComponent');
 
   // Setup state
   secret = signal('');
@@ -113,7 +116,7 @@ export class TwoFactorSetupComponent implements OnInit {
       await navigator.clipboard.writeText(this.secret());
       alert('Secret copied to clipboard!');
     } catch (error) {
-      console.error('Failed to copy secret:', error);
+      this.logger.error('Failed to copy secret:', error);
     }
   }
 
