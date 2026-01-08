@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session } = require('electron');
+const { app, BrowserWindow, session, ipcMain } = require('electron');
 const path = require('path');
 const log = require('electron-log/main');
 const { registerAuthHandlers } = require('./auth/auth-handler');
@@ -14,6 +14,28 @@ log.initialize();
 log.transports.file.level = 'info';
 log.transports.console.level = 'debug';
 log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB
+
+// Register logging IPC handlers
+ipcMain.handle('log:error', (event, ...args) => {
+  log.error('[Renderer]', ...args);
+});
+
+ipcMain.handle('log:warn', (event, ...args) => {
+  log.warn('[Renderer]', ...args);
+});
+
+ipcMain.handle('log:info', (event, ...args) => {
+  log.info('[Renderer]', ...args);
+});
+
+ipcMain.handle('log:debug', (event, ...args) => {
+  log.debug('[Renderer]', ...args);
+});
+
+ipcMain.handle('log:verbose', (event, ...args) => {
+  log.verbose('[Renderer]', ...args);
+});
+
 log.info('Application starting...');
 
 let mainWindow;
