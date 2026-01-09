@@ -1,44 +1,71 @@
 <div class="query-container">
-  <!-- Mode Switcher -->
-  <div class="d-flex justify-content-center gap-2">
-    <button
-      class="btn btn-sm"
-      [class.btn-primary]="queryMode() === 'text'"
-      [class.btn-outline-secondary]="queryMode() !== 'text'"
-      (click)="setQueryMode('text')">
-      <i class="fas fa-keyboard me-2"></i>Text Mode
-    </button>
-    <button
-      class="btn btn-sm"
-      [class.btn-primary]="queryMode() === 'visual'"
-      [class.btn-outline-secondary]="queryMode() !== 'visual'"
-      (click)="setQueryMode('visual')">
-      <i class="fas fa-wand-magic-sparkles me-2"></i>Visual Mode
-    </button>
-  </div>
-
   <!-- Text Mode -->
   @if (queryMode() === 'text') {
         <div class="flex-grow-1 d-flex flex-column" style="gap: 8px">
-          <!-- Query Input -->
+          <!-- Query Input with History Navigation and Mode Switcher -->
           <div class="card border-0">
             <div class="card-body p-2">
-              <label for="textQuery" class="form-label small mb-1">
-                <i class="fas fa-search me-2"></i>FHIR Query
-              </label>
-              <div class="input-group">
+              <div class="d-flex gap-2 align-items-center">
+                <!-- History Navigation Buttons -->
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  (click)="navigateBack()"
+                  [disabled]="!canGoBack()"
+                  title="Previous query">
+                  <i class="fas fa-chevron-left"></i>
+                </button>
+
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  (click)="navigateForward()"
+                  [disabled]="!canGoForward()"
+                  title="Next query">
+                  <i class="fas fa-chevron-right"></i>
+                </button>
+
+                <!-- Mode Toggle Buttons -->
+                <button
+                  class="btn btn-sm"
+                  [class.btn-primary]="queryMode() === 'text'"
+                  [class.btn-outline-secondary]="queryMode() !== 'text'"
+                  (click)="setQueryMode('text')">
+                  <i class="fas fa-edit me-1"></i>Text Mode
+                </button>
+
+                <button
+                  class="btn btn-sm"
+                  [class.btn-primary]="queryMode() === 'visual'"
+                  [class.btn-outline-secondary]="queryMode() !== 'visual'"
+                  (click)="setQueryMode('visual')">
+                  <i class="fas fa-wand-magic-sparkles me-1"></i>Visual Builder
+                </button>
+
+                <!-- Query Input (flex-grow to take remaining space) -->
                 <input
                   id="textQuery"
                   type="text"
                   class="form-control"
+                  style="flex: 1"
                   [ngModel]="textQuery()"
                   (ngModelChange)="textQuery.set($event)"
                   (keydown.enter)="executeTextQuery()"
                   placeholder="/Patient?name=John"
                   spellCheck="false">
-                <button class="btn btn-primary" (click)="executeTextQuery()" [disabled]="!textQuery()">
-                  <i class="fas fa-bolt me-2"></i>
+
+                <!-- Execute Button -->
+                <button
+                  class="btn btn-sm btn-primary"
+                  (click)="executeTextQuery()"
+                  [disabled]="!textQuery() || loading()">
+                  <i class="fas fa-bolt me-1"></i>
                   Execute
+                </button>
+
+                <!-- Info Button -->
+                <button
+                  class="btn btn-sm btn-outline-secondary"
+                  title="Query help">
+                  <i class="fas fa-circle-info"></i>
                 </button>
               </div>
             </div>

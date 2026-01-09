@@ -8,5 +8,29 @@
   background: var(--bs-body-bg);
   box-sizing: border-box;
 }
+.query-container .d-flex.gap-2 .btn-sm {
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  min-width: fit-content;
+}
+.query-container .d-flex.gap-2 .btn-sm:has(> i.fas:only-child) {
+  min-width: auto;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+}
+.query-container .d-flex.gap-2 .btn-outline-secondary:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  background-color: transparent;
+}
+.query-container .d-flex.gap-2 .btn-outline-secondary:not(:disabled):hover {
+  background-color: var(--bs-secondary);
+  border-color: var(--bs-secondary);
+  color: white;
+}
+.query-container .d-flex.gap-2 input[type=text] {
+  min-width: 200px;
+}
 
 /*# sourceMappingURL=query.component.css.map */

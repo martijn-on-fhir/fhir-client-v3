@@ -7,4 +7,41 @@
   overflow: hidden;
   background: var(--bs-body-bg);
   box-sizing: border-box;
+
+  // Query input row styling
+  .d-flex.gap-2 {
+    .btn-sm {
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+      min-width: fit-content;
+
+      // Icon-only buttons (history navigation)
+      &:has(> i.fas:only-child) {
+        min-width: auto;
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+      }
+    }
+
+    // History navigation buttons
+    .btn-outline-secondary {
+      &:disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        background-color: transparent;
+      }
+
+      &:not(:disabled):hover {
+        background-color: var(--bs-secondary);
+        border-color: var(--bs-secondary);
+        color: white;
+      }
+    }
+
+    // Query input field
+    input[type="text"] {
+      min-width: 200px;
+    }
+  }
 }

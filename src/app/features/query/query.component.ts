@@ -17,6 +17,7 @@ import {
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { QueryHistoryService } from '../../core/services/query-history.service';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 
@@ -31,10 +32,15 @@ export class QueryComponent implements OnInit {
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
   private navigationService = inject(NavigationService);
+  private queryHistoryService = inject(QueryHistoryService);
 
   private get logger() {
     return this.loggerService.component('QueryComponent');
   }
+
+  // Query history navigation
+  canGoBack = computed(() => this.queryHistoryService.canNavigateBack());
+  canGoForward = computed(() => this.queryHistoryService.canNavigateForward());
 
   // Metadata state
   metadata = signal<any>(null);
@@ -413,6 +419,28 @@ return;
   }
 
   /**
+   * Navigate to previous query in history
+   */
+  navigateBack() {
+    const previousQuery = this.queryHistoryService.navigateBack();
+    if (previousQuery) {
+      this.textQuery.set(previousQuery);
+      this.logger.debug('Navigated to previous query:', previousQuery);
+    }
+  }
+
+  /**
+   * Navigate to next query in history
+   */
+  navigateForward() {
+    const nextQuery = this.queryHistoryService.navigateForward();
+    if (nextQuery) {
+      this.textQuery.set(nextQuery);
+      this.logger.debug('Navigated to next query:', nextQuery);
+    }
+  }
+
+  /**
    * Execute a query string
    */
   private async executeQueryString(query: string) {
@@ -431,6 +459,9 @@ return;
 
       this.result.set(result);
       this.logger.info('Query executed successfully');
+
+      // Add to history after successful execution
+      this.queryHistoryService.addQuery(query, this.queryMode());
     } catch (err: any) {
       this.logger.error('Query execution failed:', err);
       this.error.set(err.message || 'Query execution failed');
