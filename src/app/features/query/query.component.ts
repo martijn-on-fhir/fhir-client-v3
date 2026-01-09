@@ -6,20 +6,20 @@
  * query preview, execution, and results display.
  */
 
-import { CommonModule } from '@angular/common';
-import { Component, signal, computed, effect, inject, OnInit } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
+import {CommonModule} from '@angular/common';
+import {Component, signal, computed, effect, inject, OnInit} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {firstValueFrom} from 'rxjs';
 import {
   QueryParameter,
   SearchParameter,
 } from '../../core/models/query-builder.model';
-import { FhirService } from '../../core/services/fhir.service';
-import { LoggerService } from '../../core/services/logger.service';
-import { NavigationService } from '../../core/services/navigation.service';
-import { QueryHistoryService } from '../../core/services/query-history.service';
-import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import {FhirService} from '../../core/services/fhir.service';
+import {LoggerService} from '../../core/services/logger.service';
+import {NavigationService} from '../../core/services/navigation.service';
+import {QueryHistoryService} from '../../core/services/query-history.service';
+import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
+import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 
 @Component({
   selector: 'app-query',
@@ -83,8 +83,8 @@ export class QueryComponent implements OnInit {
     const resource = this.selectedResource();
 
     if (!meta || !resource) {
-return null;
-}
+      return null;
+    }
 
     return (
       meta.rest?.[0]?.resource?.find((r: any) => r.type === resource) || null
@@ -98,9 +98,7 @@ return null;
       return [];
     }
 
-    const types = meta.rest[0].resource
-      .map((r: any) => r.type)
-      .filter((t: string) => t);
+    const types = meta.rest[0].resource.map((r: any) => r.type).filter((t: string) => t);
 
     return types.sort();
   });
@@ -122,8 +120,8 @@ return null;
     const search = this.searchTerm();
 
     if (!res || !search) {
-return res;
-}
+      return res;
+    }
 
     return this.filterJSON(res, search);
   });
@@ -135,7 +133,7 @@ return res;
   pageNumbers = computed(() => {
     const total = this.totalPages();
 
-    return Array.from({ length: total }, (_, i) => i + 1);
+    return Array.from({length: total}, (_, i) => i + 1);
   });
 
   paginatedEntries = computed(() => {
@@ -151,8 +149,8 @@ return res;
     const filtered = this.filteredResult();
 
     if (!filtered?.entry) {
-return filtered;
-}
+      return filtered;
+    }
 
     return {
       ...filtered,
@@ -237,13 +235,13 @@ return filtered;
     effect(() => {
 
       this.generatedQuery.set(this.generateQueryString());
-    }, { allowSignalWrites: true });
+    }, {allowSignalWrites: true});
 
     // Reset page when results change
     effect(() => {
       this.result();
       this.currentPage.set(1);
-    }, { allowSignalWrites: true });
+    }, {allowSignalWrites: true});
 
     // Handle navigation events from sidebar
     effect(() => {
@@ -267,7 +265,7 @@ return filtered;
         // Clear the event
         this.navigationService.clearQueryNavigationEvent();
       }
-    }, { allowSignalWrites: true });
+    }, {allowSignalWrites: true});
   }
 
   async ngOnInit() {
@@ -327,8 +325,8 @@ return filtered;
     const resource = this.selectedResource();
 
     if (!resource) {
-return '';
-}
+      return '';
+    }
 
     let query = `/${resource}`;
     const parts: string[] = [];
@@ -338,8 +336,8 @@ return '';
       const validValues = param.values.filter((v) => v && String(v).trim() !== '');
 
       if (validValues.length === 0) {
-return;
-}
+        return;
+      }
 
       // Build parameter name with chain and/or modifier
       let paramName = param.name;
@@ -354,9 +352,7 @@ return;
 
       // Apply prefix operator if present
       const operator = param.operator || '';
-      const encodedValues = validValues
-        .map((v) => encodeURIComponent(operator + v))
-        .join(',');
+      const encodedValues = validValues.map((v) => encodeURIComponent(operator + v)).join(',');
       parts.push(`${paramName}=${encodedValues}`);
     });
 
@@ -376,16 +372,16 @@ return;
     const sum = this.summary();
 
     if (cnt) {
-parts.push(`_count=${cnt}`);
-}
+      parts.push(`_count=${cnt}`);
+    }
 
     if (srt) {
-parts.push(`_sort=${srt}`);
-}
+      parts.push(`_sort=${srt}`);
+    }
 
     if (sum) {
-parts.push(`_summary=${sum}`);
-}
+      parts.push(`_summary=${sum}`);
+    }
 
     if (parts.length > 0) {
       query += '?' + parts.join('&');
@@ -401,8 +397,8 @@ parts.push(`_summary=${sum}`);
     const query = this.generatedQuery();
 
     if (!query) {
-return;
-}
+      return;
+    }
     await this.executeQueryString(query);
   }
 
@@ -413,8 +409,8 @@ return;
     const query = this.textQuery();
 
     if (!query) {
-return;
-}
+      return;
+    }
     await this.executeQueryString(query);
   }
 
@@ -486,8 +482,8 @@ return;
     const query = this.generatedQuery();
 
     if (!query) {
-return;
-}
+      return;
+    }
 
     try {
       await navigator.clipboard.writeText(query);
@@ -592,14 +588,14 @@ return;
    */
   addParameter(paramName: string) {
     if (!paramName) {
-return;
-}
+      return;
+    }
 
     const paramDef = this.availableSearchParams().find((p: SearchParameter) => p.name === paramName);
 
     if (!paramDef) {
-return;
-}
+      return;
+    }
 
     this.parameters.set([
       ...this.parameters(),
@@ -659,8 +655,8 @@ return;
     const level = this.collapsedLevel();
 
     if (level === false) {
-return;
-}
+      return;
+    }
 
     if (level === 1) {
       this.collapsedLevel.set(false);
@@ -687,14 +683,14 @@ return;
    */
   private filterJSON(obj: any, term: string): any {
     if (!term) {
-return obj;
-}
+      return obj;
+    }
     const searchLower = term.toLowerCase();
 
     const filter = (data: any): any => {
       if (data === null || data === undefined) {
-return null;
-}
+        return null;
+      }
 
       if (typeof data !== 'object') {
         return String(data).toLowerCase().includes(searchLower) ? data : null;
@@ -738,8 +734,8 @@ return null;
     const stored = localStorage.getItem(key);
 
     if (!stored) {
-return [];
-}
+      return [];
+    }
 
     try {
       return JSON.parse(stored);
@@ -755,8 +751,8 @@ return [];
     const stored = localStorage.getItem('visual-builder-parameters');
 
     if (!stored) {
-return [];
-}
+      return [];
+    }
 
     try {
       const parsed = JSON.parse(stored);
@@ -782,9 +778,13 @@ return [];
     const stored = localStorage.getItem('visual-builder-collapsed-level');
 
     if (stored === 'false') {
-return false;
-}
+      return false;
+    }
 
     return stored ? parseInt(stored, 10) : 4;
+  }
+
+  test(editor:any): void{
+    console.dir(editor);
   }
 }

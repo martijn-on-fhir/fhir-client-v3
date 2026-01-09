@@ -86,7 +86,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   private autocompleteService = inject(AutocompleteService);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('MonacoEditorComponent');
-  private editor: Monaco.editor.IStandaloneCodeEditor | null = null;
+  public editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   private monaco: typeof Monaco | null = null;
   private initInterval: any = null;
   private completionProvider: Monaco.IDisposable | null = null;
