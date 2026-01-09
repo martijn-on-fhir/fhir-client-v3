@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, effect, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TemplateParameter, ParameterType } from '../../../core/models/smart-template.model';
 import { validateParameterName } from '../../../core/utils/template-validator';
@@ -16,7 +16,7 @@ import { validateParameterName } from '../../../core/utils/template-validator';
   templateUrl: './parameter-editor.component.html',
   styleUrl: './parameter-editor.component.scss'
 })
-export class ParameterEditorComponent {
+export class ParameterEditorComponent implements OnChanges {
   @Input() parameter: TemplateParameter | null = null;
   @Input() existingParameters: TemplateParameter[] = [];
   @Input() editIndex?: number;
@@ -86,9 +86,11 @@ export class ParameterEditorComponent {
     'Condition', 'Procedure', 'MedicationRequest', 'Encounter'
   ];
 
-  constructor() {
-    // Load parameter data when input changes
-    effect(() => {
+  /**
+   * Handle input changes
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['parameter']) {
       const param = this.parameter;
 
       if (param) {
@@ -110,7 +112,7 @@ export class ParameterEditorComponent {
 
       this.nameError.set(null);
       this.validationError.set(null);
-    });
+    }
   }
 
   /**
