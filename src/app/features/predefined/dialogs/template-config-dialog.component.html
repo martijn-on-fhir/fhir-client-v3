@@ -1,0 +1,179 @@
+@if (isOpen && template) {
+  <div class="modal show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5)">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-cog me-2"></i>
+            {{ template.name }}
+          </h5>
+          <button type="button" class="btn-close" (click)="handleClose()" aria-label="Close"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body">
+          <!-- Description Card -->
+          <div class="card mb-3">
+            <div class="card-body">
+              <i class="fas fa-info-circle me-2"></i>
+              {{ template.description }}
+            </div>
+          </div>
+
+          <!-- Validation Errors -->
+          @if (validationErrors().length > 0) {
+            <div class="alert alert-danger mb-3">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <strong>Validation Errors:</strong>
+              <ul class="mb-0 mt-2">
+                @for (error of validationErrors(); track error) {
+                  <li>{{ error }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          <!-- Parameters Form -->
+          <form (submit)="$event.preventDefault(); handleExecute()">
+            @for (param of template.parameters; track param.name) {
+              <div class="mb-3">
+                <label class="form-label small mb-1">
+                  {{ param.label }}
+                  @if (param.required) {
+                    <span class="text-danger ms-1">*</span>
+                  }
+                </label>
+
+                <!-- String input -->
+                @if (param.type === 'string') {
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    [value]="parameterValues()[param.name] || ''"
+                    (input)="updateParameterValue(param.name, $any($event.target).value)"
+                    [placeholder]="param.hint || ''"
+                    [required]="param.required" />
+                }
+
+                <!-- Number input -->
+                @if (param.type === 'number') {
+                  <input
+                    type="number"
+                    class="form-control form-control-sm"
+                    [value]="parameterValues()[param.name] || ''"
+                    (input)="updateParameterValue(param.name, $any($event.target).value)"
+                    [placeholder]="param.hint || ''"
+                    [required]="param.required"
+                    [min]="param.min"
+                    [max]="param.max" />
+                }
+
+                <!-- Date input -->
+                @if (param.type === 'date') {
+                  <input
+                    type="date"
+                    class="form-control form-control-sm"
+                    [value]="parameterValues()[param.name] || ''"
+                    (input)="updateParameterValue(param.name, $any($event.target).value)"
+                    [required]="param.required" />
+                }
+
+                <!-- Boolean input -->
+                @if (param.type === 'boolean') {
+                  <div class="form-check form-switch">
+                    <input
+                      type="checkbox"
+                      class="form-check-input"
+                      [id]="'param-' + param.name"
+                      [checked]="parameterValues()[param.name] === 'true'"
+                      (change)="updateParameterValue(param.name, $any($event.target).checked ? 'true' : 'false')" />
+                    <label class="form-check-label" [for]="'param-' + param.name">
+                      {{ param.hint || 'Enable' }}
+                    </label>
+                  </div>
+                }
+
+                <!-- Choice/Summary/Sort dropdown -->
+                @if (param.type === 'choice' || param.type === 'summary' || param.type === 'sort') {
+                  <select
+                    class="form-select form-select-sm"
+                    [value]="parameterValues()[param.name] || ''"
+                    (change)="updateParameterValue(param.name, $any($event.target).value)"
+                    [required]="param.required">
+                    @if (!param.required) {
+                      <option value="">-- Select --</option>
+                    }
+                    @for (choice of param.choices; track choice.value) {
+                      <option [value]="choice.value">{{ choice.label }}</option>
+                    }
+                  </select>
+                }
+
+                <!-- Reference/Token input with selector button -->
+                @if (param.type === 'reference' || param.type === 'token') {
+                  <div class="input-group input-group-sm">
+                    <input
+                      type="text"
+                      class="form-control"
+                      [value]="parameterValues()[param.name] || ''"
+                      (input)="updateParameterValue(param.name, $any($event.target).value)"
+                      [placeholder]="param.hint || ''"
+                      [required]="param.required" />
+                    @if (param.type === 'reference') {
+                      <button
+                        class="btn btn-outline-secondary"
+                        type="button"
+                        title="Open reference selector"
+                        (click)="openReferenceSelector(param)">
+                        <i class="fas fa-search"></i>
+                      </button>
+                    }
+                  </div>
+                }
+
+                <!-- Hint text -->
+                @if (param.hint && param.type !== 'boolean') {
+                  <div class="form-text small">{{ param.hint }}</div>
+                }
+              </div>
+            }
+          </form>
+
+          <!-- Query Preview -->
+          @if (previewQuery()) {
+            <div class="card bg-light mt-3">
+              <div class="card-body p-2">
+                <small class="text-muted d-block mb-1">Generated Query:</small>
+                <code class="small" style="word-break: break-all">{{ previewQuery() }}</code>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" (click)="handleClose()">
+            Cancel
+          </button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="handleExecute()"
+            [disabled]="!previewQuery()">
+            <i class="fas fa-bolt me-2"></i>
+            Execute
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Reference Selector Dialog -->
+  <app-reference-selector-dialog
+    [isOpen]="referenceSelectorOpen()"
+    [resourceTypes]="referenceTypes()"
+    (closeDialog)="closeReferenceSelector()"
+    (selectReference)="handleReferenceSelect($event)">
+  </app-reference-selector-dialog>
+}

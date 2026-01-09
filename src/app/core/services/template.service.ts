@@ -185,9 +185,16 @@ return 0;
   renderTemplate(template: SmartQueryTemplate, values: Record<string, string>): string {
     let query = template.queryTemplate;
 
+    // First, process special tokens in parameter values
+    const processedValues: Record<string, string> = {};
+
+    Object.entries(values).forEach(([key, value]) => {
+      processedValues[key] = this.processSpecialTokens(value);
+    });
+
     // Replace parameters
     template.parameters.forEach(param => {
-      const value = values[param.name] || '';
+      const value = processedValues[param.name] || '';
       const placeholder = new RegExp(`{{${param.name}}}`, 'g');
       query = query.replace(placeholder, encodeURIComponent(value));
     });
@@ -197,5 +204,55 @@ return 0;
     query = query.replace(/[?&]$/, ''); // Remove trailing ? or &
 
     return query;
+  }
+
+  /**
+   * Process special tokens in a value
+   * Supports: {{today}}, {{today-N}}, {{today+N}}, {{now}}, {{uuid}}
+   */
+  private processSpecialTokens(value: string): string {
+
+    if (!value) {
+      return value;
+    }
+
+    let processed = value;
+
+    // {{today}} → current date (YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0];
+    processed = processed.replace(/\{\{today\}\}/g, today);
+
+    // {{today-N}} → N days ago (YYYY-MM-DD)
+    processed = processed.replace(/\{\{today-(\d+)\}\}/g, (_, days) => {
+      const date = new Date();
+      date.setDate(date.getDate() - parseInt(days, 10));
+      return date.toISOString().split('T')[0];
+    });
+
+    // {{today+N}} → N days from now (YYYY-MM-DD)
+    processed = processed.replace(/\{\{today\+(\d+)\}\}/g, (_, days) => {
+      const date = new Date();
+      date.setDate(date.getDate() + parseInt(days, 10));
+      return date.toISOString().split('T')[0];
+    });
+
+    // {{now}} → current ISO datetime
+    processed = processed.replace(/\{\{now\}\}/g, () => new Date().toISOString());
+
+    // {{uuid}} → random UUID
+    processed = processed.replace(/\{\{uuid\}\}/g, () => {
+
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      // Fallback UUID generation for older browsers
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    });
+
+    return processed;
   }
 }

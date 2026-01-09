@@ -210,99 +210,12 @@
   </div>
 
   <!-- Template Config Dialog -->
-  @if (showConfigDialog() && selectedTemplate()) {
-    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-cog me-2"></i>{{ selectedTemplate()!.name }}
-            </h5>
-            <button type="button" class="btn-close" (click)="showConfigDialog.set(false)"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-muted">{{ selectedTemplate()!.description }}</p>
-
-            <form>
-              @for (param of selectedTemplate()!.parameters; track param.name) {
-                <div class="mb-3">
-                  <label class="form-label">
-                    {{ param.label }}
-                    @if (param.required) {
-                      <span class="text-danger">*</span>
-                    }
-                  </label>
-
-                  @if (param.type === 'string' || param.type === 'reference' || param.type === 'token') {
-                    <input
-                      type="text"
-                      class="form-control"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name"
-                      [required]="param.required"
-                      [placeholder]="param.hint || ''">
-                  }
-
-                  @if (param.type === 'number') {
-                    <input
-                      type="number"
-                      class="form-control"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name"
-                      [required]="param.required"
-                      [min]="param.min ?? null"
-                      [max]="param.max ?? null"
-                      [placeholder]="param.hint || ''">
-                  }
-
-                  @if (param.type === 'date') {
-                    <input
-                      type="date"
-                      class="form-control"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name"
-                      [required]="param.required">
-                  }
-
-                  @if (param.type === 'boolean') {
-                    <select
-                      class="form-select"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name">
-                      <option value="">-- Select --</option>
-                      <option value="true">True</option>
-                      <option value="false">False</option>
-                    </select>
-                  }
-
-                  @if (param.type === 'choice' && param.choices) {
-                    <select
-                      class="form-select"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name">
-                      @for (choice of param.choices; track choice.value) {
-                        <option [value]="choice.value">{{ choice.label }}</option>
-                      }
-                    </select>
-                  }
-
-                  @if (param.hint) {
-                    <div class="form-text">{{ param.hint }}</div>
-                  }
-                </div>
-              }
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="showConfigDialog.set(false)">Cancel</button>
-            <button type="button" class="btn btn-primary" (click)="executeTemplate()">
-              <i class="fas fa-bolt me-2"></i>Execute
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
+  <app-template-config-dialog
+    [isOpen]="showConfigDialog()"
+    [template]="selectedTemplate()"
+    (close)="closeConfigDialog()"
+    (execute)="handleTemplateExecution($event)">
+  </app-template-config-dialog>
 
   <!-- Template Editor Dialog (simplified) -->
   @if (showEditorDialog()) {

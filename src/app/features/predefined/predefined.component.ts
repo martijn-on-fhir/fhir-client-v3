@@ -7,6 +7,7 @@ import { LoggerService } from '../../core/services/logger.service';
 import { TemplateService } from '../../core/services/template.service';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { TemplateConfigDialogComponent } from './dialogs/template-config-dialog.component';
 
 /**
  * Predefined Tab Component
@@ -17,7 +18,7 @@ import { MonacoEditorComponent } from '../../shared/components/monaco-editor/mon
 @Component({
   selector: 'app-predefined',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, TemplateConfigDialogComponent],
   templateUrl: './predefined.component.html',
   styleUrl: './predefined.component.scss'
 })
@@ -110,35 +111,25 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   selectTemplate(template: SmartQueryTemplate) {
     this.selectedTemplate.set(template);
-
-    // Initialize parameter values with defaults
-    const values: Record<string, string> = {};
-    template.parameters.forEach(param => {
-      values[param.name] = param.default || '';
-    });
-    this.parameterValues.set(values);
-
     this.showConfigDialog.set(true);
   }
 
   /**
-   * Execute template with current parameters
+   * Handle template execution from config dialog
    */
-  async executeTemplate() {
-    const template = this.selectedTemplate();
-
-    if (!template) {
-return;
-}
-
-    const query = this.templateService.renderTemplate(template, this.parameterValues());
-    this.currentQuery.set(query);
+  async handleTemplateExecution(event: { query: string; template: SmartQueryTemplate }) {
+    this.currentQuery.set(event.query);
     this.showConfigDialog.set(false);
 
-    // Increment usage count
-    this.templateService.incrementUsageCount(template.id);
+    this.logger.info('Executing template:', event.template.name);
+    await this.executeQuery(event.query);
+  }
 
-    await this.executeQuery(query);
+  /**
+   * Close config dialog
+   */
+  closeConfigDialog() {
+    this.showConfigDialog.set(false);
   }
 
   /**
