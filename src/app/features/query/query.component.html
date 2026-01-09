@@ -1,26 +1,9 @@
 <div class="query-container">
   <div class="flex-grow-1 d-flex flex-column" style="gap: 8px">
-    <!-- Mode Switcher and Query Input (Text Mode Only) -->
+    <!-- Mode Switcher and Query Input -->
     <div class="card border-0">
       <div class="card-body p-2">
         <div class="d-flex gap-2 align-items-center">
-          <!-- History Navigation Buttons -->
-          <button
-            class="btn btn-sm btn-outline-secondary"
-            (click)="navigateBack()"
-            [disabled]="!canGoBack()"
-            title="Previous query">
-            <i class="fas fa-chevron-left"></i>
-          </button>
-
-          <button
-            class="btn btn-sm btn-outline-secondary"
-            (click)="navigateForward()"
-            [disabled]="!canGoForward()"
-            title="Next query">
-            <i class="fas fa-chevron-right"></i>
-          </button>
-
           <!-- Mode Toggle Buttons -->
           <button
             class="btn btn-sm"
@@ -38,8 +21,26 @@
             <i class="fas fa-wand-magic-sparkles me-1"></i>Visual Builder
           </button>
 
-          <!-- Query Input (Text Mode Only) -->
+          <!-- Text Mode Controls -->
           @if (queryMode() === 'text') {
+            <!-- History Navigation Buttons -->
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="navigateBack()"
+              [disabled]="!canGoBack()"
+              title="Previous query">
+              <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="navigateForward()"
+              [disabled]="!canGoForward()"
+              title="Next query">
+              <i class="fas fa-chevron-right"></i>
+            </button>
+
+            <!-- Query Input -->
             <input
               id="textQuery"
               type="text"
@@ -58,13 +59,6 @@
               [disabled]="!textQuery() || loading()">
               <i class="fas fa-bolt me-1"></i>
               Execute
-            </button>
-
-            <!-- Info Button -->
-            <button
-              class="btn btn-sm btn-outline-secondary"
-              title="Query help">
-              <i class="fas fa-circle-info"></i>
             </button>
           }
         </div>
