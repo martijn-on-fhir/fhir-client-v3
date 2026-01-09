@@ -1,3 +1,16 @@
+# [1.1.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.0.0...v1.1.0) (2026-01-09)
+
+
+### Bug Fixes
+
+* ensure mode toggle buttons are always visible ([00b3904](https://github.com/martijn-on-fhir/fhir-client-v3/commit/00b39045fd00f7f2ac1b98d3dff69a1f71e7252c))
+* move history buttons to text mode only and align heights ([f1b1b12](https://github.com/martijn-on-fhir/fhir-client-v3/commit/f1b1b1261207e7953cbee5f4b99fd8714b065cd8))
+
+
+### Features
+
+* **query:** implement query history navigation matching v2 ([3304814](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3304814a490228d9c6a38980f41b31e5a6f6bbd5))
+
 # 1.0.0 (2026-01-09)
 
 
