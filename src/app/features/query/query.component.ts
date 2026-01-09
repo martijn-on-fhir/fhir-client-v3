@@ -423,6 +423,7 @@ return;
    */
   navigateBack() {
     const previousQuery = this.queryHistoryService.navigateBack();
+
     if (previousQuery) {
       this.textQuery.set(previousQuery);
       this.logger.debug('Navigated to previous query:', previousQuery);
@@ -434,6 +435,7 @@ return;
    */
   navigateForward() {
     const nextQuery = this.queryHistoryService.navigateForward();
+
     if (nextQuery) {
       this.textQuery.set(nextQuery);
       this.logger.debug('Navigated to next query:', nextQuery);
