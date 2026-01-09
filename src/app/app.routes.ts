@@ -1,18 +1,17 @@
 import { Routes } from '@angular/router';
-import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
-import { ProfilesComponent } from './features/profiles/profiles.component';
-import { TerminologyComponent } from './features/terminology/terminology.component';
-import { PluriformComponent } from './features/pluriform/pluriform.component';
-import { ValidatorComponent } from './features/validator/validator.component';
-import { FhirpathComponent } from './features/fhirpath/fhirpath.component';
-import { NictizComponent } from './features/nictiz/nictiz.component';
-import { LogsComponent } from './features/logs/logs.component';
-import { PredefinedComponent } from './features/predefined/predefined.component';
-import { PlaceholderComponent } from './shared/components/placeholder/placeholder.component';
+import { authGuard, loginGuard } from './core/guards/auth.guard';
 import { LoginComponent } from './features/auth/login/login.component';
 import { TwoFactorSetupComponent } from './features/auth/two-factor-setup/two-factor-setup.component';
-import { authGuard, loginGuard } from './core/guards/auth.guard';
+import { FhirpathComponent } from './features/fhirpath/fhirpath.component';
+import { LogsComponent } from './features/logs/logs.component';
+import { NictizComponent } from './features/nictiz/nictiz.component';
+import { PluriformComponent } from './features/pluriform/pluriform.component';
+import { PredefinedComponent } from './features/predefined/predefined.component';
+import { ProfilesComponent } from './features/profiles/profiles.component';
 import { QueryComponent } from './features/query/query.component';
+import { TerminologyComponent } from './features/terminology/terminology.component';
+import { ValidatorComponent } from './features/validator/validator.component';
+import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 
 /**
  * Application Routes

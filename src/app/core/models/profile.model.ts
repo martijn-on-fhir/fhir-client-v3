@@ -36,11 +36,11 @@ export interface StructureDefinitionElement {
   definition?: string;
   min?: number;
   max?: string;
-  type?: Array<{
+  type?: {
     code?: string;
     profile?: string[];
     targetProfile?: string[];
-  }>;
+  }[];
   constraint?: Constraint[];
 }
 
@@ -54,9 +54,9 @@ export interface Constraint {
 export interface ProfileCacheStats {
   count: number;
   totalSize: number;
-  profiles: Array<{
+  profiles: {
     resourceType: string;
     size: number;
     cached: Date;
-  }>;
+  }[];
 }

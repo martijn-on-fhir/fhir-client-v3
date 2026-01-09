@@ -28,32 +28,38 @@ export interface Constraint {
  * Extract target resource types from Reference type definitions
  */
 const extractTargetTypes = (type: { code: string; targetProfile?: string | string[] }[]): string[] => {
-  if (!type) return [];
 
-  return type
-    .map((t) => {
-      if (t.code === 'Reference') {
-        const profiles = Array.isArray(t.targetProfile) ? t.targetProfile : [t.targetProfile];
-        return profiles.map((profileUrl) => {
-          if (!profileUrl) return undefined;
-          let resource = profileUrl.split('/').reverse()[0];
-          if (resource.startsWith('nl-core-')) {
-            const name = resource.replace('nl-core-', '');
-            resource = name.charAt(0).toUpperCase() + name.slice(1);
-          }
-          return resource;
-        });
-      }
-      return undefined;
-    })
-    .flat()
-    .filter((item) => item !== undefined) as string[];
+  if (!type) {
+    return [];
+  }
+
+  return type.map((t) => {
+
+    if (t.code === 'Reference') {
+      const profiles = Array.isArray(t.targetProfile) ? t.targetProfile : [t.targetProfile];
+      return profiles.map((profileUrl) => {
+
+        if (!profileUrl) {
+          return undefined;
+        }
+
+        let resource = profileUrl.split('/').reverse()[0];
+        if (resource.startsWith('nl-core-')) {
+          const name = resource.replace('nl-core-', '');
+          resource = name.charAt(0).toUpperCase() + name.slice(1);
+        }
+        return resource;
+      });
+    }
+    return undefined;
+  }).flat().filter((item) => item !== undefined) as string[];
 };
 
 /**
  * Merge snapshot and differential elements from a profile and its base chain
  */
-export function mergeProfileElements(profile: any, baseChain: any[]): MergedElement[] {
+export const mergeProfileElements = (profile: any, baseChain: any[]): MergedElement[] => {
+
   const elementMap = new Map<string, any>();
 
   // Start with base definitions (bottom-up, so we can merge/override)
@@ -62,7 +68,7 @@ export function mergeProfileElements(profile: any, baseChain: any[]): MergedElem
     elements.forEach((element: any) => {
       const references = extractTargetTypes(element.type);
       if (!elementMap.has(element.path)) {
-        elementMap.set(element.path, { ...element, references });
+        elementMap.set(element.path, {...element, references});
       } else {
         const existing = elementMap.get(element.path);
         elementMap.set(element.path, {
@@ -85,7 +91,7 @@ export function mergeProfileElements(profile: any, baseChain: any[]): MergedElem
     diffElements.forEach((element: any) => {
       const references = extractTargetTypes(element.type);
       if (!elementMap.has(element.path)) {
-        elementMap.set(element.path, { ...element, references });
+        elementMap.set(element.path, {...element, references});
       } else {
         const existing = elementMap.get(element.path);
         elementMap.set(element.path, {
@@ -107,7 +113,7 @@ export function mergeProfileElements(profile: any, baseChain: any[]): MergedElem
   currentSnapshot.forEach((element: any) => {
     const references = extractTargetTypes(element.type);
     if (!elementMap.has(element.path)) {
-      elementMap.set(element.path, { ...element, references });
+      elementMap.set(element.path, {...element, references});
     } else {
       const existing = elementMap.get(element.path);
       elementMap.set(element.path, {
@@ -122,10 +128,13 @@ export function mergeProfileElements(profile: any, baseChain: any[]): MergedElem
   const currentDiff = profile.differential?.element || [];
   currentDiff.forEach((element: any) => {
     const references = extractTargetTypes(element.type);
+
     if (!elementMap.has(element.path)) {
-      elementMap.set(element.path, { ...element, references });
+      elementMap.set(element.path, {...element, references});
     } else {
+
       const existing = elementMap.get(element.path);
+
       elementMap.set(element.path, {
         ...existing,
         min: element.min !== undefined ? element.min : existing.min,
@@ -154,7 +163,7 @@ export function mergeProfileElements(profile: any, baseChain: any[]): MergedElem
 /**
  * Extract all constraints from a profile and its base chain
  */
-export function extractConstraints(profile: any, baseChain: any[]): Constraint[] {
+export const extractConstraints = (profile: any, baseChain: any[]): Constraint[] => {
   const elementMap = new Map<string, any>();
 
   // Collect from base definitions
@@ -162,7 +171,7 @@ export function extractConstraints(profile: any, baseChain: any[]): Constraint[]
     const elements = baseDef.snapshot?.element || [];
     elements.forEach((element: any) => {
       if (!elementMap.has(element.path)) {
-        elementMap.set(element.path, { ...element });
+        elementMap.set(element.path, {...element});
       }
     });
   });
@@ -184,7 +193,7 @@ export function extractConstraints(profile: any, baseChain: any[]): Constraint[]
   // Apply current profile
   const currentSnapshot = profile.snapshot?.element || [];
   currentSnapshot.forEach((element: any) => {
-    elementMap.set(element.path, { ...element });
+    elementMap.set(element.path, {...element});
   });
 
   const currentDiff = profile.differential?.element || [];
@@ -199,14 +208,11 @@ export function extractConstraints(profile: any, baseChain: any[]): Constraint[]
   });
 
   const allElements = Array.from(elementMap.values());
-  const constraints = allElements
-    .filter((el: any) => el.constraint && el.constraint.length > 0)
-    .flatMap((el: any) => el.constraint.map((c: any) => ({ ...c, path: el.path })))
-    .sort((a: any, b: any) => {
-      const keyA = a.key || '';
-      const keyB = b.key || '';
-      return keyA.localeCompare(keyB);
-    });
+  const constraints = allElements.filter((el: any) => el.constraint && el.constraint.length > 0).flatMap((el: any) => el.constraint.map((c: any) => ({...c, path: el.path}))).sort((a: any, b: any) => {
+    const keyA = a.key || '';
+    const keyB = b.key || '';
+    return keyA.localeCompare(keyB);
+  });
 
   return constraints;
 }

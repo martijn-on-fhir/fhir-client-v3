@@ -1,5 +1,7 @@
 import { Injectable, inject } from '@angular/core';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import * as OTPAuth from 'otpauth';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import QRCode from 'qrcode';
 import { LoggerService } from './logger.service';
 

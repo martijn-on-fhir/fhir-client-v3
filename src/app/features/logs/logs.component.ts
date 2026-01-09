@@ -1,5 +1,5 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LoggerService } from '../../core/services/logger.service';
 
@@ -29,6 +29,7 @@ interface LogEntry {
   styleUrl: './logs.component.scss'
 })
 export class LogsComponent implements OnInit, OnDestroy {
+
   private get logger() {
     return this.loggerService.component('LogsComponent');
   }
@@ -43,31 +44,29 @@ export class LogsComponent implements OnInit, OnDestroy {
   autoScroll = signal(true);
   logPaths = signal<{ mainLog: string; rendererLog: string } | null>(null);
 
-  // Computed filtered logs
   filteredLogs = computed(() => {
+
     const allLogs = this.logs();
     const search = this.searchText().toLowerCase();
     const level = this.selectedLevel();
 
     return allLogs.filter(log => {
-      // Filter by level
+
       if (level !== 'all' && log.level !== level) {
         return false;
       }
 
-      // Filter by search text
-      if (search && !log.message.toLowerCase().includes(search) &&
-          !log.raw.toLowerCase().includes(search)) {
-        return false;
-      }
+      return !(search && !log.message.toLowerCase().includes(search) &&
+        !log.raw.toLowerCase().includes(search));
 
-      return true;
     });
   });
 
   // Stats
   stats = computed(() => {
+
     const allLogs = this.logs();
+
     return {
       total: allLogs.length,
       debug: allLogs.filter(l => l.level === 'debug').length,
@@ -83,12 +82,13 @@ export class LogsComponent implements OnInit, OnDestroy {
   constructor(private loggerService: LoggerService) {}
 
   async ngOnInit() {
-    this.logger.info('Logs component initialized');
+
     await this.loadLogs();
     await this.loadLogPaths();
 
     // Set up listener for log updates
     if (window.electronAPI?.onLogsUpdated) {
+
       this.unwatchCallback = window.electronAPI.onLogsUpdated(() => {
         this.logger.debug('Logs updated, reloading...');
         this.loadLogs();
@@ -97,7 +97,9 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy() {
+
     this.stopWatching();
+
     if (this.unwatchCallback) {
       this.unwatchCallback();
     }
@@ -109,6 +111,7 @@ export class LogsComponent implements OnInit, OnDestroy {
   async loadLogPaths() {
     try {
       const result = await window.electronAPI?.logs?.getPaths();
+
       if (result && 'mainLog' in result) {
         this.logPaths.set(result);
       }
@@ -121,6 +124,7 @@ export class LogsComponent implements OnInit, OnDestroy {
    * Load logs from disk
    */
   async loadLogs(tail?: number) {
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -128,8 +132,8 @@ export class LogsComponent implements OnInit, OnDestroy {
       const result = await window.electronAPI?.logs?.read({ tail });
 
       if (result && 'logs' in result) {
+
         this.logs.set(result.logs);
-        this.logger.info(`Loaded ${result.logs.length} log entries`);
 
         // Auto-scroll to bottom if enabled
         if (this.autoScroll()) {
@@ -156,7 +160,6 @@ export class LogsComponent implements OnInit, OnDestroy {
 
       if (result && 'success' in result && result.success) {
         this.watching.set(true);
-        this.logger.info('Started watching logs');
       } else if (result && 'error' in result) {
         this.error.set(result.error);
         this.logger.error('Failed to start watching:', result.error);
@@ -203,18 +206,16 @@ export class LogsComponent implements OnInit, OnDestroy {
 
       if (result && 'success' in result && result.success) {
         this.logger.info('Logs exported successfully to:', result.path);
-        alert(`Logs exported successfully to:\n${result.path}`);
+
       } else if (result && 'error' in result) {
         if (!result.canceled) {
           this.error.set(result.error);
           this.logger.error('Failed to export logs:', result.error);
-          alert(`Failed to export logs: ${result.error}`);
         }
       }
     } catch (err: any) {
       this.error.set(err.message || 'Failed to export logs');
       this.logger.error('Error exporting logs:', err);
-      alert(`Error exporting logs: ${err.message}`);
     }
   }
 
@@ -245,6 +246,7 @@ export class LogsComponent implements OnInit, OnDestroy {
    */
   private scrollToBottom() {
     const container = document.querySelector('.log-container');
+
     if (container) {
       container.scrollTop = container.scrollHeight;
     }
@@ -283,18 +285,6 @@ export class LogsComponent implements OnInit, OnDestroy {
         return 'fa-bug';
       default:
         return 'fa-circle';
-    }
-  }
-
-  /**
-   * Copy log paths to clipboard
-   */
-  async copyPaths() {
-    const paths = this.logPaths();
-    if (paths) {
-      const text = `Main: ${paths.mainLog}\nRenderer: ${paths.rendererLog}`;
-      await navigator.clipboard.writeText(text);
-      this.logger.info('Log paths copied to clipboard');
     }
   }
 }

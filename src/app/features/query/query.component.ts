@@ -6,21 +6,19 @@
  * query preview, execution, and results display.
  */
 
-import { Component, signal, computed, effect, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, signal, computed, effect, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { firstValueFrom } from 'rxjs';
-import { FhirService } from '../../core/services/fhir.service';
-import { LoggerService } from '../../core/services/logger.service';
-import { NavigationService } from '../../core/services/navigation.service';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
-import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import {
   QueryParameter,
   SearchParameter,
-  ResourceMetadata,
-  QueryBuilderState,
 } from '../../core/models/query-builder.model';
+import { FhirService } from '../../core/services/fhir.service';
+import { LoggerService } from '../../core/services/logger.service';
+import { NavigationService } from '../../core/services/navigation.service';
+import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
+import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 
 @Component({
   selector: 'app-query',
@@ -77,7 +75,10 @@ export class QueryComponent implements OnInit {
   resourceMetadata = computed(() => {
     const meta = this.metadata();
     const resource = this.selectedResource();
-    if (!meta || !resource) return null;
+
+    if (!meta || !resource) {
+return null;
+}
 
     return (
       meta.rest?.[0]?.resource?.find((r: any) => r.type === resource) || null
@@ -86,6 +87,7 @@ export class QueryComponent implements OnInit {
 
   resourceTypes = computed(() => {
     const meta = this.metadata();
+
     if (!meta?.rest?.[0]?.resource) {
       return [];
     }
@@ -93,16 +95,16 @@ export class QueryComponent implements OnInit {
     const types = meta.rest[0].resource
       .map((r: any) => r.type)
       .filter((t: string) => t);
+
     return types.sort();
   });
 
-  availableSearchParams = computed(() => {
-    return this.resourceMetadata()?.searchParam || [];
-  });
+  availableSearchParams = computed(() => this.resourceMetadata()?.searchParam || []);
 
   unusedParams = computed(() => {
     const available = this.availableSearchParams();
     const used = this.parameters();
+
     return available.filter(
       (param: SearchParameter) => !used.find((p) => p.name === param.name)
     );
@@ -112,20 +114,21 @@ export class QueryComponent implements OnInit {
   filteredResult = computed(() => {
     const res = this.result();
     const search = this.searchTerm();
-    if (!res || !search) return res;
+
+    if (!res || !search) {
+return res;
+}
+
     return this.filterJSON(res, search);
   });
 
-  entries = computed(() => {
-    return this.filteredResult()?.entry || [];
-  });
+  entries = computed(() => this.filteredResult()?.entry || []);
 
-  totalPages = computed(() => {
-    return Math.ceil(this.entries().length / this.itemsPerPage);
-  });
+  totalPages = computed(() => Math.ceil(this.entries().length / this.itemsPerPage));
 
   pageNumbers = computed(() => {
     const total = this.totalPages();
+
     return Array.from({ length: total }, (_, i) => i + 1);
   });
 
@@ -134,12 +137,17 @@ export class QueryComponent implements OnInit {
     const page = this.currentPage();
     const start = (page - 1) * this.itemsPerPage;
     const end = start + this.itemsPerPage;
+
     return entries.slice(start, end);
   });
 
   paginatedResult = computed(() => {
     const filtered = this.filteredResult();
-    if (!filtered?.entry) return filtered;
+
+    if (!filtered?.entry) {
+return filtered;
+}
+
     return {
       ...filtered,
       entry: this.paginatedEntries(),
@@ -149,6 +157,7 @@ export class QueryComponent implements OnInit {
   // JSON string for Monaco Editor
   resultJson = computed(() => {
     const result = this.paginatedResult();
+
     return result ? JSON.stringify(result, null, 2) : '';
   });
 
@@ -166,6 +175,7 @@ export class QueryComponent implements OnInit {
     // Auto-save builder state to localStorage
     effect(() => {
       const resource = this.selectedResource();
+
       if (resource) {
         localStorage.setItem('visual-builder-resource', resource);
       } else {
@@ -219,14 +229,6 @@ export class QueryComponent implements OnInit {
 
     // Generate query whenever builder state changes
     effect(() => {
-      // Access all signals to track dependencies
-      const resource = this.selectedResource();
-      const params = this.parameters();
-      const includes = this.selectedIncludes();
-      const revIncludes = this.selectedRevIncludes();
-      const cnt = this.count();
-      const srt = this.sort();
-      const sum = this.summary();
 
       this.generatedQuery.set(this.generateQueryString());
     }, { allowSignalWrites: true });
@@ -240,6 +242,7 @@ export class QueryComponent implements OnInit {
     // Handle navigation events from sidebar
     effect(() => {
       const navEvent = this.navigationService.queryNavigationEvent();
+
       if (navEvent) {
         // Switch to specified mode
         this.queryMode.set(navEvent.mode);
@@ -316,7 +319,10 @@ export class QueryComponent implements OnInit {
    */
   generateQueryString(): string {
     const resource = this.selectedResource();
-    if (!resource) return '';
+
+    if (!resource) {
+return '';
+}
 
     let query = `/${resource}`;
     const parts: string[] = [];
@@ -324,13 +330,18 @@ export class QueryComponent implements OnInit {
     // Add search parameters
     this.parameters().forEach((param) => {
       const validValues = param.values.filter((v) => v && String(v).trim() !== '');
-      if (validValues.length === 0) return;
+
+      if (validValues.length === 0) {
+return;
+}
 
       // Build parameter name with chain and/or modifier
       let paramName = param.name;
+
       if (param.chain) {
         paramName = `${param.name}.${param.chain}`;
       }
+
       if (param.modifier) {
         paramName = `${paramName}:${param.modifier}`;
       }
@@ -358,9 +369,17 @@ export class QueryComponent implements OnInit {
     const srt = this.sort();
     const sum = this.summary();
 
-    if (cnt) parts.push(`_count=${cnt}`);
-    if (srt) parts.push(`_sort=${srt}`);
-    if (sum) parts.push(`_summary=${sum}`);
+    if (cnt) {
+parts.push(`_count=${cnt}`);
+}
+
+    if (srt) {
+parts.push(`_sort=${srt}`);
+}
+
+    if (sum) {
+parts.push(`_summary=${sum}`);
+}
 
     if (parts.length > 0) {
       query += '?' + parts.join('&');
@@ -374,7 +393,10 @@ export class QueryComponent implements OnInit {
    */
   async executeQuery() {
     const query = this.generatedQuery();
-    if (!query) return;
+
+    if (!query) {
+return;
+}
     await this.executeQueryString(query);
   }
 
@@ -383,7 +405,10 @@ export class QueryComponent implements OnInit {
    */
   async executeTextQuery() {
     const query = this.textQuery();
-    if (!query) return;
+
+    if (!query) {
+return;
+}
     await this.executeQueryString(query);
   }
 
@@ -426,7 +451,10 @@ export class QueryComponent implements OnInit {
    */
   async copyQuery() {
     const query = this.generatedQuery();
-    if (!query) return;
+
+    if (!query) {
+return;
+}
 
     try {
       await navigator.clipboard.writeText(query);
@@ -510,6 +538,7 @@ export class QueryComponent implements OnInit {
    */
   removeParameterValue(param: QueryParameter, valueIndex: number) {
     param.values = param.values.filter((_, i) => i !== valueIndex);
+
     // Keep at least one value
     if (param.values.length === 0) {
       param.values = [''];
@@ -529,10 +558,15 @@ export class QueryComponent implements OnInit {
    * Add parameter by name
    */
   addParameter(paramName: string) {
-    if (!paramName) return;
+    if (!paramName) {
+return;
+}
 
     const paramDef = this.availableSearchParams().find((p: SearchParameter) => p.name === paramName);
-    if (!paramDef) return;
+
+    if (!paramDef) {
+return;
+}
 
     this.parameters.set([
       ...this.parameters(),
@@ -590,7 +624,11 @@ export class QueryComponent implements OnInit {
    */
   expandOneLevel() {
     const level = this.collapsedLevel();
-    if (level === false) return;
+
+    if (level === false) {
+return;
+}
+
     if (level === 1) {
       this.collapsedLevel.set(false);
     } else {
@@ -603,6 +641,7 @@ export class QueryComponent implements OnInit {
    */
   collapseOneLevel() {
     const level = this.collapsedLevel();
+
     if (level === false) {
       this.collapsedLevel.set(1);
     } else {
@@ -614,11 +653,15 @@ export class QueryComponent implements OnInit {
    * Filter JSON recursively based on search term
    */
   private filterJSON(obj: any, term: string): any {
-    if (!term) return obj;
+    if (!term) {
+return obj;
+}
     const searchLower = term.toLowerCase();
 
     const filter = (data: any): any => {
-      if (data === null || data === undefined) return null;
+      if (data === null || data === undefined) {
+return null;
+}
 
       if (typeof data !== 'object') {
         return String(data).toLowerCase().includes(searchLower) ? data : null;
@@ -626,6 +669,7 @@ export class QueryComponent implements OnInit {
 
       if (Array.isArray(data)) {
         const filtered = data.map((item) => filter(item)).filter((item) => item !== null);
+
         return filtered.length > 0 ? filtered : null;
       }
 
@@ -659,7 +703,11 @@ export class QueryComponent implements OnInit {
    */
   private loadArrayFromStorage(key: string): string[] {
     const stored = localStorage.getItem(key);
-    if (!stored) return [];
+
+    if (!stored) {
+return [];
+}
+
     try {
       return JSON.parse(stored);
     } catch {
@@ -672,10 +720,14 @@ export class QueryComponent implements OnInit {
    */
   private loadParametersFromStorage(): QueryParameter[] {
     const stored = localStorage.getItem('visual-builder-parameters');
-    if (!stored) return [];
+
+    if (!stored) {
+return [];
+}
 
     try {
       const parsed = JSON.parse(stored);
+
       // Migrate old format (value: string) to new format (values: string[])
       return parsed.map((param: any) => ({
         name: param.name,
@@ -695,7 +747,11 @@ export class QueryComponent implements OnInit {
    */
   private loadCollapsedLevel(): number | false {
     const stored = localStorage.getItem('visual-builder-collapsed-level');
-    if (stored === 'false') return false;
+
+    if (stored === 'false') {
+return false;
+}
+
     return stored ? parseInt(stored, 10) : 4;
   }
 }

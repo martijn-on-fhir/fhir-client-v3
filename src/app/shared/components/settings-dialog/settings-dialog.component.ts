@@ -1,13 +1,13 @@
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Environment, getAvailableEnvironments } from '../../../core/config/environments';
+import { SavedAccount } from '../../../core/models/auth.model';
+import { APP_TABS } from '../../../core/models/tab.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { LoggerService } from '../../../core/services/logger.service';
 import { SettingsService } from '../../../core/services/settings.service';
 import { ThemeService } from '../../../core/services/theme.service';
-import { LoggerService } from '../../../core/services/logger.service';
-import { SavedAccount } from '../../../core/models/auth.model';
-import { Environment, getAvailableEnvironments } from '../../../core/config/environments';
-import { APP_TABS } from '../../../core/models/tab.model';
 
 /**
  * Settings Dialog Component
@@ -385,10 +385,21 @@ export class SettingsDialogComponent implements OnInit {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
+    if (minutes < 1) {
+return 'Just now';
+}
+
+    if (minutes < 60) {
+return `${minutes}m ago`;
+}
+
+    if (hours < 24) {
+return `${hours}h ago`;
+}
+
+    if (days < 7) {
+return `${days}d ago`;
+}
 
     return date.toLocaleDateString();
   }

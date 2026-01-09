@@ -241,6 +241,56 @@ contextBridge.exposeInMainWorld('electronAPI', {
      * @param {...any} args - Arguments to log
      */
     verbose: (...args) => ipcRenderer.invoke('log:verbose', ...args)
+  },
+
+  // Log File Viewing API
+  logs: {
+    /**
+     * Get log file paths
+     * @returns {Promise<{mainLog: string, rendererLog: string}|{error: string}>}
+     */
+    getPaths: () =>
+      ipcRenderer.invoke('logs:getPaths'),
+
+    /**
+     * Read log file entries
+     * @param {Object} options - Read options
+     * @param {number} options.tail - Number of lines from end
+     * @returns {Promise<{logs: Array}|{error: string}>}
+     */
+    read: (options) =>
+      ipcRenderer.invoke('logs:read', options),
+
+    /**
+     * Start watching log file for changes
+     * @returns {Promise<{success: boolean}|{error: string}>}
+     */
+    watch: () =>
+      ipcRenderer.invoke('logs:watch'),
+
+    /**
+     * Stop watching log file
+     * @returns {Promise<{success: boolean}|{error: string}>}
+     */
+    unwatch: () =>
+      ipcRenderer.invoke('logs:unwatch'),
+
+    /**
+     * Export logs to file
+     * @returns {Promise<{success: boolean, path?: string}|{error: string, canceled?: boolean}>}
+     */
+    export: () =>
+      ipcRenderer.invoke('logs:export')
+  },
+
+  /**
+   * Listen for log file updates
+   * @param {Function} callback - Callback when logs are updated
+   * @returns {Function} Cleanup function
+   */
+  onLogsUpdated: (callback) => {
+    ipcRenderer.on('logs-updated', callback);
+    return () => ipcRenderer.removeListener('logs-updated', callback);
   }
 });
 

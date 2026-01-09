@@ -100,7 +100,9 @@ export class TemplateService {
    */
   incrementUsageCount(id: string): void {
     const template = this.getTemplate(id);
-    if (!template) return;
+    if (!template) {
+return;
+}
 
     if (template.isSystem) {
       // For system templates, track in separate counter
@@ -119,7 +121,9 @@ export class TemplateService {
    */
   getUsageCount(id: string): number {
     const template = this.getTemplate(id);
-    if (!template) return 0;
+    if (!template) {
+return 0;
+}
 
     if (template.isSystem) {
       const counters = this.getUsageCounters();
@@ -159,7 +163,7 @@ export class TemplateService {
   /**
    * Get usage counters for system templates
    */
-  private getUsageCounters(): { [id: string]: number } {
+  private getUsageCounters(): Record<string, number> {
     try {
       const stored = localStorage.getItem('template-usage-counters');
       return stored ? JSON.parse(stored) : {};
@@ -178,7 +182,7 @@ export class TemplateService {
   /**
    * Process template with parameter values
    */
-  renderTemplate(template: SmartQueryTemplate, values: { [key: string]: string }): string {
+  renderTemplate(template: SmartQueryTemplate, values: Record<string, string>): string {
     let query = template.queryTemplate;
 
     // Replace parameters

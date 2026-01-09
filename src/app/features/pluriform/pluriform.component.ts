@@ -1,9 +1,10 @@
-import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ThemeService } from '../../core/services/theme.service';
-import { LoggerService } from '../../core/services/logger.service';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import Prism from 'prismjs';
+import { LoggerService } from '../../core/services/logger.service';
+import { ThemeService } from '../../core/services/theme.service';
 import 'prismjs/components/prism-markup';
 
 @Component({
@@ -47,6 +48,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.cleanup();
+
     if (this.fileOpenCleanup) {
       this.fileOpenCleanup();
     }
@@ -60,6 +62,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
       return Prism.highlight(code, Prism.languages['markup'], 'markup');
     } catch (error) {
       this.logger.error('Error highlighting code:', error);
+
       return code;
     }
   }
@@ -70,6 +73,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
       this.error.set('File API not available');
+
       return;
     }
 
@@ -123,10 +127,15 @@ export class PluriformComponent implements OnInit, OnDestroy {
    * Handle panel resize
    */
   private resize(e: MouseEvent) {
-    if (!this.isResizing()) return;
+    if (!this.isResizing()) {
+return;
+}
 
     const container = document.getElementById('pluriform-results-container');
-    if (!container) return;
+
+    if (!container) {
+return;
+}
 
     const containerRect = container.getBoundingClientRect();
     const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
@@ -151,6 +160,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
     if (this.mouseMoveHandler) {
       document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
+
     if (this.mouseUpHandler) {
       document.removeEventListener('mouseup', this.mouseUpHandler);
     }

@@ -1,11 +1,11 @@
-import { Component, inject, ViewChild, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, ViewChild, computed } from '@angular/core';
 import { Router } from '@angular/router';
-import { ThemeService } from '../../core/services/theme.service';
-import { FhirService } from '../../core/services/fhir.service';
-import { SettingsService } from '../../core/services/settings.service';
 import { AuthService } from '../../core/services/auth.service';
+import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { SettingsService } from '../../core/services/settings.service';
+import { ThemeService } from '../../core/services/theme.service';
 import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
 
 /**
@@ -83,11 +83,13 @@ export class HeaderComponent {
   async openFile(): Promise<void> {
     if (!window.electronAPI?.file?.openFile) {
       alert('File operations are only available in Electron');
+
       return;
     }
 
     try {
       const result = await window.electronAPI.file.openFile();
+
       if (result && 'content' in result) {
         // TODO: Handle opened file content
         this.logger.info('File opened:', result.path);
@@ -104,6 +106,7 @@ export class HeaderComponent {
   async saveFile(): Promise<void> {
     if (!window.electronAPI?.file?.saveFile) {
       alert('File operations are only available in Electron');
+
       return;
     }
 
@@ -111,6 +114,7 @@ export class HeaderComponent {
       // TODO: Get content to save from current view
       const content = JSON.stringify({ message: 'Example content' }, null, 2);
       const result = await window.electronAPI.file.saveFile(content, 'export.json');
+
       if (result && 'success' in result && result.success) {
         this.logger.info('File saved:', result.path);
       }

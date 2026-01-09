@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import type * as Monaco from 'monaco-editor';
 import { LoggerService } from './logger.service';
 
@@ -77,7 +78,9 @@ export class AutocompleteService {
    * 4. fixed value pattern
    */
   getEnumValuesFromElement(element: any): string[] | null {
-    if (!element) return null;
+    if (!element) {
+return null;
+}
 
     const enumValues: string[] = [];
 
@@ -199,8 +202,9 @@ export class AutocompleteService {
       for (let i = textBeforeCursor.length - 1; i >= 0; i--) {
         const char = textBeforeCursor[i];
 
-        if (char === '}') braceCount++;
-        else if (char === '{') {
+        if (char === '}') {
+braceCount++;
+} else if (char === '{') {
           braceCount--;
 
           // When we exit the current object (braceCount goes negative)
@@ -220,8 +224,9 @@ export class AutocompleteService {
               break;
             }
           }
-        } else if (char === ']') bracketCount++;
-        else if (char === '[') {
+        } else if (char === ']') {
+bracketCount++;
+} else if (char === '[') {
           bracketCount--;
 
           // When we exit an array (bracketCount goes negative)

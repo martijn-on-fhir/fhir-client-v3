@@ -5,6 +5,7 @@ const { registerAuthHandlers } = require('./auth/auth-handler');
 const { registerTerminologyHandlers } = require('./terminology/terminology-handler');
 const { registerFileHandlers } = require('./file/file-handler');
 const { registerProfileHandlers } = require('./profile/profile-handler');
+const { registerLogHandlers } = require('./logs/log-handler');
 const { createApplicationMenu } = require('./menu/menu-handler');
 
 // Initialize electron-log for IPC communication
@@ -130,6 +131,9 @@ app.whenReady().then(() => {
 
   // Create window
   createWindow();
+
+  // Register log handlers (requires mainWindow)
+  registerLogHandlers(mainWindow);
 });
 
 app.on('window-all-closed', () => {

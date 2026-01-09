@@ -53,17 +53,15 @@ export class NictizService {
           });
         });
 
-        const totalEntries = bundle.entry?.length || 0;
         let newProfilesCount = 0;
-        let structureDefCount = 0;
 
         // Process entries from this batch
         if (bundle.entry && bundle.entry.length > 0) {
+
           bundle.entry.forEach((entry: any) => {
             const resource = entry.resource;
-            if (resource.resourceType === 'StructureDefinition') {
-              structureDefCount++;
 
+            if (resource.resourceType === 'StructureDefinition') {
               // Only add if we haven't seen this URL before
               if (!seenUrls.has(resource.url)) {
                 seenUrls.add(resource.url);

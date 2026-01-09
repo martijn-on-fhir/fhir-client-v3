@@ -1,11 +1,11 @@
-import { Component, inject, computed, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, inject, computed, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { HeaderComponent } from '../header/header.component';
-import { TabNavComponent } from '../tab-nav/tab-nav.component';
-import { SidebarComponent } from '../sidebar/sidebar.component';
-import { AboutDialogComponent } from '../../shared/components/about-dialog/about-dialog.component';
 import { SettingsService } from '../../core/services/settings.service';
+import { AboutDialogComponent } from '../../shared/components/about-dialog/about-dialog.component';
+import { HeaderComponent } from '../header/header.component';
+import { SidebarComponent } from '../sidebar/sidebar.component';
+import { TabNavComponent } from '../tab-nav/tab-nav.component';
 
 /**
  * Main Layout Component - App shell structure

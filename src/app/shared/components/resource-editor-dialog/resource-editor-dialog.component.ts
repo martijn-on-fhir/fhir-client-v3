@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, Input, Output, EventEmitter, signal, computed, HostListener, inject, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, Output, EventEmitter, signal, computed, HostListener, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { MonacoEditorComponent, AutocompleteConfig } from '../monaco-editor/monaco-editor.component';
-import { ReferenceSelectorDialogComponent } from '../reference-selector-dialog/reference-selector-dialog.component';
 import { FhirService } from '../../../core/services/fhir.service';
 import { LoggerService } from '../../../core/services/logger.service';
 import { FHIR_TEMPLATES } from '../../../core/utils/fhir-templates';
+import { MonacoEditorComponent, AutocompleteConfig } from '../monaco-editor/monaco-editor.component';
+import { ReferenceSelectorDialogComponent } from '../reference-selector-dialog/reference-selector-dialog.component';
 
 /**
  * Resource Editor Dialog Component
@@ -72,7 +72,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   propertySearchQuery = signal('');
   filteredRequiredProperties = computed(() => {
     const query = this.propertySearchQuery().toLowerCase();
-    if (!query) return this.requiredProperties();
+
+    if (!query) {
+return this.requiredProperties();
+}
+
     return this.requiredProperties().filter(p =>
       p.name.toLowerCase().includes(query) ||
       p.short?.toLowerCase().includes(query) ||
@@ -81,7 +85,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   });
   filteredOptionalProperties = computed(() => {
     const query = this.propertySearchQuery().toLowerCase();
-    if (!query) return this.optionalProperties();
+
+    if (!query) {
+return this.optionalProperties();
+}
+
     return this.optionalProperties().filter(p =>
       p.name.toLowerCase().includes(query) ||
       p.short?.toLowerCase().includes(query) ||
@@ -109,7 +117,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   // Resource type
   resourceType = computed(() => {
     const sd = this.structureDefinition();
-    if (!sd) return '';
+
+    if (!sd) {
+return '';
+}
+
     return sd.type || sd.id || '';
   });
 
@@ -117,6 +129,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   isEditing = computed(() => {
     try {
       const resource = JSON.parse(this.editorContent());
+
       return !!resource.id;
     } catch {
       return false;
@@ -126,6 +139,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   // Autocomplete configuration
   autocompleteConfig = computed<AutocompleteConfig | undefined>(() => {
     const sd = this.structureDefinition();
+
     if (!sd || !sd.snapshot?.element) {
       return undefined;
     }
@@ -135,12 +149,14 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     const firstLevelElements = sd.snapshot.element.filter((el: any) => {
       const path = el.path || '';
       const parts = path.split('.');
+
       return parts.length === 2 && parts[0] === resourceType;
     });
 
     const propertySuggestions = firstLevelElements.map((el: any) => {
       const path = el.path || '';
       const parts = path.split('.');
+
       return parts[1];
     });
 
@@ -154,6 +170,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
   ngOnInit() {
     this.logger.info('ResourceEditorDialog initialized');
+
     if (this.show() && this.structureDefinition()) {
       this.initializeEditor();
     }
@@ -268,6 +285,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
         hasDifferential: !!sd?.differential,
         snapshot: sd?.snapshot
       });
+
       return;
     }
 
@@ -285,6 +303,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
       // Skip root element
       if (element.path === resourceType) {
         this.logger.debug('Skipping root element', element.path);
+
         return;
       }
 
@@ -294,6 +313,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
       if (parts.length !== 2) {
         this.logger.debug('Skipping nested element', { path, parts: parts.length });
+
         return;
       }
 
@@ -364,9 +384,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   isReferenceType(property: ElementProperty): boolean {
     const element = property.element;
+
     if (!element?.type || element.type.length === 0) {
       return false;
     }
+
     return element.type.some((t: any) => t.code === 'Reference');
   }
 
@@ -375,6 +397,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   getAllowedReferences(property: ElementProperty): string {
     const element = property.element;
+
     if (!element?.type) {
       return '';
     }
@@ -382,10 +405,10 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     const referenceTypes = element.type
       .filter((t: any) => t.code === 'Reference')
       .flatMap((t: any) => t.targetProfile || [])
-      .map((profileUrl: string) => {
+      .map((profileUrl: string) =>
         // Extract resource type from URL (e.g., "http://hl7.org/fhir/StructureDefinition/Patient" -> "Patient")
-        return profileUrl.split('/').pop() || profileUrl;
-      });
+         profileUrl.split('/').pop() || profileUrl
+      );
 
     return referenceTypes.join(', ');
   }
@@ -667,10 +690,15 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    if (!this.isResizingLeft() && !this.isResizingRight()) return;
+    if (!this.isResizingLeft() && !this.isResizingRight()) {
+return;
+}
 
     const container = document.getElementById('resource-editor-container');
-    if (!container) return;
+
+    if (!container) {
+return;
+}
 
     const containerRect = container.getBoundingClientRect();
     const deltaX = event.clientX - this.startX;
@@ -712,7 +740,9 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (!this.show()) return;
+    if (!this.show()) {
+return;
+}
 
     // Ctrl+Alt+L - Format JSON
     if (event.ctrlKey && event.altKey && event.key === 'l') {
@@ -732,8 +762,10 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   handleAltEnter(event: { propertyName: string; lineNumber: number }) {
     const sd = this.structureDefinition();
+
     if (!sd || !sd.snapshot?.element) {
       this.logger.warn('No structure definition available');
+
       return;
     }
 
@@ -745,6 +777,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
     if (!element) {
       this.logger.warn(`Property "${event.propertyName}" not found in structure definition`);
+
       return;
     }
 
@@ -753,6 +786,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
     if (!isReference) {
       this.logger.info(`Property "${event.propertyName}" is not a Reference type`);
+
       return;
     }
 
@@ -823,7 +857,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   getBindingStrength(property: ElementProperty): string | null {
     const element = property.element;
-    if (!element?.binding?.strength) return null;
+
+    if (!element?.binding?.strength) {
+return null;
+}
+
     return element.binding.strength;
   }
 
@@ -850,7 +888,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   getValueSetUrl(property: ElementProperty): string | null {
     const element = property.element;
-    if (!element?.binding) return null;
+
+    if (!element?.binding) {
+return null;
+}
+
     return element.binding.valueSet || element.binding.valueSetReference?.reference || null;
   }
 
@@ -865,6 +907,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
       // Find line containing property name
       const lineIndex = lines.findIndex(line => {
         const match = line.match(/"([^"]+)"\s*:/);
+
         return match && match[1] === propertyName;
       });
 
@@ -888,7 +931,11 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
    */
   getIssuesBySeverity(severity: string): any[] {
     const result = this.validationResult();
-    if (!result?.issue) return [];
+
+    if (!result?.issue) {
+return [];
+}
+
     return result.issue.filter((issue: any) => issue.severity === severity);
   }
 }

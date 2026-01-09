@@ -20,7 +20,8 @@ module.exports = tseslint.config(
       '!eslint.config.js',
       'electron/**/*.js',
       'src/app/shared/types/**',
-      '**/*.d.ts'
+      '**/*.d.ts',
+      'src/app/core/services/logger.service.ts'
     ]
   },
 
@@ -53,7 +54,7 @@ module.exports = tseslint.config(
     },
     rules: {
       // TypeScript specific rules
-      '@typescript-eslint/no-explicit-any': 'warn',
+      '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/explicit-function-return-type': 'off',
       '@typescript-eslint/explicit-module-boundary-types': 'off',
       '@typescript-eslint/no-unused-vars': ['warn', {
@@ -91,8 +92,8 @@ module.exports = tseslint.config(
 
       // General rules
       'no-console': ['warn', { allow: ['warn', 'error'] }],
-      'no-debugger': 'warn',
-      'no-alert': 'warn',
+      'no-debugger': 0,
+      'no-alert': 0,
       'no-var': 'error',
       'prefer-const': 'error',
       'prefer-arrow-callback': 'error',

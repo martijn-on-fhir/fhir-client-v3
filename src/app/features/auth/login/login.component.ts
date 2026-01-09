@@ -1,10 +1,10 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { AuthService } from '../../../core/services/auth.service';
 import { Environment, getAvailableEnvironments } from '../../../core/config/environments';
 import { SavedAccount } from '../../../core/models/auth.model';
+import { AuthService } from '../../../core/services/auth.service';
 
 /**
  * Login Component
@@ -108,6 +108,7 @@ export class LoginComponent implements OnInit {
     // Validation
     if (!this.clientId() || !this.clientSecret()) {
       this.error.set('Please enter both Client ID and Client Secret');
+
       return;
     }
 
@@ -117,6 +118,7 @@ export class LoginComponent implements OnInit {
     if (twoFactorEnabled) {
       // Show 2FA verification screen
       this.show2FAVerification.set(true);
+
       return;
     }
 
@@ -134,6 +136,7 @@ export class LoginComponent implements OnInit {
 
     if (!isValid) {
       this.error.set('Invalid verification code');
+
       return;
     }
 

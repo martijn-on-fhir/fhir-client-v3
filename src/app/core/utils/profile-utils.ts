@@ -8,7 +8,7 @@
 /**
  * Format element path with tree-style visualization
  */
-export function formatElementPath(path: string, index: number, allElements: any[]): string {
+export const formatElementPath = (path: string, index: number, allElements: any[]): string => {
   const parts = path.split('.');
   const depth = parts.length - 1;
   const name = parts[parts.length - 1];
@@ -54,7 +54,7 @@ export function formatElementPath(path: string, index: number, allElements: any[
 /**
  * Load cache statistics from electron API
  */
-export async function loadCacheStats(): Promise<any> {
+export const loadCacheStats = async (): Promise<any> => {
   try {
     const stats = await window.electronAPI?.profileCache?.stats();
     return stats;
@@ -68,17 +68,12 @@ export async function loadCacheStats(): Promise<any> {
 /**
  * Extract constraints from snapshot elements
  */
-export function extractConstraintsFromElements(elements: any[]): any[] {
-  return elements
-    .filter((el: any) => el.constraint && el.constraint.length > 0)
-    .flatMap((el: any) => el.constraint.map((c: any) => ({ ...c, path: el.path })))
-    .sort((a: any, b: any) => (a.key || '').localeCompare(b.key || ''));
-}
+export const extractConstraintsFromElements = (elements: any[]): any[] => elements.filter((el: any) => el.constraint && el.constraint.length > 0).flatMap((el: any) => el.constraint.map((c: any) => ({...c, path: el.path}))).sort((a: any, b: any) => (a.key || '').localeCompare(b.key || ''))
 
 /**
  * Render type information for an element
  */
-export function renderElementType(element: any): string {
+export const renderElementType = (element: any): string => {
   if (element.references && element.references.filter(Boolean).length > 0) {
     return element.references.filter(Boolean).join(', ');
   } else if (element.type && element.type.length > 0) {
@@ -91,17 +86,19 @@ export function renderElementType(element: any): string {
 /**
  * Get badge class name based on cardinality
  */
-export function getCardinalityBadgeClass(min: number, max: string): string {
+export const getCardinalityBadgeClass = (min: number, max: string): string => {
   const isRequired = min > 0;
   const isForbidden = max === '0';
-  if (isRequired) return 'bg-warning';
-  if (isForbidden) return 'bg-danger';
+  if (isRequired) {
+return 'bg-warning';
+}
+  if (isForbidden) {
+return 'bg-danger';
+}
   return 'bg-secondary';
 }
 
 /**
  * Get severity badge class name
  */
-export function getSeverityBadgeClass(severity: string): string {
-  return severity === 'error' ? 'bg-danger' : 'bg-warning';
-}
+export const getSeverityBadgeClass = (severity: string): string => severity === 'error' ? 'bg-danger' : 'bg-warning'

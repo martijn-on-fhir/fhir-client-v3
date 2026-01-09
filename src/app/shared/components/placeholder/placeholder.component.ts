@@ -1,5 +1,5 @@
-import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, Input, OnInit, inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 
 /**
@@ -79,6 +79,7 @@ export class PlaceholderComponent implements OnInit {
   ngOnInit() {
     // Get data from route if available
     const data = this.route.snapshot.data;
+
     if (data) {
       this.title = data['title'] || this.title;
       this.description = data['description'] || this.description;

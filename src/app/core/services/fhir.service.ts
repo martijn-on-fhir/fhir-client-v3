@@ -1,5 +1,5 @@
-import { Injectable, inject, computed } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { getEnvironmentConfig } from '../config/environments';
@@ -64,8 +64,8 @@ export class FhirService {
    * ```typescript
    * this.fhirService.executeQuery('/Patient?name=John')
    *   .pipe(
-     *     catchError(err => this.handleError(err))
-     *   )
+   *     catchError(err => this.handleError(err))
+   *   )
    *   .subscribe(result => console.log(result));
    * ```
    */

@@ -115,7 +115,7 @@ const STU3_REQUIRED_FIELDS: Record<string, string[]> = {
 /**
  * Validate a FHIR resource
  */
-export function validateFhirResource(resource: any, version: 'R4' | 'STU3' = 'R4'): ValidationResult {
+export const validateFhirResource = (resource: any, version: 'R4' | 'STU3' = 'R4'): ValidationResult => {
   const issues: ValidationIssue[] = [];
   const validResources = version === 'STU3' ? FHIR_STU3_RESOURCES : FHIR_R4_RESOURCES;
   const requiredFields = version === 'STU3' ? STU3_REQUIRED_FIELDS : R4_REQUIRED_FIELDS;
@@ -199,7 +199,7 @@ export function validateFhirResource(resource: any, version: 'R4' | 'STU3' = 'R4
   };
 }
 
-function hasField(obj: any, path: string): boolean {
+const hasField = (obj: any, path: string): boolean => {
   const keys = path.split('.');
   let current = obj;
   for (const key of keys) {
@@ -209,14 +209,14 @@ function hasField(obj: any, path: string): boolean {
     current = current[key];
   }
   return current !== null && current !== undefined;
-}
+};
 
-function isValidId(id: string): boolean {
-  return /^[A-Za-z0-9-.]{1,64}$/.test(id);
-}
+const isValidId = (id: string): boolean => /^[A-Za-z0-9-.]{1,64}$/.test(id);
 
-function validateReferences(obj: any, path: string, issues: ValidationIssue[]): void {
-  if (!obj || typeof obj !== 'object') return;
+const validateReferences = (obj: any, path: string, issues: ValidationIssue[]): void => {
+  if (!obj || typeof obj !== 'object') {
+return;
+}
 
   if (obj.reference) {
     const reference = obj.reference;
@@ -249,9 +249,9 @@ function validateReferences(obj: any, path: string, issues: ValidationIssue[]): 
       }
     }
   }
-}
+};
 
-function validateResourceSpecific(resource: any, resourceType: string, issues: ValidationIssue[]): void {
+const validateResourceSpecific = (resource: any, resourceType: string, issues: ValidationIssue[]): void => {
   switch (resourceType) {
     case 'Patient':
       if (!resource.name && !resource.identifier) {
@@ -288,9 +288,9 @@ function validateResourceSpecific(resource: any, resourceType: string, issues: V
       }
       break;
   }
-}
+};
 
-function addBestPracticeWarnings(resource: any, resourceType: string, issues: ValidationIssue[]): void {
+const addBestPracticeWarnings = (resource: any, resourceType: string, issues: ValidationIssue[]): void => {
   if (!resource.meta || !resource.meta.lastUpdated) {
     issues.push({
       severity: 'information',
@@ -331,27 +331,27 @@ function addBestPracticeWarnings(resource: any, resourceType: string, issues: Va
       }
     });
   }
-}
+};
 
-export function getSeverityColor(severity: string): string {
+export const getSeverityColor = (severity: string): string => {
   switch (severity) {
     case 'error': return 'danger';
     case 'warning': return 'warning';
     case 'information': return 'info';
     default: return 'secondary';
   }
-}
+};
 
-export function getSeverityIcon(severity: string): string {
+export const getSeverityIcon = (severity: string): string => {
   switch (severity) {
     case 'error': return 'times-circle';
     case 'warning': return 'exclamation-triangle';
     case 'information': return 'info-circle';
     default: return 'question-circle';
   }
-}
+};
 
-export function validateAgainstServer(resource: any, metadata: any): ValidationResult {
+export const validateAgainstServer = (resource: any, metadata: any): ValidationResult => {
   const issues: ValidationIssue[] = [];
   let parsedResource: any;
 
@@ -429,4 +429,4 @@ export function validateAgainstServer(resource: any, metadata: any): ValidationR
     issues,
     resourceType,
   };
-}
+};

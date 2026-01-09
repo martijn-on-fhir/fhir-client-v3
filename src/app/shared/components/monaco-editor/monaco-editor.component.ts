@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import {
   Component,
   Input,
@@ -14,12 +15,12 @@ import {
   OnDestroy,
   effect
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import loader from '@monaco-editor/loader';
+// eslint-disable-next-line @typescript-eslint/naming-convention
 import type * as Monaco from 'monaco-editor';
-import { ThemeService } from '../../../core/services/theme.service';
 import { AutocompleteService } from '../../../core/services/autocomplete.service';
 import { LoggerService } from '../../../core/services/logger.service';
+import { ThemeService } from '../../../core/services/theme.service';
 
 /**
  * Autocomplete configuration for Monaco Editor
@@ -96,8 +97,10 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     // React to theme changes
     effect(() => {
       const theme = this.isDarkMode() ? 'vs-dark' : 'vs';
+
       if (this.editor && this.monaco) {
         this.monaco.editor.setTheme(theme);
+       // this.editor.trigger('editor', 'editor.action.formatDocument' , '')
       }
     });
   }
@@ -126,6 +129,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       let attempts = 0;
       this.initInterval = setInterval(() => {
         attempts++;
+
         if (this.monaco) {
           clearInterval(this.initInterval);
           this.initInterval = null;
@@ -142,6 +146,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   ngOnChanges(changes: SimpleChanges) {
     if (changes['value'] && !changes['value'].firstChange && this.editor) {
       const currentValue = this.editor.getValue();
+
       if (currentValue !== this.value) {
         this.editor.setValue(this.value);
       }
@@ -258,6 +263,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
           // Find the element for this property in structure definition
           const element = structureElements.find((el: any) => {
             const path = el.path || '';
+
             return path.endsWith(`.${propertyNameForValue}`);
           });
 
@@ -325,6 +331,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
             // Find the element in structure definition
             const element = structureElements.find((el: any) => {
               const path = el.path || '';
+
               return path === `${currentContextPrefix}.${propertyName}`;
             });
 
@@ -377,6 +384,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (e.altKey && !e.ctrlKey && e.keyCode === this.monaco!.KeyCode.Enter) {
         e.preventDefault();
         this.handleAltEnter();
+
         return;
       }
 
@@ -384,6 +392,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (e.ctrlKey && e.altKey && e.keyCode === this.monaco!.KeyCode.KeyL) {
         e.preventDefault();
         this.formatJson();
+
         return;
       }
 
@@ -391,6 +400,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.DownArrow) {
         e.preventDefault();
         this.navigateToNextEmptyValue();
+
         return;
       }
 
@@ -398,12 +408,14 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.UpArrow) {
         e.preventDefault();
         this.navigateToPreviousEmptyValue();
+
         return;
       }
 
       // Enter key: Smart comma insertion
       if (!e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.Enter) {
         const position = this.editor!.getPosition();
+
         if (position) {
           this.handleSmartEnter(position);
         }
@@ -425,11 +437,13 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     }
 
     const position = this.editor.getPosition();
+
     if (!position) {
       return;
     }
 
     const model = this.editor.getModel();
+
     if (!model) {
       return;
     }
@@ -442,6 +456,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
     if (!propertyMatch) {
       this.logger.warn('No property found at cursor position');
+
       return;
     }
 
@@ -493,6 +508,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     }
 
     const model = this.editor.getModel();
+
     if (!model) {
       return;
     }
@@ -501,7 +517,9 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       const currentContent = this.editor.getValue();
       const position = this.editor.getPosition();
 
-      if (!position) return;
+      if (!position) {
+return;
+}
 
       // Get current offset in the document
       const currentOffset = model.getOffsetAt(position);
@@ -513,6 +531,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
       for (const pattern of patterns) {
         const index = currentContent.indexOf(pattern, currentOffset);
+
         if (index !== -1 && (nextIndex === -1 || index < nextIndex)) {
           nextIndex = index;
           // For null, position at the start
@@ -545,6 +564,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     }
 
     const model = this.editor.getModel();
+
     if (!model) {
       return;
     }
@@ -553,7 +573,9 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       const currentContent = this.editor.getValue();
       const position = this.editor.getPosition();
 
-      if (!position) return;
+      if (!position) {
+return;
+}
 
       // Get current offset in the document
       const currentOffset = model.getOffsetAt(position);
@@ -566,6 +588,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
       for (const pattern of patterns) {
         const index = textBeforeCursor.lastIndexOf(pattern);
+
         if (index !== -1 && index > prevIndex) {
           prevIndex = index;
           // For null, position at the start
@@ -598,6 +621,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     }
 
     const model = this.editor.getModel();
+
     if (!model) {
       return;
     }
@@ -613,13 +637,21 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
         // After Enter is pressed, check if comma is needed
         setTimeout(() => {
-          if (!this.editor || !this.monaco) return;
+          if (!this.editor || !this.monaco) {
+return;
+}
 
           const model = this.editor.getModel();
-          if (!model) return;
+
+          if (!model) {
+return;
+}
 
           const currentPos = this.editor.getPosition();
-          if (!currentPos) return;
+
+          if (!currentPos) {
+return;
+}
 
           // Check the next line (where the closing bracket moved to)
           if (currentPos.lineNumber + 1 <= model.getLineCount()) {

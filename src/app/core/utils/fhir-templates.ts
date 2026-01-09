@@ -196,6 +196,4 @@ export const FHIR_TEMPLATES: Record<string, any> = {
 /**
  * Get template for a FHIR type
  */
-export function getTemplate(typeName: string): any | null {
-  return FHIR_TEMPLATES[typeName] || FHIR_TEMPLATES[typeName.toLowerCase()] || null;
-}
+export const getTemplate = (typeName: string): any | null => FHIR_TEMPLATES[typeName] || FHIR_TEMPLATES[typeName.toLowerCase()] || null

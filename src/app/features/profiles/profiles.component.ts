@@ -1,13 +1,13 @@
-import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { ProfileInfo, StructureDefinition } from '../../core/models/profile.model';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
-import { ProfileInfo, StructureDefinition } from '../../core/models/profile.model';
 import { mergeProfileElements, extractConstraints } from '../../core/utils/profile-merge';
 import { formatElementPath, renderElementType, getCardinalityBadgeClass, getSeverityBadgeClass, loadCacheStats } from '../../core/utils/profile-utils';
-import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
 import { ProfileCacheDropdownComponent } from '../../shared/components/profile-cache-dropdown/profile-cache-dropdown.component';
+import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
 
 /**
  * Profiles Component - Angular version with Signals
@@ -74,6 +74,7 @@ export class ProfilesComponent implements OnInit {
             if (resource.profile) {
               this.extractProfiles(resource.profile, resource.type, profileList);
             }
+
             if (resource.supportedProfile) {
               this.extractProfiles(resource.supportedProfile, resource.type, profileList);
             }
@@ -86,6 +87,7 @@ export class ProfilesComponent implements OnInit {
 
         // Auto-select Account
         const accountProfile = profileList.find(p => p.resourceType === 'Account');
+
         if (accountProfile) {
           this.selectedProfileUrl.set(accountProfile.url);
           this.selectedProfileTitle.set(accountProfile.resourceType);
@@ -106,6 +108,7 @@ export class ProfilesComponent implements OnInit {
 
     profileArray.forEach((profile: any) => {
       const url = typeof profile === 'string' ? profile : profile.reference;
+
       if (url) {
         list.push({ url, resourceType });
       }
@@ -119,6 +122,7 @@ export class ProfilesComponent implements OnInit {
   async loadStructureDefinition(url: string, profileTitle: string) {
     if (!url) {
       this.profileError.set('Please select a profile');
+
       return;
     }
 
@@ -147,6 +151,7 @@ export class ProfilesComponent implements OnInit {
         this.mergedElements.set(cached.mergedElements || []);
         this.constraints.set(cached.constraints || []);
         this.loadingProfile.set(false);
+
         return;
       }
 
@@ -157,6 +162,7 @@ export class ProfilesComponent implements OnInit {
 
           // Fetch base definition chain (if exists)
           let baseChain: any[] = [];
+
           if (sd.baseDefinition) {
             baseChain = await this.fetchBaseDefinitionChain(sd.baseDefinition);
             this.baseDefinitions.set(baseChain);
@@ -260,10 +266,12 @@ export class ProfilesComponent implements OnInit {
       this.baseDefinitions.set([]);
       this.mergedElements.set([]);
       this.constraints.set([]);
+
       return;
     }
 
     const profile = this.profiles().find(p => p.url === value);
+
     if (profile) {
       this.selectedProfileTitle.set(profile.resourceType);
       await this.loadStructureDefinition(value, profile.resourceType);
@@ -276,6 +284,7 @@ export class ProfilesComponent implements OnInit {
   async execute() {
     const url = this.selectedProfileUrl();
     const title = this.selectedProfileTitle();
+
     if (url && title) {
       await this.loadStructureDefinition(url, title);
     }
@@ -312,6 +321,7 @@ export class ProfilesComponent implements OnInit {
 
     if (!url || !title) {
       alert('Please select a profile first');
+
       return;
     }
 
@@ -336,6 +346,7 @@ export class ProfilesComponent implements OnInit {
    */
   openEditor() {
     const sd = this.structureDefinition();
+
     if (sd) {
       this.editorDialog.open(sd);
     }

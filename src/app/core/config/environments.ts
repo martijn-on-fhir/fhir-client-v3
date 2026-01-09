@@ -69,13 +69,9 @@ export const ENVIRONMENTS: Record<Environment, EnvironmentConfig> = {
 /**
  * Get environment configuration
  */
-export function getEnvironmentConfig(env: Environment): EnvironmentConfig {
-  return ENVIRONMENTS[env];
-}
+export const getEnvironmentConfig = (env: Environment): EnvironmentConfig =>ENVIRONMENTS[env]
 
 /**
  * Get all available environments
  */
-export function getAvailableEnvironments(): Environment[] {
-  return Object.keys(ENVIRONMENTS) as Environment[];
-}
+export const getAvailableEnvironments = (): Environment[] => Object.keys(ENVIRONMENTS) as Environment[]

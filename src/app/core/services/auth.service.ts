@@ -1,17 +1,15 @@
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { Observable, from, throwError, of } from 'rxjs';
+import { Observable, from, throwError } from 'rxjs';
 import { map, catchError, tap, switchMap } from 'rxjs/operators';
 import {
   LoginCredentials,
-  TokenResponse,
   StoredToken,
   AuthState,
   SavedAccount
 } from '../models/auth.model';
-import { Environment } from '../config/environments';
-import { TotpService } from './totp.service';
 import { LoggerService } from './logger.service';
+import { TotpService } from './totp.service';
 
 /**
  * Authentication Service
@@ -64,10 +62,10 @@ export class AuthService {
       credentials.clientSecret,
       credentials.environment
     )).pipe(
-      switchMap(() => {
+      switchMap(() =>
         // Get the token that was just stored by the main process
-        return from(this.getStoredToken());
-      }),
+         from(this.getStoredToken())
+      ),
       tap(token => {
         if (token) {
           // Update auth state with the stored token

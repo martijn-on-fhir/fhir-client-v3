@@ -1,18 +1,17 @@
-import { Component, OnInit, OnDestroy, signal, computed, effect, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
-import { ThemeService } from '../../core/services/theme.service';
-import { FhirService } from '../../core/services/fhir.service';
-import { LoggerService } from '../../core/services/logger.service';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import {CommonModule} from '@angular/common';
+import {Component, OnInit, OnDestroy, signal, computed, effect, inject} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {firstValueFrom} from 'rxjs';
+import {FhirService} from '../../core/services/fhir.service';
+import {LoggerService} from '../../core/services/logger.service';
+import {ThemeService} from '../../core/services/theme.service';
 import {
   validateFhirResource,
   validateAgainstServer,
   ValidationResult,
-  getSeverityColor,
   getSeverityIcon
 } from '../../core/utils/fhir-validator';
+import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 
 @Component({
   selector: 'app-validator',
@@ -22,6 +21,7 @@ import {
   styleUrl: './validator.component.scss'
 })
 export class ValidatorComponent implements OnInit, OnDestroy {
+
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('ValidatorComponent');
@@ -40,16 +40,19 @@ export class ValidatorComponent implements OnInit, OnDestroy {
   // Computed signals
   errors = computed(() => {
     const result = this.validationResult();
+
     return result ? result.issues.filter(i => i.severity === 'error') : [];
   });
 
   warnings = computed(() => {
     const result = this.validationResult();
+
     return result ? result.issues.filter(i => i.severity === 'warning') : [];
   });
 
   information = computed(() => {
     const result = this.validationResult();
+
     return result ? result.issues.filter(i => i.severity === 'information') : [];
   });
 
@@ -58,14 +61,13 @@ export class ValidatorComponent implements OnInit, OnDestroy {
   private mouseUpHandler?: () => void;
   private fileOpenCleanup?: () => void;
 
-  // Export utility functions for template
-  getSeverityColor = getSeverityColor;
   getSeverityIcon = getSeverityIcon;
 
   constructor(public themeService: ThemeService) {
     // Auto-parse JSON when input changes
     effect(() => {
       const input = this.jsonInput();
+
       try {
         if (input.trim()) {
           const parsed = JSON.parse(input);
@@ -77,14 +79,14 @@ export class ValidatorComponent implements OnInit, OnDestroy {
       } catch {
         this.parsedData.set(null);
       }
-    }, { allowSignalWrites: true });
+    }, {allowSignalWrites: true});
 
     // Load server metadata when server validation is selected
     effect(async () => {
       if (this.selectedProfile() === 'server-capability') {
         await this.loadServerMetadata();
       }
-    }, { allowSignalWrites: true });
+    }, {allowSignalWrites: true});
   }
 
   /**
@@ -135,6 +137,7 @@ export class ValidatorComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.cleanup();
+
     if (this.fileOpenCleanup) {
       this.fileOpenCleanup();
     }
@@ -143,10 +146,12 @@ export class ValidatorComponent implements OnInit, OnDestroy {
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
       this.error.set('File API not available');
+
       return;
     }
 
     const result = await window.electronAPI.file.openFile();
+
     if (result) {
       if ('error' in result) {
         this.error.set(result.error);
@@ -163,6 +168,7 @@ export class ValidatorComponent implements OnInit, OnDestroy {
 
     try {
       const data = this.parsedData();
+
       if (!data) {
         throw new Error('Invalid JSON input. Please check your JSON syntax.');
       }
@@ -172,8 +178,11 @@ export class ValidatorComponent implements OnInit, OnDestroy {
 
       // Handle array of resources
       if (Array.isArray(data)) {
+
         const results = data.map((resource, index) => {
+
           let result;
+
           if (isServerValidation) {
             const serverResult = validateAgainstServer(resource, this.serverMetadata());
             const baseResult = validateFhirResource(resource, fhirVersion);
@@ -185,7 +194,8 @@ export class ValidatorComponent implements OnInit, OnDestroy {
           } else {
             result = validateFhirResource(resource, fhirVersion);
           }
-          return { index, result, resource };
+
+          return {index, result, resource};
         });
 
         const allIssues = results.flatMap((r, idx) =>
@@ -200,30 +210,32 @@ export class ValidatorComponent implements OnInit, OnDestroy {
           issues: allIssues,
           resourceType: `Batch (${results.length} resources)`,
         });
-      }
-      // Handle Bundle
-      else if (data.resourceType === 'Bundle') {
+      } else if (data.resourceType === 'Bundle') {
+        // Handle Bundle
         const entries = data.entry || [];
-        const results = entries
-          .map((entry: any, index: number) => {
-            const resource = entry.resource;
-            if (!resource) return null;
+        const results = entries.map((entry: any, index: number) => {
+          const resource = entry.resource;
 
-            let result;
-            if (isServerValidation) {
-              const serverResult = validateAgainstServer(resource, this.serverMetadata());
-              const baseResult = validateFhirResource(resource, fhirVersion);
-              result = {
-                ...serverResult,
-                issues: [...serverResult.issues, ...baseResult.issues],
-                isValid: serverResult.isValid && baseResult.isValid,
-              };
-            } else {
-              result = validateFhirResource(resource, fhirVersion);
-            }
-            return { index, result, resource };
-          })
-          .filter(Boolean);
+          if (!resource) {
+            return null;
+          }
+
+          let result;
+
+          if (isServerValidation) {
+            const serverResult = validateAgainstServer(resource, this.serverMetadata());
+            const baseResult = validateFhirResource(resource, fhirVersion);
+            result = {
+              ...serverResult,
+              issues: [...serverResult.issues, ...baseResult.issues],
+              isValid: serverResult.isValid && baseResult.isValid,
+            };
+          } else {
+            result = validateFhirResource(resource, fhirVersion);
+          }
+
+          return {index, result, resource};
+        }).filter(Boolean);
 
         const allIssues = results.flatMap((r: any) =>
           r.result.issues.map((issue: any) => ({
@@ -237,9 +249,8 @@ export class ValidatorComponent implements OnInit, OnDestroy {
           issues: allIssues,
           resourceType: `Bundle (${results.length} entries)`,
         });
-      }
-      // Handle single resource
-      else {
+      } else {
+        // Handle single resource
         if (isServerValidation) {
           const serverResult = validateAgainstServer(data, this.serverMetadata());
           const baseResult = validateFhirResource(data, fhirVersion);
@@ -286,10 +297,15 @@ export class ValidatorComponent implements OnInit, OnDestroy {
   }
 
   private resize(e: MouseEvent) {
-    if (!this.isResizing()) return;
+    if (!this.isResizing()) {
+      return;
+    }
 
     const container = document.getElementById('validator-container');
-    if (!container) return;
+
+    if (!container) {
+      return;
+    }
 
     const containerRect = container.getBoundingClientRect();
     const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
@@ -308,6 +324,7 @@ export class ValidatorComponent implements OnInit, OnDestroy {
     if (this.mouseMoveHandler) {
       document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
+
     if (this.mouseUpHandler) {
       document.removeEventListener('mouseup', this.mouseUpHandler);
     }

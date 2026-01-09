@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, OnInit } from '@angular/core';
 
 /**
  * Profile Cache Management Dropdown Component
@@ -39,6 +39,7 @@ export class ProfileCacheDropdownComponent implements OnInit {
   private onDocumentClick = (event: MouseEvent) => {
     const target = event.target as HTMLElement;
     const dropdown = target.closest('.profile-cache-dropdown');
+
     if (!dropdown && this.isOpen) {
       this.isOpen = false;
     }
@@ -64,8 +65,10 @@ export class ProfileCacheDropdownComponent implements OnInit {
   get displayTitle(): string {
     if (this.cacheStats) {
       const sizeKB = (this.cacheStats.totalSize / 1024).toFixed(1);
+
       return `${this.cacheStats.fileCount} cached profiles (${sizeKB} KB)`;
     }
+
     return 'Cache management';
   }
 }

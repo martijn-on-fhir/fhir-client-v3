@@ -1,10 +1,10 @@
-import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams } from '../../core/services/terminology.service';
 import { LoggerService } from '../../core/services/logger.service';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams } from '../../core/services/terminology.service';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
+import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 
 /**
  * Terminology Tab Component
@@ -46,6 +46,7 @@ export class TerminologyComponent implements OnInit {
   // Monaco editor JSON content
   jsonContent = computed(() => {
     const res = this.result();
+
     return res ? JSON.stringify(res, null, 2) : '';
   });
 
@@ -132,9 +133,11 @@ export class TerminologyComponent implements OnInit {
     if (this.lookupVersion()) {
       params.version = this.lookupVersion();
     }
+
     if (this.lookupLanguage()) {
       params.displayLanguage = this.lookupLanguage();
     }
+
     if (this.lookupProperty()) {
       params.property = this.lookupProperty();
     }
@@ -153,15 +156,19 @@ export class TerminologyComponent implements OnInit {
     if (this.expandFilter()) {
       params.filter = this.expandFilter();
     }
+
     if (this.expandCount()) {
       params.count = this.expandCount();
     }
+
     if (this.expandOffset()) {
       params.offset = this.expandOffset();
     }
+
     if (this.expandIncludeDesignations() !== undefined) {
       params.includeDesignations = this.expandIncludeDesignations();
     }
+
     if (this.expandDisplayLanguage()) {
       params.displayLanguage = this.expandDisplayLanguage();
     }
@@ -182,6 +189,7 @@ export class TerminologyComponent implements OnInit {
     if (this.validateDisplay()) {
       params.display = this.validateDisplay();
     }
+
     if (this.validateVersion()) {
       params.version = this.validateVersion();
     }
@@ -202,6 +210,7 @@ export class TerminologyComponent implements OnInit {
     if (this.translateSource()) {
       params.source = this.translateSource();
     }
+
     if (this.translateTarget()) {
       params.target = this.translateTarget();
     }
@@ -237,7 +246,11 @@ export class TerminologyComponent implements OnInit {
    */
   expandOneLevel() {
     const level = this.collapsedLevel();
-    if (level === false) return;
+
+    if (level === false) {
+return;
+}
+
     if (level === 1) {
       this.collapsedLevel.set(false);
     } else {
@@ -250,6 +263,7 @@ export class TerminologyComponent implements OnInit {
    */
   collapseOneLevel() {
     const level = this.collapsedLevel();
+
     if (level === false) {
       this.collapsedLevel.set(1);
     } else {
@@ -274,7 +288,9 @@ export class TerminologyComponent implements OnInit {
    */
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    if (!this.isResizing()) return;
+    if (!this.isResizing()) {
+return;
+}
 
     const containerWidth = document.querySelector('.results-panel')?.clientWidth || 1000;
     const deltaX = event.clientX - this.startX;
@@ -300,9 +316,14 @@ export class TerminologyComponent implements OnInit {
    * Get parameter value from FHIR Parameters resource
    */
   getParameterValue(parameters: any, name: string): any {
-    if (!parameters?.parameter) return null;
+    if (!parameters?.parameter) {
+return null;
+}
     const param = parameters.parameter.find((p: any) => p.name === name);
-    if (!param) return null;
+
+    if (!param) {
+return null;
+}
 
     // Check for different value types
     return param.valueString || param.valueBoolean || param.valueCode || param.valueInteger || param.part;
@@ -312,7 +333,10 @@ export class TerminologyComponent implements OnInit {
    * Get all parameters with a specific name from FHIR Parameters resource
    */
   getAllParameters(parameters: any, name: string): any[] {
-    if (!parameters?.parameter) return [];
+    if (!parameters?.parameter) {
+return [];
+}
+
     return parameters.parameter.filter((p: any) => p.name === name);
   }
 }

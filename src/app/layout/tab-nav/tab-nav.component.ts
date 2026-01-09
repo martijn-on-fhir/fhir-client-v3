@@ -1,5 +1,5 @@
-import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, computed, inject } from '@angular/core';
 import { RouterModule, Router } from '@angular/router';
 import { APP_TABS, Tab } from '../../core/models/tab.model';
 import { SettingsService } from '../../core/services/settings.service';
@@ -24,6 +24,7 @@ export class TabNavComponent {
   // Filter tabs based on enabled tabs in settings
   tabs = computed(() => {
     const enabledTabIds = this.settingsService.enabledTabs();
+
     return APP_TABS.filter(tab => enabledTabIds.includes(tab.id));
   });
 

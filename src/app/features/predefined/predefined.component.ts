@@ -1,12 +1,12 @@
-import { Component, OnInit, OnDestroy, signal, computed, HostListener, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, computed, HostListener, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { TemplateService } from '../../core/services/template.service';
+import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } from '../../core/models/smart-template.model';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
-import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } from '../../core/models/smart-template.model';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { TemplateService } from '../../core/services/template.service';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
+import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 
 /**
  * Predefined Tab Component
@@ -44,6 +44,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   // Computed filtered templates
   filteredTemplates = computed(() => {
     this.refreshKey(); // Trigger recompute on refresh
+
     return this.templateService.getFilteredTemplates(
       this.selectedCategory(),
       this.searchQuery()
@@ -66,7 +67,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
 
   // Config dialog state
   showConfigDialog = signal(false);
-  parameterValues = signal<{ [key: string]: string }>({});
+  parameterValues = signal<Record<string, string>>({});
 
   // Editor dialog state
   showEditorDialog = signal(false);
@@ -92,6 +93,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   // Monaco editor JSON content
   jsonContent = computed(() => {
     const res = this.result();
+
     return res ? JSON.stringify(res, null, 2) : '';
   });
 
@@ -110,7 +112,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     this.selectedTemplate.set(template);
 
     // Initialize parameter values with defaults
-    const values: { [key: string]: string } = {};
+    const values: Record<string, string> = {};
     template.parameters.forEach(param => {
       values[param.name] = param.default || '';
     });
@@ -124,7 +126,10 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   async executeTemplate() {
     const template = this.selectedTemplate();
-    if (!template) return;
+
+    if (!template) {
+return;
+}
 
     const query = this.templateService.renderTemplate(template, this.parameterValues());
     this.currentQuery.set(query);
@@ -177,6 +182,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   editTemplate(template: SmartQueryTemplate) {
     if (template.isSystem) {
       alert('System templates cannot be edited. Create a custom copy instead.');
+
       return;
     }
     this.editingTemplate.set(template);
@@ -189,6 +195,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   deleteTemplate(template: SmartQueryTemplate) {
     if (template.isSystem) {
       alert('Cannot delete system templates.');
+
       return;
     }
 
@@ -242,9 +249,12 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    if (!this.isResizing()) return;
+    if (!this.isResizing()) {
+return;
+}
 
     const container = document.getElementById('predefined-container');
+
     if (container) {
       const containerRect = container.getBoundingClientRect();
       const newWidth = ((event.clientX - containerRect.left) / containerRect.width) * 100;
@@ -272,7 +282,11 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   expandOneLevel() {
     const level = this.collapsedLevel();
-    if (level === false) return;
+
+    if (level === false) {
+return;
+}
+
     if (level === 1) {
       this.collapsedLevel.set(false);
     } else {
@@ -285,6 +299,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   collapseOneLevel() {
     const level = this.collapsedLevel();
+
     if (level === false) {
       this.collapsedLevel.set(1);
     } else {

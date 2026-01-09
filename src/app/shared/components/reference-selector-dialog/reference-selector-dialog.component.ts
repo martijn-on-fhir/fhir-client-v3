@@ -1,5 +1,5 @@
-import { Component, EventEmitter, Input, Output, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, Output, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FhirService } from '../../../core/services/fhir.service';
 
@@ -54,6 +54,7 @@ export class ReferenceSelectorDialogComponent {
    */
   async executeQuery() {
     const q = this.query();
+
     if (!q.trim()) {
       return;
     }
@@ -94,8 +95,10 @@ export class ReferenceSelectorDialogComponent {
           const name = resource.name[0];
           const given = name.given?.join(' ') || '';
           const family = name.family || '';
+
           return `${given} ${family}`.trim();
         }
+
         return 'Unknown Patient';
 
       case 'Practitioner':
@@ -104,8 +107,10 @@ export class ReferenceSelectorDialogComponent {
           const given = name.given?.join(' ') || '';
           const family = name.family || '';
           const prefix = name.prefix?.join(' ') || '';
+
           return `${prefix} ${given} ${family}`.trim();
         }
+
         return 'Unknown Practitioner';
 
       case 'Organization':
@@ -121,12 +126,25 @@ export class ReferenceSelectorDialogComponent {
             return resource.name;
           } else if (Array.isArray(resource.name) && resource.name.length > 0) {
             const name = resource.name[0];
-            if (typeof name === 'string') return name;
-            if (name.text) return name.text;
+
+            if (typeof name === 'string') {
+return name;
+}
+
+            if (name.text) {
+return name.text;
+}
           }
         }
-        if (resource.title) return resource.title;
-        if (resource.display) return resource.display;
+
+        if (resource.title) {
+return resource.title;
+}
+
+        if (resource.display) {
+return resource.display;
+}
+
         return `${resourceType}/${resource.id}`;
     }
   }

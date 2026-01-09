@@ -1,10 +1,9 @@
-import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ThemeService } from '../../core/services/theme.service';
-import { LoggerService } from '../../core/services/logger.service';
-// @ts-ignore - fhirpath doesn't have type definitions
 import * as fhirpath from 'fhirpath';
+import { LoggerService } from '../../core/services/logger.service';
+import { ThemeService } from '../../core/services/theme.service';
 
 @Component({
   selector: 'app-fhirpath',
@@ -36,6 +35,7 @@ export class FhirpathComponent implements OnInit, OnDestroy {
     // Auto-parse JSON when input changes
     effect(() => {
       const input = this.jsonInput();
+
       try {
         if (input.trim()) {
           const parsed = JSON.parse(input);
@@ -62,6 +62,7 @@ export class FhirpathComponent implements OnInit, OnDestroy {
 
   ngOnDestroy() {
     this.cleanup();
+
     if (this.fileOpenCleanup) {
       this.fileOpenCleanup();
     }
@@ -70,10 +71,12 @@ export class FhirpathComponent implements OnInit, OnDestroy {
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
       this.error.set('File API not available');
+
       return;
     }
 
     const result = await window.electronAPI.file.openFile();
+
     if (result) {
       if ('error' in result) {
         this.error.set(result.error);
@@ -90,6 +93,7 @@ export class FhirpathComponent implements OnInit, OnDestroy {
 
     try {
       const data = this.parsedData();
+
       if (!data) {
         throw new Error('Invalid JSON input. Please check your JSON syntax.');
       }
@@ -116,6 +120,7 @@ export class FhirpathComponent implements OnInit, OnDestroy {
   formatJson() {
     try {
       const data = this.parsedData();
+
       if (data) {
         this.jsonInput.set(JSON.stringify(data, null, 2));
       }
@@ -126,9 +131,11 @@ export class FhirpathComponent implements OnInit, OnDestroy {
 
   formatResult(): string {
     const res = this.result();
+
     if (res === null || res === undefined) {
       return '';
     }
+
     try {
       return JSON.stringify(res, null, 2);
     } catch {
@@ -138,12 +145,15 @@ export class FhirpathComponent implements OnInit, OnDestroy {
 
   getResultBadgeText(): string {
     const res = this.result();
+
     if (res === null || res === undefined) {
       return '';
     }
+
     if (Array.isArray(res)) {
       return `${res.length} item${res.length !== 1 ? 's' : ''}`;
     }
+
     return 'Single value';
   }
 
@@ -161,10 +171,15 @@ export class FhirpathComponent implements OnInit, OnDestroy {
   }
 
   private resize(e: MouseEvent) {
-    if (!this.isResizing()) return;
+    if (!this.isResizing()) {
+return;
+}
 
     const container = document.getElementById('fhirpath-container');
-    if (!container) return;
+
+    if (!container) {
+return;
+}
 
     const containerRect = container.getBoundingClientRect();
     const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
@@ -183,6 +198,7 @@ export class FhirpathComponent implements OnInit, OnDestroy {
     if (this.mouseMoveHandler) {
       document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
+
     if (this.mouseUpHandler) {
       document.removeEventListener('mouseup', this.mouseUpHandler);
     }

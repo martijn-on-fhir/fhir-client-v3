@@ -107,9 +107,7 @@ export interface SmartQueryTemplate {
 /**
  * Template parameter values filled by user
  */
-export interface TemplateParameterValues {
-  [parameterName: string]: string;
-}
+export type TemplateParameterValues = Record<string, string>;
 
 /**
  * Category metadata for display
@@ -166,9 +164,7 @@ export const CATEGORIES: CategoryInfo[] = [
 /**
  * Helper function to get category info
  */
-export function getCategoryInfo(category: TemplateCategory): CategoryInfo {
-  return CATEGORIES.find((c) => c.id === category) || CATEGORIES[CATEGORIES.length - 1];
-}
+export const getCategoryInfo = (category: TemplateCategory): CategoryInfo => CATEGORIES.find((c) => c.id === category) || CATEGORIES[CATEGORIES.length - 1]
 
 /**
  * System templates (pre-defined examples)

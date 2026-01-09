@@ -52,6 +52,7 @@ export class LoggerService {
    * Sanitize a string by redacting sensitive data patterns
    */
   private sanitizeString(str: string): string {
+
     let sanitized = str;
 
     Object.entries(SENSITIVE_PATTERNS).forEach(([key, pattern]) => {
@@ -65,6 +66,7 @@ export class LoggerService {
    * Recursively sanitize an object by redacting sensitive keys
    */
   private sanitizeObject(obj: any): any {
+
     if (obj === null || obj === undefined) {
       return obj;
     }
@@ -101,7 +103,9 @@ export class LoggerService {
    * Sanitize all arguments before logging
    */
   private sanitizeArgs(...args: any[]): any[] {
+
     return args.map((arg) => {
+
       if (typeof arg === 'string') {
         return this.sanitizeString(arg);
       } else if (typeof arg === 'object') {
@@ -115,6 +119,7 @@ export class LoggerService {
    * Format log message with timestamp and level
    */
   private formatMessage(level: LogLevel, ...args: any[]): string {
+
     const timestamp = new Date().toISOString();
     const sanitized = this.sanitizeArgs(...args);
     const message = sanitized.map(arg =>
@@ -128,14 +133,12 @@ export class LoggerService {
    * Log using electron-log (with console fallback)
    */
   private logToConsole(level: LogLevel, ...args: any[]): void {
-    const sanitized = this.sanitizeArgs(...args);
 
-    // Use electron-log if available, otherwise fall back to console
+    const sanitized = this.sanitizeArgs(...args);
     const electronLog = (window as any).electronAPI?.log;
 
-    // In development, log everything
-    // In production, only warn and error
     if (this.isDevelopment || level === 'warn' || level === 'error') {
+
       if (electronLog) {
         // Use electron-log
         switch (level) {

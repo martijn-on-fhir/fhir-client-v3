@@ -1,12 +1,12 @@
-import { Component, OnInit, signal, ViewChild, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { NictizService } from '../../core/services/nictiz.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { NictizService } from '../../core/services/nictiz.service';
 import { mergeProfileElements, extractConstraints } from '../../core/utils/profile-merge';
 import { formatElementPath, renderElementType, getCardinalityBadgeClass, getSeverityBadgeClass, loadCacheStats } from '../../core/utils/profile-utils';
-import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
 import { ProfileCacheDropdownComponent } from '../../shared/components/profile-cache-dropdown/profile-cache-dropdown.component';
+import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
 
 @Component({
   selector: 'app-nictiz',
@@ -71,10 +71,12 @@ export class NictizComponent implements OnInit {
       this.structureDefinition.set(null);
       this.profileError.set(null);
       this.selectedProfileTitle.set('');
+
       return;
     }
 
     const profile = this.nictizService.structureDefinitions().find(p => p.url === value);
+
     if (profile) {
       this.selectedProfileTitle.set(profile.title);
       await this.fetchStructureDefinition(value, profile.title);
@@ -84,6 +86,7 @@ export class NictizComponent implements OnInit {
   async fetchStructureDefinition(profileUrl: string, profileTitle: string) {
     if (!profileUrl) {
       this.profileError.set('Please select a profile');
+
       return;
     }
 
@@ -112,6 +115,7 @@ export class NictizComponent implements OnInit {
         this.mergedElements.set(cached.mergedElements || []);
         this.constraints.set(cached.constraints || []);
         this.loadingProfile.set(false);
+
         return;
       }
 
@@ -121,11 +125,13 @@ export class NictizComponent implements OnInit {
       if (!sd) {
         this.profileError.set('StructureDefinition not available on this server.');
         this.loadingProfile.set(false);
+
         return;
       }
 
       // Fetch base definition chain
       let baseChain: any[] = [];
+
       if (sd.baseDefinition) {
         baseChain = await this.nictizService.fetchBaseDefinitionChain(sd.baseDefinition);
         this.baseDefinitions.set(baseChain);
@@ -183,6 +189,7 @@ export class NictizComponent implements OnInit {
   async handleExecute() {
     const url = this.selectedProfileUrl();
     const title = this.selectedProfileTitle();
+
     if (url && title) {
       await this.fetchStructureDefinition(url, title);
     }
@@ -228,6 +235,7 @@ export class NictizComponent implements OnInit {
       .sort((a, b) => {
         const titleA = this.formatTitle(a.title);
         const titleB = this.formatTitle(b.title);
+
         return titleA.localeCompare(titleB);
       });
   }
@@ -263,6 +271,7 @@ export class NictizComponent implements OnInit {
    */
   openEditor() {
     const sd = this.structureDefinition();
+
     if (sd) {
       this.editorDialog.open(sd);
     }

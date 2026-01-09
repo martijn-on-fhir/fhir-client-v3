@@ -1,5 +1,5 @@
-import { Component, Input, Output, EventEmitter, signal, WritableSignal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, Input, Output, EventEmitter, WritableSignal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 
 /**
@@ -46,6 +46,7 @@ export class JsonViewerToolbarComponent {
    */
   isCollapseDisabled(): boolean {
     const level = this.collapsedLevel();
+
     return typeof level === 'number' && level >= 10;
   }
 

@@ -1,11 +1,11 @@
-import { Component, OnInit, OnDestroy, signal, computed, inject, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, computed, inject, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FhirService } from '../../core/services/fhir.service';
-import { SettingsService } from '../../core/services/settings.service';
-import { NavigationService } from '../../core/services/navigation.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { NavigationService } from '../../core/services/navigation.service';
+import { SettingsService } from '../../core/services/settings.service';
 
 /**
  * Sidebar Component
@@ -40,7 +40,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // Filtered resource types
   filteredResourceTypes = computed(() => {
     const filter = this.filterText().toLowerCase();
-    if (!filter) return this.resourceTypes();
+
+    if (!filter) {
+return this.resourceTypes();
+}
+
     return this.resourceTypes().filter(type =>
       type.toLowerCase().includes(filter)
     );
@@ -77,6 +81,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
       if (cached) {
         this.resourceTypes.set(JSON.parse(cached));
         this.loading.set(false);
+
         return;
       }
 
@@ -142,7 +147,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
    */
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
-    if (!this.isResizing()) return;
+    if (!this.isResizing()) {
+return;
+}
 
     const deltaX = event.clientX - this.startX;
     const newWidth = this.startWidth + deltaX;
