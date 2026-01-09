@@ -1,3 +1,11 @@
+# 1.0.0 (2026-01-09)
+
+
+### Features
+
+* **ui:** implement custom primary color and dark mode support ([1c0885a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1c0885a7dccc815155b472cdeefb552e53d4f85b))
+* **resource-info:** implement Resource Info tab from v2 ([1037c5f](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1037c5f9c5653a07a28880332a6e498dd5932f2d))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
