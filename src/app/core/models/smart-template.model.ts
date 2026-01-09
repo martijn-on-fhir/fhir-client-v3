@@ -8,7 +8,7 @@
 /**
  * Parameter types supported by Smart Templates
  */
-export type ParameterType = 'string' | 'number' | 'date' | 'boolean' | 'reference' | 'token' | 'choice';
+export type ParameterType = 'string' | 'number' | 'date' | 'boolean' | 'reference' | 'token' | 'choice' | 'summary' | 'sort';
 
 /**
  * Choice option for choice-type parameters

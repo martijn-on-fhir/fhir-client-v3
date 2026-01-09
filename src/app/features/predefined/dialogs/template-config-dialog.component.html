@@ -171,9 +171,6 @@
 
   <!-- Reference Selector Dialog -->
   <app-reference-selector-dialog
-    [isOpen]="referenceSelectorOpen()"
-    [resourceTypes]="referenceTypes()"
-    (closeDialog)="closeReferenceSelector()"
-    (selectReference)="handleReferenceSelect($event)">
+    (select)="handleReferenceSelect($event)">
   </app-reference-selector-dialog>
 }

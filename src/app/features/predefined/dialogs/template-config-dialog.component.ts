@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, computed, effect, signal } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ViewChild, computed, effect, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SmartQueryTemplate, TemplateParameter } from '../../../core/models/smart-template.model';
 import { LoggerService } from '../../../core/services/logger.service';
@@ -25,6 +25,8 @@ export class TemplateConfigDialogComponent {
   @Output() close = new EventEmitter<void>();
   @Output() execute = new EventEmitter<{ query: string; template: SmartQueryTemplate }>();
 
+  @ViewChild(ReferenceSelectorDialogComponent) referenceSelectorDialog!: ReferenceSelectorDialogComponent;
+
   private templateService: TemplateService;
   private loggerService: LoggerService;
   private get logger() {
@@ -36,9 +38,7 @@ export class TemplateConfigDialogComponent {
   validationErrors = signal<string[]>([]);
 
   // Reference selector state
-  referenceSelectorOpen = signal(false);
   currentReferenceParam = signal('');
-  referenceTypes = signal<string[]>([]);
 
   // Computed preview query
   previewQuery = computed(() => {
@@ -162,24 +162,14 @@ export class TemplateConfigDialogComponent {
    */
   openReferenceSelector(param: TemplateParameter) {
     this.currentReferenceParam.set(param.name);
-    this.referenceTypes.set(param.referenceTypes || []);
-    this.referenceSelectorOpen.set(true);
+    this.referenceSelectorDialog.open(param.label);
   }
 
   /**
    * Handle reference selection
    */
-  handleReferenceSelect(reference: string) {
-    this.updateParameterValue(this.currentReferenceParam(), reference);
-    this.referenceSelectorOpen.set(false);
-    this.currentReferenceParam.set('');
-  }
-
-  /**
-   * Close reference selector
-   */
-  closeReferenceSelector() {
-    this.referenceSelectorOpen.set(false);
+  handleReferenceSelect(event: { reference: string; display: string }) {
+    this.updateParameterValue(this.currentReferenceParam(), event.reference);
     this.currentReferenceParam.set('');
   }
 }
