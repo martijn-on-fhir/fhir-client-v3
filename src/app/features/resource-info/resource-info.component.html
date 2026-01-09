@@ -1,13 +1,4 @@
 <div class="resource-info-container">
-  <div class="header-section">
-    <h2>
-      <i class="fas fa-info-circle me-2"></i>
-      Resource Info
-    </h2>
-    <p class="text-muted">
-      View FHIR server metadata and resource capabilities
-    </p>
-  </div>
 
   <!-- Error Alert -->
   @if (error()) {
@@ -33,36 +24,22 @@
     <div class="content-section">
 
       <!-- Resource Type Selector -->
-      <div class="card mb-4">
-        <div class="card-body">
-          <div class="row align-items-center">
-            <div class="col-auto">
-              <label for="resourceTypeSelect" class="form-label mb-0 fw-bold">
-                Select Resource Type:
-              </label>
-            </div>
-            <div class="col-md-4">
-              <select
-                id="resourceTypeSelect"
-                class="form-select"
-                [value]="selectedResourceType()"
-                (change)="onResourceTypeChange($event)"
-              >
+      <div class="card mb-3 border-0">
+        <div class="card-body p-0">
+
+          <div class="d-flex gap-2 align-items-center">
+            <div style="flex: 1">
+              <select id="resourceTypeSelect" class="form-select" [value]="selectedResourceType()" (change)="onResourceTypeChange($event)">
                 @for (resourceType of resourceTypes(); track resourceType) {
                   <option [value]="resourceType">{{ resourceType }}</option>
                 }
               </select>
+
             </div>
-            <div class="col-auto ms-auto">
-              <button
-                class="btn btn-outline-secondary"
-                (click)="refresh()"
-                [disabled]="loading()"
-              >
-                <i class="fas fa-sync-alt me-2"></i>
-                Refresh
-              </button>
-            </div>
+            <button class="btn btn-sm btn-primary" (click)="refresh()" [disabled]="loading()">
+              <i class="fas fa-sync-alt me-2"></i>
+              Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -70,102 +47,91 @@
       <!-- Resource Information Display -->
       @if (currentResourceInfo(); as info) {
 
-        <!-- Search Include Section -->
-        <div class="card mb-3">
-          <div class="card-header bg-primary text-white">
-            <h5 class="mb-0">
-              <i class="fas fa-link me-2"></i>
-              Search Include Parameters
-            </h5>
-          </div>
-          <div class="card-body">
-            @if (info.searchInclude && info.searchInclude.length > 0) {
-              <div class="include-list">
-                @for (include of info.searchInclude; track include) {
-                  <span class="badge bg-info text-dark me-2 mb-2">
-                    {{ include }}
-                  </span>
-                }
-              </div>
-            } @else {
-              <p class="text-muted mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                No search include parameters available for this resource type
-              </p>
-            }
-          </div>
-        </div>
-
-        <!-- Search Reverse Include Section -->
-        <div class="card mb-3">
-          <div class="card-header bg-success text-white">
-            <h5 class="mb-0">
-              <i class="fas fa-exchange-alt me-2"></i>
-              Search Reverse Include Parameters
-            </h5>
-          </div>
-          <div class="card-body">
-            @if (info.searchRevInclude && info.searchRevInclude.length > 0) {
-              <div class="include-list">
-                @for (revInclude of info.searchRevInclude; track revInclude) {
-                  <span class="badge bg-success me-2 mb-2">
-                    {{ revInclude }}
-                  </span>
-                }
-              </div>
-            } @else {
-              <p class="text-muted mb-0">
-                <i class="fas fa-info-circle me-2"></i>
-                No search reverse include parameters available for this resource type
-              </p>
-            }
-          </div>
-        </div>
-
-        <!-- Search Parameters Section -->
+        <!-- Result Card -->
         <div class="card">
-          <div class="card-header bg-secondary text-white">
-            <h5 class="mb-0">
-              <i class="fas fa-search me-2"></i>
-              Search Parameters
-            </h5>
+          <div class="card-header">
+            <h5 class="mb-0">Result</h5>
           </div>
-          <div class="card-body p-0">
-            @if (info.searchParam && info.searchParam.length > 0) {
-              <div class="table-responsive">
-                <table class="table table-hover table-striped mb-0">
-                  <thead class="table-light">
+          <div class="card-body">
+
+            <!-- Search Include Section -->
+            <div class="mb-4">
+              <h6 class="section-title">
+                <i class="fas fa-arrow-right me-2"></i>
+                Search Include
+              </h6>
+              @if (info.searchInclude && info.searchInclude.length > 0) {
+                <div class="revinclude-grid">
+                  @for (include of info.searchInclude; track include) {
+                    <div class="revinclude-item">{{ include }}</div>
+                  }
+                </div>
+              } @else {
+                <p class="text-muted mb-0 small">
+                  No search include parameters available
+                </p>
+              }
+            </div>
+
+            <!-- Search Reverse Include Section -->
+            <div class="mb-4">
+              <h6 class="section-title">
+                <i class="fas fa-arrow-left me-2"></i>
+                Search Reverse Include
+              </h6>
+              @if (info.searchRevInclude && info.searchRevInclude.length > 0) {
+                <div class="revinclude-grid">
+                  @for (revInclude of info.searchRevInclude; track revInclude) {
+                    <div class="revinclude-item">{{ revInclude }}</div>
+                  }
+                </div>
+              } @else {
+                <p class="text-muted mb-0 small">
+                  No search reverse include parameters available
+                </p>
+              }
+            </div>
+
+            <!-- Search Parameters Section -->
+            <div>
+              <h6 class="section-title">
+                <i class="fas fa-search me-2"></i>
+                Search Parameters
+              </h6>
+              @if (info.searchParam && info.searchParam.length > 0) {
+                <div class="table-responsive">
+                  <table class="table table-hover table-striped mb-0">
+                    <thead class="table-light">
                     <tr>
                       <th style="width: 25%">Parameter Name</th>
                       <th style="width: 15%">Type</th>
                       <th style="width: 60%">Documentation</th>
                     </tr>
-                  </thead>
-                  <tbody>
-                    @for (param of info.searchParam; track param.name) {
-                      <tr>
-                        <td>
-                          <code class="text-primary">{{ param.name }}</code>
-                        </td>
-                        <td>
-                          <span class="badge bg-secondary">{{ param.type }}</span>
-                        </td>
-                        <td class="small">
-                          {{ param.documentation || 'No documentation available' }}
-                        </td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            } @else {
-              <div class="card-body">
-                <p class="text-muted mb-0">
-                  <i class="fas fa-info-circle me-2"></i>
-                  No search parameters available for this resource type
+                    </thead>
+                    <tbody>
+                      @for (param of info.searchParam; track param.name) {
+                        <tr>
+                          <td>
+                            {{ param.name }}
+                          </td>
+                          <td>
+                            {{ param.type }}
+                          </td>
+                          <td class="small">
+                            {{ param.documentation || 'No documentation available' }}
+                          </td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                </div>
+              } @else {
+                <p class="text-muted mb-0 small">
+                  No search parameters available
                 </p>
-              </div>
-            }
+              }
+            </div>
+
           </div>
         </div>
 

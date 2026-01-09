@@ -74,8 +74,8 @@ export class ResourceInfoComponent implements OnInit {
 
     return {
       type: resource.type,
-      searchInclude: resource.searchInclude || [],
-      searchRevInclude: resource.searchRevInclude || [],
+      searchInclude: (resource.searchInclude || []).sort((a: string, b: string) => a.localeCompare(b)),
+      searchRevInclude: (resource.searchRevInclude || []).sort((a: string, b: string) => a.localeCompare(b)),
       searchParam: resource.searchParam || []
     } as ResourceTypeInfo;
   });

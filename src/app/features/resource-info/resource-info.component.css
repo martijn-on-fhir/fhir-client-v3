@@ -1,41 +1,44 @@
 .resource-info-container {
   padding: 1.5rem;
   height: 100%;
-  overflow-y: auto;
-}
-.resource-info-container .header-section {
-  margin-bottom: 1.5rem;
-}
-.resource-info-container .header-section h2 {
-  margin-bottom: 0.5rem;
-  color: var(--bs-heading-color);
-  font-weight: 600;
-}
-.resource-info-container .header-section p {
-  margin-bottom: 0;
-  font-size: 0.95rem;
+  overflow: hidden;
 }
 .resource-info-container .content-section .card {
   border: 1px solid var(--bs-border-color);
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-.resource-info-container .content-section .card .card-header {
-  font-weight: 600;
-  padding: 0.75rem 1rem;
-}
-.resource-info-container .content-section .card .card-header h5 {
-  font-size: 1rem;
-  margin: 0;
-}
-.resource-info-container .content-section .include-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
+  flex-direction: column;
+  max-height: calc(100vh - 200px);
 }
-.resource-info-container .content-section .include-list .badge {
+.resource-info-container .content-section .card .card-body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
+.resource-info-container .content-section .section-title {
+  font-size: 0.9rem;
+  font-weight: 400;
+  margin-bottom: 0.75rem;
+  color: var(--bs-body-color);
+}
+.resource-info-container .content-section .section-title i {
   font-size: 0.85rem;
-  font-weight: 500;
+  opacity: 0.7;
+}
+.resource-info-container .content-section .revinclude-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.75rem;
+}
+.resource-info-container .content-section .revinclude-grid .revinclude-item {
+  font-size: 0.875rem;
   padding: 0.5rem 0.75rem;
+  background-color: var(--bs-body-bg);
+  color: var(--bs-body-color);
+  border: 1px solid var(--bs-border-color);
+  border-radius: 0.25rem;
+  word-break: break-word;
 }
 .resource-info-container .content-section .table {
   font-size: 0.9rem;
@@ -51,7 +54,7 @@
 }
 .resource-info-container .content-section .table tbody td code {
   font-size: 0.9em;
-  background-color: var(--bs-light);
+  background-color: var(--bs-secondary-bg);
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
 }
@@ -69,31 +72,20 @@
   background-color: var(--bs-body-bg);
   border-color: var(--bs-border-color);
 }
-[data-bs-theme=dark] .resource-info-container .card .card-header.bg-primary {
-  background-color: var(--bs-primary) !important;
-}
-[data-bs-theme=dark] .resource-info-container .card .card-header.bg-success {
-  background-color: var(--bs-success) !important;
-}
-[data-bs-theme=dark] .resource-info-container .card .card-header.bg-secondary {
-  background-color: var(--bs-secondary) !important;
+[data-bs-theme=dark] .resource-info-container .card .card-header {
+  background-color: var(--bs-body-bg);
+  border-bottom-color: var(--bs-border-color);
 }
 [data-bs-theme=dark] .resource-info-container .table {
   color: var(--bs-body-color);
 }
-[data-bs-theme=dark] .resource-info-container .table code {
+[data-bs-theme=dark] .resource-info-container .table thead th {
+  background-color: var(--bs-secondary-bg);
+  color: var(--bs-body-color);
+}
+[data-bs-theme=dark] .resource-info-container .table tbody td code {
   background-color: rgba(255, 255, 255, 0.1);
   color: var(--bs-primary);
-}
-[data-bs-theme=dark] .resource-info-container .badge.bg-info {
-  background-color: var(--bs-info) !important;
-  color: var(--bs-dark) !important;
-}
-[data-bs-theme=dark] .resource-info-container .badge.bg-success {
-  background-color: var(--bs-success) !important;
-}
-[data-bs-theme=dark] .resource-info-container .badge.bg-secondary {
-  background-color: var(--bs-secondary) !important;
 }
 
 /*# sourceMappingURL=resource-info.component.css.map */

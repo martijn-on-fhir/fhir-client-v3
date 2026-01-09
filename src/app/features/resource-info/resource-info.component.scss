@@ -1,48 +1,49 @@
 .resource-info-container {
   padding: 1.5rem;
   height: 100%;
-  overflow-y: auto;
-
-  .header-section {
-    margin-bottom: 1.5rem;
-
-    h2 {
-      margin-bottom: 0.5rem;
-      color: var(--bs-heading-color);
-      font-weight: 600;
-    }
-
-    p {
-      margin-bottom: 0;
-      font-size: 0.95rem;
-    }
-  }
+  overflow: hidden;
 
   .content-section {
     .card {
       border: 1px solid var(--bs-border-color);
       box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 200px);
 
-      .card-header {
-        font-weight: 600;
-        padding: 0.75rem 1rem;
-
-        h5 {
-          font-size: 1rem;
-          margin: 0;
-        }
+      .card-body {
+        padding: 1.25rem;
+        overflow-y: auto;
+        flex: 1;
+        min-height: 0;
       }
     }
 
-    .include-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
+    .section-title {
+      font-size: 0.9rem;
+      font-weight: 400;
+      margin-bottom: 0.75rem;
+      color: var(--bs-body-color);
 
-      .badge {
+      i {
         font-size: 0.85rem;
-        font-weight: 500;
+        opacity: 0.7;
+      }
+    }
+
+    .revinclude-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+
+      .revinclude-item {
+        font-size: 0.875rem;
         padding: 0.5rem 0.75rem;
+        background-color: var(--bs-body-bg);
+        color: var(--bs-body-color);
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.25rem;
+        word-break: break-word;
       }
     }
 
@@ -64,7 +65,7 @@
 
           code {
             font-size: 0.9em;
-            background-color: var(--bs-light);
+            background-color: var(--bs-secondary-bg);
             padding: 0.2rem 0.4rem;
             border-radius: 0.25rem;
           }
@@ -94,41 +95,28 @@
       border-color: var(--bs-border-color);
 
       .card-header {
-        &.bg-primary {
-          background-color: var(--bs-primary) !important;
-        }
-
-        &.bg-success {
-          background-color: var(--bs-success) !important;
-        }
-
-        &.bg-secondary {
-          background-color: var(--bs-secondary) !important;
-        }
+        background-color: var(--bs-body-bg);
+        border-bottom-color: var(--bs-border-color);
       }
     }
 
     .table {
       color: var(--bs-body-color);
 
-      code {
-        background-color: rgba(255, 255, 255, 0.1);
-        color: var(--bs-primary);
-      }
-    }
-
-    .badge {
-      &.bg-info {
-        background-color: var(--bs-info) !important;
-        color: var(--bs-dark) !important;
+      thead {
+        th {
+          background-color: var(--bs-secondary-bg);
+          color: var(--bs-body-color);
+        }
       }
 
-      &.bg-success {
-        background-color: var(--bs-success) !important;
-      }
-
-      &.bg-secondary {
-        background-color: var(--bs-secondary) !important;
+      tbody {
+        td {
+          code {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--bs-primary);
+          }
+        }
       }
     }
   }
