@@ -47,6 +47,13 @@ export const APP_TABS: Tab[] = [
     active: true
   },
   {
+    id: 'resource-info',
+    label: 'Resource Info',
+    icon: 'info-circle',
+    route: '/app/resource-info',
+    active: true
+  },
+  {
     id: 'profiles',
     label: 'Profiles',
     icon: 'file-lines',
@@ -71,15 +78,10 @@ export const APP_TABS: Tab[] = [
     id: 'pluriform',
     label: 'Pluriform',
     icon: 'shapes',
-    route: '/app/pluriform'
-  },
-  {
-    id: 'resource-info',
-    label: 'Resource Info',
-    icon: 'info-circle',
-    route: '/app/resource-info',
+    route: '/app/pluriform',
     active: true
   },
+
   {
     id: 'logs',
     label: 'Logs',

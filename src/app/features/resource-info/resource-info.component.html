@@ -50,7 +50,8 @@
         <!-- Result Card -->
         <div class="card">
           <div class="card-header">
-            <h5 class="mb-0">Result</h5>
+            <i class="fas fa-info-circle me-2"></i>
+            Result
           </div>
           <div class="card-body">
 
@@ -58,7 +59,7 @@
             <div class="mb-4">
               <h6 class="section-title">
                 <i class="fas fa-arrow-right me-2"></i>
-                Search Include
+                <strong>Search Include</strong>
               </h6>
               @if (info.searchInclude && info.searchInclude.length > 0) {
                 <div class="revinclude-grid">
@@ -77,7 +78,7 @@
             <div class="mb-4">
               <h6 class="section-title">
                 <i class="fas fa-arrow-left me-2"></i>
-                Search Reverse Include
+                <strong>Search Reverse Include</strong>
               </h6>
               @if (info.searchRevInclude && info.searchRevInclude.length > 0) {
                 <div class="revinclude-grid">
@@ -96,7 +97,7 @@
             <div>
               <h6 class="section-title">
                 <i class="fas fa-search me-2"></i>
-                Search Parameters
+                <strong>Search Parameters</strong>
               </h6>
               @if (info.searchParam && info.searchParam.length > 0) {
                 <div class="table-responsive">
