@@ -1,3 +1,17 @@
+# [1.2.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.1.0...v1.2.0) (2026-01-09)
+
+
+### Bug Fixes
+
+* parameter editor not loading values on edit ([386871e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/386871efd30ca9405513cd54dea81a7f8f4dc42c))
+* template editor dialog not loading values on edit ([63679ab](https://github.com/martijn-on-fhir/fhir-client-v3/commit/63679ab335f33277afe7c0b81be789f6803eaa11))
+
+
+### Features
+
+* integrate monaco editor with json viewer toolbar ([5a69223](https://github.com/martijn-on-fhir/fhir-client-v3/commit/5a69223f9c9706bb39ee8e6df121f71953f557bb))
+* pass monaco editor reference to json viewer toolbar ([6ba091d](https://github.com/martijn-on-fhir/fhir-client-v3/commit/6ba091d5c8b0e0b3f5b96f8e03512e53e734a4a8))
+
 # [1.1.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.0.0...v1.1.0) (2026-01-09)
 
 
