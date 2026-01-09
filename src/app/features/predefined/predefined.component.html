@@ -124,14 +124,7 @@
             <span><i class="fas fa-file-lines me-2"></i>Result</span>
 
             @if (result() && !loading()) {
-              <app-json-viewer-toolbar
-                [collapsedLevel]="collapsedLevel"
-                [showSearch]="showSearch"
-                [searchTerm]="searchTerm"
-                (expandOneLevel)="expandOneLevel()"
-                (collapseOneLevel)="collapseOneLevel()"
-                (expandAll)="collapsedLevel.set(false)"
-                (collapseAll)="collapsedLevel.set(1)">
+              <app-json-viewer-toolbar>
               </app-json-viewer-toolbar>
             }
           </div>

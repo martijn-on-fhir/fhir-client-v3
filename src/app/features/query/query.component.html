@@ -80,16 +80,9 @@
             <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
               <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="fas fa-file-lines me-2"></i>Result</span>
-<button class="btn btn-sm btn-outline-secondary" (click)="test(monaco)">Test</button>
                 <!-- Toolbar -->
                 <app-json-viewer-toolbar
-                  [collapsedLevel]="collapsedLevel"
-                  [showSearch]="showSearch"
-                  [searchTerm]="searchTerm"
-                  (expandOneLevel)="expandOneLevel()"
-                  (collapseOneLevel)="collapseOneLevel()"
-                  (expandAll)="collapsedLevel.set(false)"
-                  (collapseAll)="collapsedLevel.set(1)">
+                  [editor]="this.component?.editor">
                 </app-json-viewer-toolbar>
               </div>
 
@@ -102,7 +95,7 @@
                 </div>
               } @else {
                 <div class="card-body p-0" style="overflow-y: auto; flex: 1; min-height: 400px">
-                  <app-monaco-editor #monaco
+                  <app-monaco-editor #component
                     [value]="resultJson()"
                     [language]="'json'"
                     [readOnly]="true"
@@ -537,14 +530,7 @@
               <span><i class="fas fa-file-lines me-2"></i>Result</span>
 
               <!-- Toolbar: Search and expand/collapse controls -->
-              <app-json-viewer-toolbar
-                [collapsedLevel]="collapsedLevel"
-                [showSearch]="showSearch"
-                [searchTerm]="searchTerm"
-                (expandOneLevel)="expandOneLevel()"
-                (collapseOneLevel)="collapseOneLevel()"
-                (expandAll)="collapsedLevel.set(false)"
-                (collapseAll)="collapsedLevel.set(1)">
+              <app-json-viewer-toolbar>
               </app-json-viewer-toolbar>
             </div>
 

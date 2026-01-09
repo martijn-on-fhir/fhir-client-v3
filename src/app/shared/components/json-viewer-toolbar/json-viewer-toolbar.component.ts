@@ -1,9 +1,10 @@
-import { CommonModule } from '@angular/common';
-import { Component, Input, Output, EventEmitter, WritableSignal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import {CommonModule} from '@angular/common';
+import {Component, Input, Output, EventEmitter, WritableSignal} from '@angular/core';
+import {FormsModule} from '@angular/forms';
 
 /**
  * JSON Viewer Toolbar Component
+ * Editor heeft zoom levels van 1 tot 7. dit wordt bepaald door de editor
  *
  * Reusable toolbar for JSON viewer with search, expand/collapse controls
  */
@@ -15,45 +16,90 @@ import { FormsModule } from '@angular/forms';
   styleUrls: ['./json-viewer-toolbar.component.scss']
 })
 export class JsonViewerToolbarComponent {
-  // Inputs
-  @Input() collapsedLevel!: WritableSignal<number | false>;
-  @Input() showSearch!: WritableSignal<boolean>;
-  @Input() searchTerm!: WritableSignal<string>;
+  
+  @Input() editor!: any;
 
-  // Outputs
-  @Output() expandOneLevel = new EventEmitter<void>();
-  @Output() collapseOneLevel = new EventEmitter<void>();
-  @Output() expandAll = new EventEmitter<void>();
-  @Output() collapseAll = new EventEmitter<void>();
+  currentLevel = 7
+
+  collapseAll(): void {
+
+    if (this.editor) {
+
+      this.currentLevel = 2;
+      this.editor.getAction(`editor.foldLevel2`)?.run();
+    }
+  }
+
+  collapse(): void {
+
+    if (this.editor && this.currentLevel > 2) {
+
+      this.currentLevel = this.currentLevel - 1;
+      this.foldToLevel(this.currentLevel);
+    }
+  }
+
+  expand(): void {
+
+    if (this.editor && this.currentLevel < 7) {
+
+      this.currentLevel = this.currentLevel + 1;
+      this.foldToLevel(this.currentLevel);
+    }
+  }
+
+  expandAll(): void {
+
+    if (this.editor) {
+      this.editor.getAction('editor.unfoldAll')?.run();
+      this.currentLevel = 7;
+    }
+  }
+
+  format(): void {
+
+    if (this.editor) {
+      this.editor.getAction('editor.action.formatDocument').run();
+    }
+  }
 
   /**
    * Toggle search visibility
    */
-  toggleSearch() {
-    this.showSearch.set(!this.showSearch());
+  search() {
+
+    if (this.editor) {
+      this.editor.getAction('actions.find').run();
+    }
   }
 
-  /**
-   * Clear search term and hide search input
-   */
-  clearSearch() {
-    this.searchTerm.set('');
-    this.showSearch.set(false);
-  }
+  foldToLevel(level: number): void {
 
-  /**
-   * Check if collapse one level is disabled
-   */
-  isCollapseDisabled(): boolean {
-    const level = this.collapsedLevel();
+    if (!this.editor) {
+      return;
+    }
 
-    return typeof level === 'number' && level >= 10;
-  }
+    if (level <= 2) {
 
-  /**
-   * Check if expand one level is disabled
-   */
-  isExpandDisabled(): boolean {
-    return this.collapsedLevel() === false;
+      this.currentLevel = 2;
+      this.editor.getAction('editor.unfoldAll')?.run();
+
+      setTimeout(() => {
+        this.editor.getAction('editor.foldLevel2')?.run();
+      }, 10);
+
+    } else if (level >= 7) {
+
+      this.currentLevel = 7;
+      this.editor.getAction('editor.unfoldAll')?.run();
+
+    } else {
+
+      this.editor.getAction('editor.unfoldAll')?.run();
+
+      setTimeout(() => {
+        this.editor.getAction(`editor.foldLevel${level}`)?.run();
+      }, 10);
+    }
   }
 }

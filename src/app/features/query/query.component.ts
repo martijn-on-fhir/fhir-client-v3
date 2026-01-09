@@ -7,7 +7,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, signal, computed, effect, inject, OnInit} from '@angular/core';
+import {Component, signal, computed, effect, inject, OnInit, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {firstValueFrom} from 'rxjs';
 import {
@@ -37,6 +37,9 @@ export class QueryComponent implements OnInit {
   private get logger() {
     return this.loggerService.component('QueryComponent');
   }
+
+  // ViewChild reference to Monaco Editor
+  @ViewChild('component') component?: MonacoEditorComponent;
 
   // Query history navigation
   canGoBack = computed(() => this.queryHistoryService.canNavigateBack());
@@ -782,9 +785,5 @@ export class QueryComponent implements OnInit {
     }
 
     return stored ? parseInt(stored, 10) : 4;
-  }
-
-  test(editor:any): void{
-    console.dir(editor);
   }
 }

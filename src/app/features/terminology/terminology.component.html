@@ -251,14 +251,7 @@
       </h5>
       @if (result()) {
         <div class="d-flex gap-2 align-items-center">
-          <app-json-viewer-toolbar
-            [collapsedLevel]="collapsedLevel"
-            [showSearch]="showSearch"
-            [searchTerm]="searchTerm"
-            (expandOneLevel)="expandOneLevel()"
-            (collapseOneLevel)="collapseOneLevel()"
-            (expandAll)="expandAll()"
-            (collapseAll)="collapseAll()">
+          <app-json-viewer-toolbar>
           </app-json-viewer-toolbar>
         </div>
       }
