@@ -48,6 +48,7 @@ export class ResourceInfoComponent implements OnInit {
   // Computed resource types list
   resourceTypes = computed(() => {
     const meta = this.metadata();
+
     if (!meta?.rest?.[0]?.resource) {
       return [];
     }
@@ -100,10 +101,12 @@ export class ResourceInfoComponent implements OnInit {
       // Try to get from electron store first
       if (window.electronAPI?.metadata?.get) {
         const stored = await window.electronAPI.metadata.get();
+
         if (stored) {
           this.metadata.set(stored);
           this.loading.set(false);
           this.logger.info('Loaded metadata from electron store');
+
           return;
         }
       }

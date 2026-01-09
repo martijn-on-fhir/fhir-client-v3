@@ -73,7 +73,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     cancelText: 'Cancel',
     confirmButtonClass: 'btn-danger',
     icon: 'fa-exclamation-triangle',
-    onConfirm: () => {}
+    onConfirm: () => { /* empty */ }
   });
 
   // Split panel state
@@ -290,6 +290,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   async importTemplate() {
     try {
       const imported = await this.templateService.importTemplate();
+
       if (imported) {
         this.logger.info('Template imported successfully:', imported.name);
         this.refreshKey.set(this.refreshKey() + 1);
