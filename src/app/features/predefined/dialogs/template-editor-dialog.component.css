@@ -1,6 +1,19 @@
 .template-editor-modal {
   z-index: 1055;
 }
+.template-editor-modal .modal-header {
+  padding: 0.5rem 1rem;
+  min-height: auto;
+  background-color: var(--bs-light);
+}
+.template-editor-modal .modal-footer {
+  padding: 0.5rem 1rem;
+  min-height: auto;
+  background-color: var(--bs-light);
+}
+.template-editor-modal .modal-title {
+  font-size: 1rem;
+}
 
 .modal-backdrop {
   z-index: 1050;
@@ -16,6 +29,9 @@
   flex-direction: column;
   overflow: hidden;
   border-right: 1px solid var(--bs-border-color);
+}
+.editor-panel:first-child, .editor-panel:last-child {
+  background-color: var(--bs-light);
 }
 .editor-panel:last-child {
   border-right: none;

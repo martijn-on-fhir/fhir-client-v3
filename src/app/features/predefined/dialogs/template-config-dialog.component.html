@@ -139,31 +139,36 @@
               </div>
             }
           </form>
-
-          <!-- Query Preview -->
-          @if (previewQuery()) {
-            <div class="card bg-light mt-3">
-              <div class="card-body p-2">
-                <small class="text-muted d-block mb-1">Generated Query:</small>
-                <code class="small" style="word-break: break-all">{{ previewQuery() }}</code>
-              </div>
-            </div>
-          }
         </div>
 
         <!-- Footer -->
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" (click)="handleClose()">
-            Cancel
-          </button>
-          <button
-            type="button"
-            class="btn btn-primary"
-            (click)="handleExecute()"
-            [disabled]="!previewQuery()">
-            <i class="fas fa-bolt me-2"></i>
-            Execute
-          </button>
+        <div class="modal-footer d-block">
+          <!-- Query Preview -->
+          @if (previewQuery()) {
+            <div class="alert alert-secondary mb-3" style="text-align: left">
+              <small class="text-muted d-block mb-1">
+                <i class="fas fa-code me-1"></i>
+                <strong>Generated Query:</strong>
+              </small>
+              <code class="small" style="word-break: break-all">{{ previewQuery() }}</code>
+            </div>
+          }
+
+          <!-- Action Buttons -->
+          <div class="d-flex justify-content-end gap-2">
+            <button type="button" class="btn btn-secondary" (click)="handleClose()">
+              <i class="fas fa-times me-2"></i>
+              Cancel
+            </button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              (click)="handleExecute()"
+              [disabled]="!previewQuery()">
+              <i class="fas fa-bolt me-2"></i>
+              Execute Query
+            </button>
+          </div>
         </div>
       </div>
     </div>

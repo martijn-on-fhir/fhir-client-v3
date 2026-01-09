@@ -22,7 +22,7 @@
                 type="text"
                 class="form-control"
                 placeholder="Search templates..."
-                [(ngModel)]="searchQuery"
+                [ngModel]="searchQuery()"
                 (ngModelChange)="searchQuery.set($event)">
               @if (searchQuery()) {
                 <button class="btn btn-outline-secondary" (click)="searchQuery.set('')">
@@ -34,7 +34,7 @@
           <div class="col-4">
             <select
               class="form-select form-select-sm"
-              [(ngModel)]="selectedCategory"
+              [ngModel]="selectedCategory()"
               (ngModelChange)="selectedCategory.set($event)">
               <option value="all">All Categories</option>
               @for (cat of categories; track cat.id) {
@@ -47,12 +47,15 @@
 
       <!-- Right: Action Buttons -->
       <div class="col-8">
-        <div class="d-flex gap-2 justify-content-end">
-          <button class="btn btn-sm btn-primary btn-sm" (click)="openNewTemplate()">
+        <div class="d-flex gap-2 justify-content-end align-items-center">
+          <button class="btn btn-sm btn-outline-secondary" (click)="importTemplate()">
+            <i class="fas fa-upload me-2"></i>Import Template
+          </button>
+          <button class="btn btn-sm btn-primary" (click)="openNewTemplate()">
             <i class="fas fa-plus me-2"></i>New Template
           </button>
           @if (selectedTemplate()) {
-            <button class="btn btn-sm btn-outline-secondary btn-sm" (click)="editTemplate(selectedTemplate()!)">
+            <button class="btn btn-sm btn-outline-secondary" (click)="editTemplate(selectedTemplate()!)">
               <i class="fas fa-edit me-2"></i>Edit
             </button>
           }
@@ -66,64 +69,16 @@
     <div class="d-flex h-100">
       <!-- Left Panel: Template Browser -->
       <div [style.width.%]="leftWidth()" class="h-100 border-end overflow-auto p-3">
-        <h6 class="mb-3">
-          <i class="fas fa-list me-2"></i>Templates ({{ filteredTemplates().length }})
-        </h6>
-
-        @if (filteredTemplates().length === 0) {
-          <div class="text-center text-muted py-5">
-            <i class="fas fa-inbox fa-3x mb-3"></i>
-            <p>No templates found</p>
-            @if (searchQuery() || selectedCategory() !== 'all') {
-              <p class="small">Try adjusting your filters</p>
-            }
-          </div>
-        }
-
-        <!-- Group by category -->
-        @for (entry of groupedTemplates() | keyvalue; track entry.key) {
-          <div class="mb-4">
-            <div class="d-flex align-items-center mb-2">
-              <i class="fas fa-{{ getCategoryInfo(entry.key).icon }} me-2 text-primary"></i>
-              <strong>{{ getCategoryInfo(entry.key).label }}</strong>
-              <span class="badge bg-secondary ms-2">{{ entry.value.length }}</span>
-            </div>
-
-            @for (template of entry.value; track template.id) {
-              <div
-                class="card mb-2 template-card"
-                [class.selected]="selectedTemplate()?.id === template.id"
-                (click)="selectTemplate(template)"
-                style="cursor: pointer">
-                <div class="card-body p-2">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                      <div class="fw-bold">{{ template.name }}</div>
-                      <div class="small text-muted">{{ template.description }}</div>
-                      <div class="mt-1">
-                        @for (tag of template.tags; track tag) {
-                          <span class="badge bg-light text-dark me-1" style="font-size: 0.7em">{{ tag }}</span>
-                        }
-                      </div>
-                    </div>
-                    <div class="ms-2">
-                      @if (template.isSystem) {
-                        <span class="badge bg-info" style="font-size: 0.7em">System</span>
-                      } @else {
-                        <button
-                          class="btn btn-sm btn-outline-danger"
-                          (click)="deleteTemplate(template); $event.stopPropagation()"
-                          title="Delete template">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
+        <app-template-browser
+          [templates]="filteredTemplates()"
+          [selectedTemplate]="selectedTemplate()"
+          [searchQuery]="searchQuery()"
+          [selectedCategory]="selectedCategory()"
+          (selectTemplate)="selectTemplate($event)"
+          (editTemplate)="editTemplate($event)"
+          (deleteTemplate)="deleteTemplate($event)"
+          (exportTemplate)="exportTemplate($event)">
+        </app-template-browser>
       </div>
 
       <!-- Resizable Divider -->
@@ -224,4 +179,17 @@
     (close)="showEditorDialog.set(false)"
     (save)="saveTemplate($event)">
   </app-template-editor-dialog>
+
+  <!-- Confirmation Dialog -->
+  <app-confirmation-dialog
+    [isOpen]="showConfirmDialog()"
+    [title]="confirmDialogConfig().title"
+    [message]="confirmDialogConfig().message"
+    [confirmText]="confirmDialogConfig().confirmText"
+    [cancelText]="confirmDialogConfig().cancelText"
+    [confirmButtonClass]="confirmDialogConfig().confirmButtonClass"
+    [icon]="confirmDialogConfig().icon"
+    (confirm)="handleConfirmDialogConfirm()"
+    (cancel)="handleConfirmDialogCancel()">
+  </app-confirmation-dialog>
 </div>

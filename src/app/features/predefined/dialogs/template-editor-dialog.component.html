@@ -6,35 +6,19 @@
         <!-- Header -->
         <div class="modal-header">
           <h5 class="modal-title">
-            <i class="fas fa-edit me-2"></i>
+            <i class="fas fa-plus me-2"></i>
             {{ template ? 'Edit Template' : 'New Template' }}
             @if (template?.isSystem) {
               <span class="badge bg-info ms-2">Creating Custom Copy</span>
             }
           </h5>
-          <div class="d-flex gap-2 align-items-center">
-            <!-- Validation button -->
-            <button
-              type="button"
-              class="btn btn-sm btn-outline-secondary"
-              (click)="handleValidate()"
-              title="Validate template">
-              <i class="fas fa-check-circle me-1"></i>
-              Validate
+          <div class="d-flex gap-2 align-items-center ms-auto">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="handleClose()">
+              <i class="fas fa-minus"></i>
             </button>
-
-            <!-- Save button -->
-            <button
-              type="button"
-              class="btn btn-sm btn-primary"
-              (click)="handleSave()"
-              [disabled]="isSaving()">
-              <i class="fas fa-save me-1"></i>
-              {{ isSaving() ? 'Saving...' : 'Save Template' }}
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="handleClose()">
+              <i class="fas fa-times"></i>
             </button>
-
-            <!-- Close button -->
-            <button type="button" class="btn-close" (click)="handleClose()"></button>
           </div>
         </div>
 
@@ -256,6 +240,33 @@
               </div>
             </div>
           </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="handleValidate()"
+            title="Validate template">
+            <i class="fas fa-check-circle me-2"></i>
+            Validate
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="handleSave()"
+            [disabled]="isSaving()">
+            <i class="fas fa-save me-2"></i>
+            {{ isSaving() ? 'Saving...' : 'Save' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="handleClose()">
+            <i class="fas fa-times me-2"></i>
+            Cancel
+          </button>
         </div>
       </div>
     </div>

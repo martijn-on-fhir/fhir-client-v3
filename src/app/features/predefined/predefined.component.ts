@@ -5,8 +5,10 @@ import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } fro
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { TemplateService } from '../../core/services/template.service';
+import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { TemplateBrowserComponent } from './components/template-browser.component';
 import { TemplateConfigDialogComponent } from './dialogs/template-config-dialog.component';
 import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.component';
 
@@ -19,7 +21,7 @@ import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.
 @Component({
   selector: 'app-predefined',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, TemplateConfigDialogComponent, TemplateEditorDialogComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, TemplateBrowserComponent, ConfirmationDialogComponent, TemplateConfigDialogComponent, TemplateEditorDialogComponent],
   templateUrl: './predefined.component.html',
   styleUrl: './predefined.component.scss'
 })
@@ -53,19 +55,6 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     );
   });
 
-  // Grouped templates by category
-  groupedTemplates = computed(() => {
-    const templates = this.filteredTemplates();
-    const groups = new Map<TemplateCategory, SmartQueryTemplate[]>();
-
-    templates.forEach(template => {
-      const existing = groups.get(template.category) || [];
-      existing.push(template);
-      groups.set(template.category, existing);
-    });
-
-    return groups;
-  });
 
   // Config dialog state
   showConfigDialog = signal(false);
@@ -74,6 +63,18 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   // Editor dialog state
   showEditorDialog = signal(false);
   editingTemplate = signal<SmartQueryTemplate | null>(null);
+
+  // Confirmation dialog state
+  showConfirmDialog = signal(false);
+  confirmDialogConfig = signal({
+    title: 'Confirm Action',
+    message: 'Are you sure?',
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
+    confirmButtonClass: 'btn-danger',
+    icon: 'fa-exclamation-triangle',
+    onConfirm: () => {}
+  });
 
   // Split panel state
   leftWidth = signal(40); // percentage
@@ -173,7 +174,29 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   editTemplate(template: SmartQueryTemplate) {
     if (template.isSystem) {
-      alert('System templates cannot be edited. Create a custom copy instead.');
+      this.confirmDialogConfig.set({
+        title: 'System Template',
+        message: 'System templates cannot be edited directly. Would you like to create a custom copy instead?',
+        confirmText: 'Create Copy',
+        cancelText: 'Cancel',
+        confirmButtonClass: 'btn-primary',
+        icon: 'fa-info-circle',
+        onConfirm: () => {
+          // Create a copy with new ID
+          const copy: SmartQueryTemplate = {
+            ...template,
+            id: this.templateService.generateId(),
+            name: `${template.name} (Copy)`,
+            isSystem: false,
+            createdAt: new Date().toISOString(),
+            updatedAt: undefined
+          };
+          this.editingTemplate.set(copy);
+          this.showEditorDialog.set(true);
+          this.showConfirmDialog.set(false);
+        }
+      });
+      this.showConfirmDialog.set(true);
 
       return;
     }
@@ -186,23 +209,56 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   deleteTemplate(template: SmartQueryTemplate) {
     if (template.isSystem) {
-      alert('Cannot delete system templates.');
+      this.confirmDialogConfig.set({
+        title: 'Cannot Delete',
+        message: 'System templates cannot be deleted.',
+        confirmText: 'OK',
+        cancelText: '',
+        confirmButtonClass: 'btn-secondary',
+        icon: 'fa-ban',
+        onConfirm: () => {
+          this.showConfirmDialog.set(false);
+        }
+      });
+      this.showConfirmDialog.set(true);
 
       return;
     }
 
-    if (!confirm(`Are you sure you want to delete "${template.name}"?`)) {
-      return;
-    }
+    this.confirmDialogConfig.set({
+      title: 'Delete Template',
+      message: `Are you sure you want to delete "${template.name}"? This action cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      confirmButtonClass: 'btn-danger',
+      icon: 'fa-trash',
+      onConfirm: () => {
+        if (this.templateService.deleteTemplate(template.id)) {
+          this.logger.info('Template deleted:', template.id);
+          this.refreshKey.set(this.refreshKey() + 1);
 
-    if (this.templateService.deleteTemplate(template.id)) {
-      this.logger.info('Template deleted:', template.id);
-      this.refreshKey.set(this.refreshKey() + 1);
-
-      if (this.selectedTemplate()?.id === template.id) {
-        this.selectedTemplate.set(null);
+          if (this.selectedTemplate()?.id === template.id) {
+            this.selectedTemplate.set(null);
+          }
+        }
+        this.showConfirmDialog.set(false);
       }
-    }
+    });
+    this.showConfirmDialog.set(true);
+  }
+
+  /**
+   * Handle confirmation dialog confirm
+   */
+  handleConfirmDialogConfirm() {
+    this.confirmDialogConfig().onConfirm();
+  }
+
+  /**
+   * Handle confirmation dialog cancel
+   */
+  handleConfirmDialogCancel() {
+    this.showConfirmDialog.set(false);
   }
 
   /**
@@ -213,6 +269,35 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     this.logger.info('Template saved:', template.id);
     this.refreshKey.set(this.refreshKey() + 1);
     this.showEditorDialog.set(false);
+  }
+
+  /**
+   * Export template to file
+   */
+  async exportTemplate(template: SmartQueryTemplate) {
+    try {
+      await this.templateService.exportTemplate(template);
+      this.logger.info('Template exported successfully');
+    } catch (error: any) {
+      this.error.set(error.message || 'Failed to export template');
+      this.logger.error('Export failed:', error);
+    }
+  }
+
+  /**
+   * Import template from file
+   */
+  async importTemplate() {
+    try {
+      const imported = await this.templateService.importTemplate();
+      if (imported) {
+        this.logger.info('Template imported successfully:', imported.name);
+        this.refreshKey.set(this.refreshKey() + 1);
+      }
+    } catch (error: any) {
+      this.error.set(error.message || 'Failed to import template');
+      this.logger.error('Import failed:', error);
+    }
   }
 
   /**
@@ -266,6 +351,50 @@ return;
       this.isResizing.set(false);
       document.body.style.userSelect = '';
       document.body.style.cursor = '';
+    }
+  }
+
+  /**
+   * Handle keyboard shortcuts
+   */
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboardShortcuts(event: KeyboardEvent) {
+    // Ctrl/Cmd + Enter: Execute query
+    if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+      if (this.currentQuery() && !this.loading()) {
+        event.preventDefault();
+        this.executeQuery(this.currentQuery());
+      }
+    }
+
+    // Ctrl/Cmd + N: New template
+    if ((event.ctrlKey || event.metaKey) && event.key === 'n') {
+      // Only if no dialogs are open
+      if (!this.showConfigDialog() && !this.showEditorDialog() && !this.showConfirmDialog()) {
+        event.preventDefault();
+        this.openNewTemplate();
+      }
+    }
+
+    // Ctrl/Cmd + O: Import template
+    if ((event.ctrlKey || event.metaKey) && event.key === 'o') {
+      // Only if no dialogs are open
+      if (!this.showConfigDialog() && !this.showEditorDialog() && !this.showConfirmDialog()) {
+        event.preventDefault();
+        this.importTemplate();
+      }
+    }
+
+    // Escape: Close dialogs
+    if (event.key === 'Escape') {
+      if (this.showConfirmDialog()) {
+        this.handleConfirmDialogCancel();
+      } else if (this.showConfigDialog()) {
+        this.closeConfigDialog();
+      } else if (this.showEditorDialog()) {
+        // Only close if no unsaved changes (handled by editor dialog itself)
+        this.showEditorDialog.set(false);
+      }
     }
   }
 

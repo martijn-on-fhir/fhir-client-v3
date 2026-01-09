@@ -179,6 +179,99 @@ return 0;
     return `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
+  /**
+   * Export a template to a JSON file
+   */
+  async exportTemplate(template: SmartQueryTemplate): Promise<void> {
+    const electronAPI = (window as any).electronAPI;
+
+    if (!electronAPI?.file?.saveFile) {
+      throw new Error('File operations not available - not running in Electron environment');
+    }
+
+    try {
+      // Create clean export (remove runtime properties)
+      const exportData: Partial<SmartQueryTemplate> = {
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        queryTemplate: template.queryTemplate,
+        parameters: template.parameters,
+        tags: template.tags,
+        author: template.author,
+        version: template.version
+      };
+
+      const content = JSON.stringify(exportData, null, 2);
+      const defaultFileName = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+
+      const result = await electronAPI.file.saveFile(content, defaultFileName);
+
+      if (result?.success) {
+        this.logger.info('Template exported:', result.path);
+      } else if (result?.error) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      this.logger.error('Failed to export template:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Import a template from a JSON file
+   */
+  async importTemplate(): Promise<SmartQueryTemplate | null> {
+    const electronAPI = (window as any).electronAPI;
+
+    if (!electronAPI?.file?.openFile) {
+      throw new Error('File operations not available - not running in Electron environment');
+    }
+
+    try {
+      const result = await electronAPI.file.openFile();
+
+      if (!result) {
+        return null; // User canceled
+      }
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Parse and validate template
+      const imported = JSON.parse(result.content) as Partial<SmartQueryTemplate>;
+
+      if (!imported.name || !imported.queryTemplate || !imported.category) {
+        throw new Error('Invalid template file: missing required fields');
+      }
+
+      // Create new template with fresh ID
+      const newTemplate: SmartQueryTemplate = {
+        id: this.generateId(),
+        name: imported.name,
+        description: imported.description || '',
+        category: imported.category,
+        queryTemplate: imported.queryTemplate,
+        parameters: imported.parameters || [],
+        tags: imported.tags || [],
+        author: imported.author || 'Unknown',
+        version: imported.version || '1.0.0',
+        isSystem: false,
+        createdAt: new Date().toISOString()
+      };
+
+      // Save to custom templates
+      this.saveTemplate(newTemplate);
+      this.logger.info('Template imported:', newTemplate.name);
+
+      return newTemplate;
+    } catch (error) {
+      this.logger.error('Failed to import template:', error);
+      throw error;
+    }
+  }
+
 
   /**
    * Process template with parameter values

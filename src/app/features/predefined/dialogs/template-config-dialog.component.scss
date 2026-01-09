@@ -2,6 +2,20 @@
 
 .modal {
   z-index: 1050;
+
+  .modal-header {
+    padding: 0.5rem 1rem;
+    min-height: auto;
+  }
+
+  .modal-footer {
+    padding: 0.5rem 1rem;
+    min-height: auto;
+  }
+
+  .modal-title {
+    font-size: 1rem;
+  }
 }
 
 .form-label {
