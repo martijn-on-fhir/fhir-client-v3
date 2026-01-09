@@ -11,8 +11,8 @@
 }
 
 .template-accordion-item {
-  background: #fff;
-  border: 1px solid #e0e0e0;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
   border-radius: 6px;
   margin-bottom: 0.5rem;
   overflow: hidden;
@@ -28,58 +28,62 @@
   padding: 0.75rem 1rem;
   cursor: pointer;
   user-select: none;
-  background: #fafafa;
+  background: var(--bs-tertiary-bg);
   transition: background-color 0.2s;
+  color: var(--bs-primary);
+  font-size: 0.875rem;
 }
 .template-accordion-header:hover {
-  background: #f5f5f5;
+  background: var(--bs-secondary-bg);
+}
+.template-accordion-header i {
+  color: var(--bs-primary);
 }
 .template-accordion-header i.fa-chevron-down,
 .template-accordion-header i.fa-chevron-right {
-  color: #666;
-  font-size: 0.875rem;
+  font-size: 0.8rem;
   transition: transform 0.2s;
 }
 
 .template-accordion-body {
   padding: 0.5rem;
-  background: #fff;
+  background: var(--bs-body-bg);
 }
 
 .template-item {
   padding: 0.75rem 1rem;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--bs-border-color);
   border-radius: 6px;
   margin-bottom: 0.5rem;
   cursor: pointer;
-  background: #fff;
+  background: var(--bs-body-bg);
   transition: all 0.2s;
 }
 .template-item:last-child {
   margin-bottom: 0;
 }
 .template-item:hover {
-  background: #f8f9fa;
-  border-color: #0d6efd;
+  background: var(--bs-tertiary-bg);
+  border-color: var(--bs-primary);
 }
 .template-item.active {
-  background: #e7f3ff;
-  border-color: #0d6efd;
+  background: var(--bs-primary-bg-subtle);
+  border-color: var(--bs-primary);
 }
 
 .template-name {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #212529;
+  color: var(--bs-body-color);
   margin-bottom: 0.25rem;
 }
 .template-name i {
-  color: #666;
+  color: var(--bs-secondary-color);
 }
 
 .template-description {
   font-size: 0.8rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
   margin-bottom: 0.5rem;
   line-height: 1.4;
 }
@@ -95,8 +99,8 @@
   display: inline-block;
   padding: 0.125rem 0.5rem;
   font-size: 0.7rem;
-  background: #e9ecef;
-  color: #495057;
+  background: var(--bs-secondary-bg);
+  color: var(--bs-secondary-color);
   border-radius: 3px;
 }
 
@@ -114,7 +118,7 @@
 .template-empty {
   text-align: center;
   padding: 2rem 1rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
 }
 
 /*# sourceMappingURL=template-browser.component.css.map */

@@ -23,7 +23,7 @@
 }
 
 code {
-  background-color: var(--bs-light);
+  background-color: var(--bs-secondary-bg);
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;

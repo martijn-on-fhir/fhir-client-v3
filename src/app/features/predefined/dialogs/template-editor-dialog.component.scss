@@ -6,13 +6,13 @@
   .modal-header {
     padding: 0.5rem 1rem;
     min-height: auto;
-    background-color: var(--bs-light);
+    background-color: var(--bs-tertiary-bg);
   }
 
   .modal-footer {
     padding: 0.5rem 1rem;
     min-height: auto;
-    background-color: var(--bs-light);
+    background-color: var(--bs-tertiary-bg);
   }
 
   .modal-title {
@@ -37,7 +37,7 @@
 
   &:first-child,
   &:last-child {
-    background-color: var(--bs-light);
+    background-color: var(--bs-tertiary-bg);
   }
 
   &:last-child {
@@ -85,7 +85,7 @@
 }
 
 code {
-  background-color: var(--bs-light);
+  background-color: var(--bs-secondary-bg);
   padding: 0.2rem 0.4rem;
   border-radius: 0.25rem;
   font-size: 0.875rem;

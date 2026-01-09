@@ -1,8 +1,49 @@
 /* Global Styles */
-/* Override Bootstrap primary color to anthracite */
+/* Override Bootstrap primary color */
 :root {
-  --bs-primary: rgba(36, 48, 73, 0.87);
-  --bs-primary-rgb: 53, 59, 72;
+  --bs-primary: rgb(41, 83, 107);
+  --bs-primary-rgb: 41, 83, 107;
+  /* Link colors */
+  --bs-link-color: rgb(41, 83, 107);
+  --bs-link-hover-color: rgb(33, 66, 86);
+  /* Border colors */
+  --bs-border-color-translucent: rgba(41, 83, 107, 0.175);
+}
+
+/* Override all primary button colors */
+.btn-primary {
+  --bs-btn-color: #fff;
+  --bs-btn-bg: rgb(41, 83, 107);
+  --bs-btn-border-color: rgb(41, 83, 107);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: rgb(33, 66, 86);
+  --bs-btn-hover-border-color: rgb(33, 66, 86);
+  --bs-btn-focus-shadow-rgb: 41, 83, 107;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: rgb(25, 50, 64);
+  --bs-btn-active-border-color: rgb(25, 50, 64);
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: #fff;
+  --bs-btn-disabled-bg: rgb(41, 83, 107);
+  --bs-btn-disabled-border-color: rgb(41, 83, 107);
+}
+
+/* Override outline primary button colors */
+.btn-outline-primary {
+  --bs-btn-color: rgb(41, 83, 107);
+  --bs-btn-border-color: rgb(41, 83, 107);
+  --bs-btn-hover-color: #fff;
+  --bs-btn-hover-bg: rgb(41, 83, 107);
+  --bs-btn-hover-border-color: rgb(41, 83, 107);
+  --bs-btn-focus-shadow-rgb: 41, 83, 107;
+  --bs-btn-active-color: #fff;
+  --bs-btn-active-bg: rgb(41, 83, 107);
+  --bs-btn-active-border-color: rgb(41, 83, 107);
+  --bs-btn-active-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
+  --bs-btn-disabled-color: rgb(41, 83, 107);
+  --bs-btn-disabled-bg: transparent;
+  --bs-btn-disabled-border-color: rgb(41, 83, 107);
+  --bs-gradient: none;
 }
 
 * {
