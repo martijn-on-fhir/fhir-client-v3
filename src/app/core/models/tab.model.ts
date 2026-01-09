@@ -74,6 +74,13 @@ export const APP_TABS: Tab[] = [
     route: '/app/pluriform'
   },
   {
+    id: 'resource-info',
+    label: 'Resource Info',
+    icon: 'info-circle',
+    route: '/app/resource-info',
+    active: true
+  },
+  {
     id: 'logs',
     label: 'Logs',
     icon: 'list',

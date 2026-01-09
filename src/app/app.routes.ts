@@ -9,6 +9,7 @@ import { PluriformComponent } from './features/pluriform/pluriform.component';
 import { PredefinedComponent } from './features/predefined/predefined.component';
 import { ProfilesComponent } from './features/profiles/profiles.component';
 import { QueryComponent } from './features/query/query.component';
+import { ResourceInfoComponent } from './features/resource-info/resource-info.component';
 import { TerminologyComponent } from './features/terminology/terminology.component';
 import { ValidatorComponent } from './features/validator/validator.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
@@ -104,6 +105,12 @@ export const routes: Routes = [
       {
         path: 'pluriform',
         component: PluriformComponent
+      },
+
+      // Resource Info Tab (DONE ✅)
+      {
+        path: 'resource-info',
+        component: ResourceInfoComponent
       }
     ]
   },
