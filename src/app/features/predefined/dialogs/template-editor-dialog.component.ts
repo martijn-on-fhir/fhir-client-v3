@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, HostListener, Input, Output, computed, effect, signal } from '@angular/core';
+import { Component, EventEmitter, HostListener, Input, OnChanges, Output, SimpleChanges, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SmartQueryTemplate, TemplateCategory, TemplateParameter } from '../../../core/models/smart-template.model';
 import { LoggerService } from '../../../core/services/logger.service';
@@ -21,7 +21,7 @@ import { ParameterEditorComponent } from './parameter-editor.component';
   templateUrl: './template-editor-dialog.component.html',
   styleUrl: './template-editor-dialog.component.scss'
 })
-export class TemplateEditorDialogComponent {
+export class TemplateEditorDialogComponent implements OnChanges {
   @Input() isOpen = false;
   @Input() template: SmartQueryTemplate | null = null;
   @Output() close = new EventEmitter<void>();
@@ -79,11 +79,14 @@ export class TemplateEditorDialogComponent {
   constructor(templateService: TemplateService, loggerService: LoggerService) {
     this.templateService = templateService;
     this.loggerService = loggerService;
+  }
 
-    // Load template data when input changes
-    effect(() => {
-
-      if (this.isOpen && this.template) {
+  /**
+   * Handle input changes
+   */
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['isOpen'] && this.isOpen) {
+      if (this.template) {
         // Load existing template
         this.name.set(this.template.name);
         this.description.set(this.template.description || '');
@@ -92,18 +95,17 @@ export class TemplateEditorDialogComponent {
         this.author.set(this.template.author || 'User');
         this.queryTemplate.set(this.template.queryTemplate);
         this.parameters.set(this.template.parameters || []);
-      } else if (this.isOpen) {
+      } else {
         // Reset for new template
         this.resetForm();
       }
 
-      if (this.isOpen) {
-        this.validationErrors.set([]);
-        this.showValidation.set(false);
-        this.editingParameterIndex.set(null);
-        this.isAddingParameter.set(false);
-      }
-    });
+      // Reset validation and editing state
+      this.validationErrors.set([]);
+      this.showValidation.set(false);
+      this.editingParameterIndex.set(null);
+      this.isAddingParameter.set(false);
+    }
   }
 
   /**
