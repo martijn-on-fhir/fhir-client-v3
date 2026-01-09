@@ -11,7 +11,8 @@
       "mcp__filesystem-user__directory_tree",
       "mcp__filesystem-user__list_directory",
       "mcp__filesystem-user__list_allowed_directories",
-      "mcp__filesystem-user__read_text_file"
+      "mcp__filesystem-user__read_text_file",
+      "Bash(npm run lint:*)"
     ]
   }
 }

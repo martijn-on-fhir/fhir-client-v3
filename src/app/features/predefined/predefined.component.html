@@ -217,30 +217,11 @@
     (execute)="handleTemplateExecution($event)">
   </app-template-config-dialog>
 
-  <!-- Template Editor Dialog (simplified) -->
-  @if (showEditorDialog()) {
-    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-edit me-2"></i>
-              {{ editingTemplate() ? 'Edit Template' : 'New Template' }}
-            </h5>
-            <button type="button" class="btn-close" (click)="showEditorDialog.set(false)"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-muted">Template editor - Create custom query templates with parameters</p>
-            <div class="alert alert-info">
-              <i class="fas fa-info-circle me-2"></i>
-              <strong>Note:</strong> Full template editor coming soon. For now, templates can only be browsed and executed.
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="showEditorDialog.set(false)">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
+  <!-- Template Editor Dialog -->
+  <app-template-editor-dialog
+    [isOpen]="showEditorDialog()"
+    [template]="editingTemplate()"
+    (close)="showEditorDialog.set(false)"
+    (save)="saveTemplate($event)">
+  </app-template-editor-dialog>
 </div>

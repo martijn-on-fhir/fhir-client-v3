@@ -8,6 +8,7 @@ import { TemplateService } from '../../core/services/template.service';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import { TemplateConfigDialogComponent } from './dialogs/template-config-dialog.component';
+import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.component';
 
 /**
  * Predefined Tab Component
@@ -18,7 +19,7 @@ import { TemplateConfigDialogComponent } from './dialogs/template-config-dialog.
 @Component({
   selector: 'app-predefined',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, TemplateConfigDialogComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, TemplateConfigDialogComponent, TemplateEditorDialogComponent],
   templateUrl: './predefined.component.html',
   styleUrl: './predefined.component.scss'
 })

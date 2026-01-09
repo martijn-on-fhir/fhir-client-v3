@@ -1,0 +1,249 @@
+<div class="border rounded p-3 bg-light">
+  <h6 class="mb-3">
+    <i class="fas" [class.fa-edit]="parameter" [class.fa-plus]="!parameter"></i>
+    <span class="ms-2">{{ parameter ? 'Edit Parameter' : 'New Parameter' }}</span>
+  </h6>
+
+  <!-- Validation error -->
+  @if (validationError()) {
+    <div class="alert alert-danger alert-sm py-2">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ validationError() }}
+    </div>
+  }
+
+  <!-- Name -->
+  <div class="mb-3">
+    <label class="form-label small mb-1">
+      Parameter Name <span class="text-danger">*</span>
+    </label>
+    <input
+      type="text"
+      class="form-control form-control-sm"
+      [class.is-invalid]="nameError()"
+      [value]="name()"
+      (input)="handleNameChange($any($event.target).value)"
+      placeholder="e.g., patientId, startDate"
+      spellcheck="false" />
+    @if (nameError()) {
+      <div class="invalid-feedback">{{ nameError() }}</div>
+    }
+    <small class="form-text text-muted">Used as {{"{{parameterName}}"}} in query template</small>
+  </div>
+
+  <!-- Label -->
+  <div class="mb-3">
+    <label class="form-label small mb-1">
+      Label <span class="text-danger">*</span>
+    </label>
+    <input
+      type="text"
+      class="form-control form-control-sm"
+      [(ngModel)]="label"
+      (ngModelChange)="label.set($event)"
+      placeholder="e.g., Patient ID, Start Date" />
+    <small class="form-text text-muted">Display name shown to users</small>
+  </div>
+
+  <!-- Type -->
+  <div class="mb-3">
+    <label class="form-label small mb-1">Type</label>
+    <select
+      class="form-select form-select-sm"
+      [(ngModel)]="type"
+      (ngModelChange)="type.set($event)">
+      @for (t of parameterTypes; track t.value) {
+        <option [value]="t.value">{{ t.label }}</option>
+      }
+    </select>
+  </div>
+
+  <!-- Hint -->
+  <div class="mb-3">
+    <label class="form-label small mb-1">Hint</label>
+    <input
+      type="text"
+      class="form-control form-control-sm"
+      [(ngModel)]="hint"
+      (ngModelChange)="hint.set($event)"
+      placeholder="Help text for users" />
+  </div>
+
+  <!-- Required -->
+  <div class="mb-3">
+    <div class="form-check">
+      <input
+        type="checkbox"
+        class="form-check-input"
+        id="param-required"
+        [checked]="required()"
+        (change)="required.set($any($event.target).checked)" />
+      <label class="form-check-label small" for="param-required">
+        Required parameter
+      </label>
+    </div>
+  </div>
+
+  <!-- Default Value -->
+  <div class="mb-3">
+    <label class="form-label small mb-1">Default Value</label>
+    <input
+      type="text"
+      class="form-control form-control-sm"
+      [(ngModel)]="defaultValue"
+      (ngModelChange)="defaultValue.set($event)"
+      [placeholder]="type() === 'reference' ? 'e.g., Patient/123' : 'e.g., {{today}}, {{today-30}}'"
+      spellcheck="false" />
+    <small class="form-text text-muted">
+      {{ type() === 'reference' ? 'Reference to a resource (e.g., Patient/123)' : 'Supports special tokens: {{today}}, {{today-7}}, etc.' }}
+    </small>
+  </div>
+
+  <!-- Type-specific fields: Number -->
+  @if (type() === 'number') {
+    <div class="mb-3">
+      <div class="row g-2">
+        <div class="col">
+          <label class="form-label small mb-1">Min Value</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            [(ngModel)]="min"
+            (ngModelChange)="min.set($event)"
+            placeholder="Optional" />
+        </div>
+        <div class="col">
+          <label class="form-label small mb-1">Max Value</label>
+          <input
+            type="number"
+            class="form-control form-control-sm"
+            [(ngModel)]="max"
+            (ngModelChange)="max.set($event)"
+            placeholder="Optional" />
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Type-specific fields: String Pattern -->
+  @if (type() === 'string') {
+    <div class="mb-3">
+      <label class="form-label small mb-1">Pattern (Regex)</label>
+      <input
+        type="text"
+        class="form-control form-control-sm"
+        [(ngModel)]="pattern"
+        (ngModelChange)="pattern.set($event)"
+        placeholder="e.g., ^[A-Z]{3}_.*"
+        spellcheck="false" />
+      <small class="form-text text-muted">Optional regular expression for validation</small>
+    </div>
+  }
+
+  <!-- Type-specific fields: Choice -->
+  @if (type() === 'choice') {
+    <div class="mb-3">
+      <label class="form-label small mb-1">Options</label>
+      @for (choice of choices(); track $index) {
+        <div class="row g-2 mb-2">
+          <div class="col">
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="choice.label"
+              (input)="updateChoice($index, 'label', $any($event.target).value)"
+              placeholder="Label (shown to user)" />
+          </div>
+          <div class="col">
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              [value]="choice.value"
+              (input)="updateChoice($index, 'value', $any($event.target).value)"
+              placeholder="Value (used in query)"
+              spellcheck="false" />
+          </div>
+          <div class="col-auto">
+            <button
+              class="btn btn-sm btn-outline-danger"
+              (click)="removeChoice($index)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+      }
+      <button class="btn btn-sm btn-outline-secondary w-100" (click)="addChoice()">
+        <i class="fas fa-plus me-2"></i>
+        Add Option
+      </button>
+    </div>
+  }
+
+  <!-- Type-specific fields: Summary -->
+  @if (type() === 'summary') {
+    <div class="mb-3">
+      <label class="form-label small mb-1">FHIR _summary Options</label>
+      <div class="border rounded p-2 bg-white">
+        @for (option of summaryOptions; track option.value) {
+          <div class="small mb-1">
+            <strong>{{ option.value }}</strong>: {{ option.label.split(' - ')[1] }}
+          </div>
+        }
+      </div>
+      <small class="form-text text-muted">
+        These predefined FHIR _summary options will be available when this parameter is used.
+      </small>
+    </div>
+  }
+
+  <!-- Type-specific fields: Sort -->
+  @if (type() === 'sort') {
+    <div class="mb-3">
+      <label class="form-label small mb-1">FHIR _sort Options</label>
+      <div class="border rounded p-2 bg-white" style="max-height: 200px; overflow-y: auto">
+        @for (option of sortOptions; track option.value) {
+          <div class="small mb-1">
+            <strong>{{ option.value }}</strong>: {{ option.label }}
+          </div>
+        }
+      </div>
+      <small class="form-text text-muted">
+        These predefined FHIR _sort options will be available. Use "-" prefix for descending order.
+      </small>
+    </div>
+  }
+
+  <!-- Type-specific fields: Reference -->
+  @if (type() === 'reference') {
+    <div class="mb-3">
+      <label class="form-label small mb-1">Target Resource Types</label>
+      <div class="border rounded p-2 bg-white" style="max-height: 150px; overflow-y: auto">
+        @for (resourceType of commonResourceTypes; track resourceType) {
+          <div class="form-check">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              [id]="'ref-type-' + resourceType"
+              [checked]="referenceTypes().includes(resourceType)"
+              (change)="toggleReferenceType(resourceType)" />
+            <label class="form-check-label small" [for]="'ref-type-' + resourceType">
+              {{ resourceType }}
+            </label>
+          </div>
+        }
+      </div>
+      <small class="form-text text-muted">Optional: restrict reference selector to specific types</small>
+    </div>
+  }
+
+  <!-- Actions -->
+  <div class="d-flex gap-2">
+    <button class="btn btn-primary btn-sm flex-grow-1" (click)="handleSave()">
+      <i class="fas fa-save me-2"></i>
+      Save Parameter
+    </button>
+    <button class="btn btn-outline-secondary btn-sm" (click)="handleCancel()">
+      Cancel
+    </button>
+  </div>
+</div>

@@ -179,6 +179,7 @@ return 0;
     return `custom-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
+
   /**
    * Process template with parameter values
    */
