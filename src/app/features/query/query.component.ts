@@ -38,8 +38,11 @@ export class QueryComponent implements OnInit {
     return this.loggerService.component('QueryComponent');
   }
 
-  // ViewChild reference to Monaco Editor
+  // ViewChild reference to Monaco Editor (text modus)
   @ViewChild('component') component?: MonacoEditorComponent;
+
+  // ViewChild reference to Monaco Editor (visual builder modus )
+  @ViewChild('componentVisual') componentVisual?: MonacoEditorComponent;
 
   // Query history navigation
   canGoBack = computed(() => this.queryHistoryService.canNavigateBack());

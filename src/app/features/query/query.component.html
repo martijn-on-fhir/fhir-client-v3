@@ -82,7 +82,8 @@
                 <span><i class="fas fa-file-lines me-2"></i>Result</span>
                 <!-- Toolbar -->
                 <app-json-viewer-toolbar
-                  [editor]="this.component?.editor">
+                  [editor]="this.component?.editor"
+                  [readOnly]="true">
                 </app-json-viewer-toolbar>
               </div>
 
@@ -530,7 +531,9 @@
               <span><i class="fas fa-file-lines me-2"></i>Result</span>
 
               <!-- Toolbar: Search and expand/collapse controls -->
-              <app-json-viewer-toolbar>
+              <app-json-viewer-toolbar
+                [editor]="this.componentVisual?.editor"
+                [readOnly]="true">
               </app-json-viewer-toolbar>
             </div>
 
@@ -543,7 +546,7 @@
               </div>
             } @else {
               <div class="card-body p-0" style="overflow-y: auto; flex: 1; min-height: 400px">
-                <app-monaco-editor
+                <app-monaco-editor #componentVisual
                   [value]="resultJson()"
                   [language]="'json'"
                   [readOnly]="true"

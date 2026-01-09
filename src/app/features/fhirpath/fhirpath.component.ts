@@ -1,9 +1,10 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
+import {Component, OnInit, OnDestroy, signal, effect, inject, ViewChild} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as fhirpath from 'fhirpath';
 import { LoggerService } from '../../core/services/logger.service';
 import { ThemeService } from '../../core/services/theme.service';
+import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component'
 
 @Component({
   selector: 'app-fhirpath',
@@ -13,6 +14,10 @@ import { ThemeService } from '../../core/services/theme.service';
   styleUrl: './fhirpath.component.scss'
 })
 export class FhirpathComponent implements OnInit, OnDestroy {
+
+  // ViewChild reference to Monaco Editor (text modus)
+  @ViewChild('component') component?: MonacoEditorComponent;
+
   // Signals for state management
   expression = signal<string>('');
   jsonInput = signal<string>('');

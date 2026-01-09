@@ -124,7 +124,9 @@
             <span><i class="fas fa-file-lines me-2"></i>Result</span>
 
             @if (result() && !loading()) {
-              <app-json-viewer-toolbar>
+              <app-json-viewer-toolbar
+                [editor]="this.component?.editor"
+                [readOnly]="true">
               </app-json-viewer-toolbar>
             }
           </div>
@@ -144,7 +146,7 @@
 
             @if (result() && !loading()) {
               <div style="flex: 1; display: flex; min-height: 0;">
-                <app-monaco-editor
+                <app-monaco-editor #component
                   [value]="jsonContent()"
                   [language]="'json'"
                   [readOnly]="true">

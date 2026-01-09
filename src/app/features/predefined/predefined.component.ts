@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, computed, HostListener, inject } from '@angular/core';
+import {Component, OnInit, OnDestroy, signal, computed, HostListener, inject, ViewChild} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } from '../../core/models/smart-template.model';
 import { FhirService } from '../../core/services/fhir.service';
@@ -26,6 +26,10 @@ import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.
   styleUrl: './predefined.component.scss'
 })
 export class PredefinedComponent implements OnInit, OnDestroy {
+
+  // ViewChild reference to Monaco Editor (text modus)
+  @ViewChild('component') component?: MonacoEditorComponent;
+
   private templateService = inject(TemplateService);
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);

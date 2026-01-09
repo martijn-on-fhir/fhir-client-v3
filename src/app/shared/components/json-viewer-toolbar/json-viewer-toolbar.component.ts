@@ -16,8 +16,10 @@ import {FormsModule} from '@angular/forms';
   styleUrls: ['./json-viewer-toolbar.component.scss']
 })
 export class JsonViewerToolbarComponent {
-  
+
   @Input() editor!: any;
+
+  @Input() readOnly = true;
 
   currentLevel = 7
 
@@ -101,5 +103,13 @@ export class JsonViewerToolbarComponent {
         this.editor.getAction(`editor.foldLevel${level}`)?.run();
       }, 10);
     }
+  }
+
+  save(): void {
+    console.log('save')
+  }
+
+  load(): void {
+    console.log('load')
   }
 }

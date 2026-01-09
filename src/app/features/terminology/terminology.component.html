@@ -251,7 +251,9 @@
       </h5>
       @if (result()) {
         <div class="d-flex gap-2 align-items-center">
-          <app-json-viewer-toolbar>
+          <app-json-viewer-toolbar
+            [editor]="this.component?.editor"
+            [readOnly]="true">
           </app-json-viewer-toolbar>
         </div>
       }
@@ -287,7 +289,7 @@
           <!-- JSON View (Left) -->
 
             <div class="json-panel" [style.width.%]="leftWidth()">
-              <app-monaco-editor
+              <app-monaco-editor #component
                 [value]="jsonContent()"
                 [language]="'json'"
                 [readOnly]="true">

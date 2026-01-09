@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject, signal, computed, HostListener } from '@angular/core';
+import {Component, OnInit, inject, signal, computed, HostListener, ViewChild} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LoggerService } from '../../core/services/logger.service';
 import { TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams } from '../../core/services/terminology.service';
@@ -26,6 +26,10 @@ type OperationType = 'lookup' | 'expand' | 'validate-code' | 'translate';
   styleUrls: ['./terminology.component.scss']
 })
 export class TerminologyComponent implements OnInit {
+
+  // ViewChild reference to Monaco Editor (text modus)
+  @ViewChild('component') component?: MonacoEditorComponent;
+
   private terminologyService = inject(TerminologyService);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('TerminologyComponent');

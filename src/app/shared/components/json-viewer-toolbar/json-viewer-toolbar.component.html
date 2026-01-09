@@ -1,28 +1,37 @@
 <div class="d-flex gap-2 align-items-center">
+  <div class="btn-group" role="group" aria-label="Basic example">
+    <button class="btn btn-sm btn-outline-secondary" title="Saves" (click)="save()">
+      <i class="fas fa-save"></i>
+    </button>
 
-  <button class="btn btn-sm btn-outline-secondary" title="Search" (click)="search()">
-    <i class="fas fa-search"></i>
-  </button>
+    @if (!readOnly) {
+      <button class="btn btn-sm btn-outline-secondary" title="Saves" (click)="load()">
+        <i class="fas fa-folder-open"></i>
+      </button>
+    }
 
-  <button class="btn btn-sm btn-outline-secondary" title="Format" (click)="format()">
-    <i class="fas fa-code"></i>
-  </button>
+    <button class=" btn btn-sm btn-outline-secondary" title="Search" (click)="search()">
+      <i class="fas fa-search"></i>
+    </button>
 
+    <button class="btn btn-sm btn-outline-secondary" title="Format" (click)="format()">
+      <i class="fas fa-align-left"></i>
+    </button>
 
+    <button class="btn btn-sm btn-outline-secondary" title="Collapse all" (click)="collapseAll()">
+      <i class="fas fa-compress"></i>
+    </button>
 
-  <button class="btn btn-sm btn-outline-secondary" title="Collapse all" (click)="collapseAll()">
-    <i class="fas fa-compress"></i>
-  </button>
+    <button class="btn btn-sm btn-outline-secondary" title="Collapse one level" (click)="collapse()">
+      <i class="far fa-square-minus"></i>
+    </button>
 
-  <button class="btn btn-sm btn-outline-secondary" title="Collapse one level" (click)="collapse()">
-    <i class="fas fa-square-minus"></i>
-  </button>
+    <button class="btn btn-sm btn-outline-secondary" title="Expand one level" (click)="expand()">
+      <i class="far fa-square-plus"></i>
+    </button>
 
-  <button class="btn btn-sm btn-outline-secondary" title="Expand one level" (click)="expand()">
-    <i class="fas fa-square-plus"></i>
-  </button>
-
-  <button class="btn btn-sm btn-outline-secondary" title="Expand all" (click)="expandAll()">
-    <i class="fas fa-expand"></i>
-  </button>
+    <button class="btn btn-sm btn-outline-secondary" title="Expand all" (click)="expandAll()">
+      <i class="fas fa-expand"></i>
+    </button>
+  </div>
 </div>
