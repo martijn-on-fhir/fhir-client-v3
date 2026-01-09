@@ -1,0 +1,274 @@
+@if (isOpen) {
+  <div class="modal-backdrop show"></div>
+  <div class="modal show d-block template-editor-modal" tabindex="-1">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="fas fa-plus me-2"></i>
+            {{ template ? 'Edit Template' : 'New Template' }}
+            @if (template?.isSystem) {
+              <span class="badge bg-info ms-2">Creating Custom Copy</span>
+            }
+          </h5>
+          <div class="d-flex gap-2 align-items-center ms-auto">
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="handleClose()">
+              <i class="fas fa-minus"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary" (click)="handleClose()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Validation Results -->
+        @if (showValidation()) {
+          <div class="validation-bar">
+            @if (validationErrors().length === 0) {
+              <div class="alert alert-success mb-0">
+                <i class="fas fa-check-circle me-2"></i>
+                Template validation passed! No errors or warnings found.
+              </div>
+            } @else {
+              <div class="alert alert-warning mb-0">
+                <i class="fas fa-exclamation-triangle me-2"></i>
+                <strong>Validation Issues:</strong>
+                <ul class="mb-0 mt-2 small">
+                  @for (error of validationErrors(); track $index) {
+                    <li [class.text-danger]="error.type === 'error'">
+                      <strong>{{ error.field }}:</strong> {{ error.message }}
+                    </li>
+                  }
+                </ul>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- 3-Panel Layout -->
+        <div class="modal-body p-0" style="overflow: hidden">
+          <div class="d-flex h-100" id="template-editor-container">
+            <!-- Left Panel: Metadata -->
+            <div class="editor-panel" [style.width.%]="leftWidth()">
+              <div class="p-3 h-100 overflow-auto">
+                <h6 class="mb-3">
+                  <i class="fas fa-info-circle me-2"></i>
+                  Template Metadata
+                </h6>
+
+                <!-- Name -->
+                <div class="mb-3">
+                  <label class="form-label small mb-1">
+                    Name <span class="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="name"
+                    (ngModelChange)="name.set($event)"
+                    placeholder="My Custom Template" />
+                </div>
+
+                <!-- Description -->
+                <div class="mb-3">
+                  <label class="form-label small mb-1">
+                    Description <span class="text-danger">*</span>
+                  </label>
+                  <textarea
+                    class="form-control form-control-sm"
+                    rows="3"
+                    [(ngModel)]="description"
+                    (ngModelChange)="description.set($event)"
+                    placeholder="Describe what this template does..."></textarea>
+                </div>
+
+                <!-- Category -->
+                <div class="mb-3">
+                  <label class="form-label small mb-1">Category</label>
+                  <select
+                    class="form-select form-select-sm"
+                    [(ngModel)]="category"
+                    (ngModelChange)="category.set($event)">
+                    @for (cat of categories; track cat.value) {
+                      <option [value]="cat.value">{{ cat.label }}</option>
+                    }
+                  </select>
+                </div>
+
+                <!-- Tags -->
+                <div class="mb-3">
+                  <label class="form-label small mb-1">Tags</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="tags"
+                    (ngModelChange)="tags.set($event)"
+                    placeholder="tag1, tag2, tag3" />
+                  <small class="form-text text-muted">Comma-separated</small>
+                </div>
+
+                <!-- Author -->
+                <div class="mb-3">
+                  <label class="form-label small mb-1">Author</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="author"
+                    (ngModelChange)="author.set($event)"
+                    placeholder="Your name" />
+                </div>
+              </div>
+            </div>
+
+            <!-- Resizer 1 -->
+            <div
+              class="resizer"
+              (mousedown)="startResizing($event, 1)"
+              [class.active]="activeResizer() === 1"></div>
+
+            <!-- Middle Panel: Query Editor -->
+            <div class="editor-panel" [style.width.%]="middleWidth()">
+              <div class="p-3 h-100 d-flex flex-column">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <h6 class="mb-0">
+                    <i class="fas fa-code me-2"></i>
+                    Query Template
+                  </h6>
+                  <button
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="autoDetectParameters()"
+                    title="Auto-detect parameters from query">
+                    <i class="fas fa-magic me-1"></i>
+                    Auto-Detect Parameters
+                  </button>
+                </div>
+
+                <small class="text-muted mb-2">
+                  Use <code>{{"{{parameterName}}"}}</code> for parameters
+                </small>
+
+                <!-- Monaco Editor -->
+                <div class="flex-grow-1" style="min-height: 0">
+                  <app-monaco-editor
+                    [value]="queryTemplate()"
+                    [language]="'plaintext'"
+                    [readOnly]="false"
+                    (valueChange)="handleQueryChange($event)">
+                  </app-monaco-editor>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resizer 2 -->
+            <div
+              class="resizer"
+              (mousedown)="startResizing($event, 2)"
+              [class.active]="activeResizer() === 2"></div>
+
+            <!-- Right Panel: Parameters -->
+            <div class="editor-panel" [style.width.%]="rightWidth()">
+              <div class="p-3 h-100 overflow-auto">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="mb-0">
+                    <i class="fas fa-sliders-h me-2"></i>
+                    Parameters ({{ parameters().length }})
+                  </h6>
+                  @if (!isAddingParameter() && editingParameterIndex() === null) {
+                    <button
+                      class="btn btn-sm btn-outline-primary"
+                      (click)="startAddParameter()">
+                      <i class="fas fa-plus me-1"></i>
+                      Add
+                    </button>
+                  }
+                </div>
+
+                <!-- Parameter List -->
+                @if (!isAddingParameter() && editingParameterIndex() === null) {
+                  @if (parameters().length === 0) {
+                    <div class="text-center text-muted py-4">
+                      <i class="fas fa-inbox fa-2x mb-2"></i>
+                      <p class="small mb-0">No parameters yet</p>
+                      <p class="small">Click Add or use Auto-Detect</p>
+                    </div>
+                  } @else {
+                    @for (param of parameters(); track $index) {
+                      <div class="card mb-2 parameter-card">
+                        <div class="card-body p-2">
+                          <div class="d-flex justify-content-between align-items-start">
+                            <div class="flex-grow-1">
+                              <div class="fw-bold small">{{ param.label }}</div>
+                              <div class="text-muted" style="font-size: 0.75rem">
+                                {{"{{" + param.name + "}}"}} • {{ param.type }}
+                                @if (param.required) {
+                                  <span class="text-danger">*</span>
+                                }
+                              </div>
+                            </div>
+                            <div class="d-flex gap-1">
+                              <button
+                                class="btn btn-sm btn-outline-primary"
+                                (click)="startEditParameter($index)"
+                                title="Edit parameter">
+                                <i class="fas fa-edit"></i>
+                              </button>
+                              <button
+                                class="btn btn-sm btn-outline-danger"
+                                (click)="deleteParameter($index)"
+                                title="Delete parameter">
+                                <i class="fas fa-trash"></i>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    }
+                  }
+                }
+
+                <!-- Parameter Editor -->
+                @if (isAddingParameter() || editingParameterIndex() !== null) {
+                  <app-parameter-editor
+                    [parameter]="editingParameterIndex() !== null ? parameters()[editingParameterIndex()!] : null"
+                    [existingParameters]="parameters()"
+                    [editIndex]="editingParameterIndex() ?? undefined"
+                    (save)="handleParameterSave($event)"
+                    (cancel)="handleParameterCancel()">
+                  </app-parameter-editor>
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            class="btn btn-primary"
+            (click)="handleValidate()"
+            title="Validate template">
+            <i class="fas fa-check-circle me-2"></i>
+            Validate
+          </button>
+          <button
+            type="button"
+            class="btn btn-success"
+            (click)="handleSave()"
+            [disabled]="isSaving()">
+            <i class="fas fa-save me-2"></i>
+            {{ isSaving() ? 'Saving...' : 'Save' }}
+          </button>
+          <button
+            type="button"
+            class="btn btn-danger"
+            (click)="handleClose()">
+            <i class="fas fa-times me-2"></i>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

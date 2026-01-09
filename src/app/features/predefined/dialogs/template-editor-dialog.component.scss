@@ -1,0 +1,98 @@
+// Template Editor Dialog Styles
+
+.template-editor-modal {
+  z-index: 1055;
+
+  .modal-header {
+    padding: 0.5rem 1rem;
+    min-height: auto;
+    background-color: var(--bs-light);
+  }
+
+  .modal-footer {
+    padding: 0.5rem 1rem;
+    min-height: auto;
+    background-color: var(--bs-light);
+  }
+
+  .modal-title {
+    font-size: 1rem;
+  }
+}
+
+.modal-backdrop {
+  z-index: 1050;
+}
+
+.validation-bar {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.editor-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--bs-border-color);
+
+  &:first-child,
+  &:last-child {
+    background-color: var(--bs-light);
+  }
+
+  &:last-child {
+    border-right: none;
+  }
+}
+
+.resizer {
+  width: 4px;
+  min-width: 4px;
+  cursor: col-resize;
+  background-color: var(--bs-border-color);
+  position: relative;
+  flex-shrink: 0;
+  transition: background-color 0.2s;
+
+  &:hover,
+  &.active {
+    background-color: var(--bs-primary);
+  }
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: -2px;
+    right: -2px;
+    top: 0;
+    bottom: 0;
+  }
+}
+
+.parameter-card {
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &:hover {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transform: translateY(-1px);
+  }
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+code {
+  background-color: var(--bs-light);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+// Prevent text selection during resize
+.resizer:active,
+.resizer.active {
+  user-select: none;
+}

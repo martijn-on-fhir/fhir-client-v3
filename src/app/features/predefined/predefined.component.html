@@ -22,7 +22,7 @@
                 type="text"
                 class="form-control"
                 placeholder="Search templates..."
-                [(ngModel)]="searchQuery"
+                [ngModel]="searchQuery()"
                 (ngModelChange)="searchQuery.set($event)">
               @if (searchQuery()) {
                 <button class="btn btn-outline-secondary" (click)="searchQuery.set('')">
@@ -34,7 +34,7 @@
           <div class="col-4">
             <select
               class="form-select form-select-sm"
-              [(ngModel)]="selectedCategory"
+              [ngModel]="selectedCategory()"
               (ngModelChange)="selectedCategory.set($event)">
               <option value="all">All Categories</option>
               @for (cat of categories; track cat.id) {
@@ -47,12 +47,15 @@
 
       <!-- Right: Action Buttons -->
       <div class="col-8">
-        <div class="d-flex gap-2 justify-content-end">
-          <button class="btn btn-sm btn-primary btn-sm" (click)="openNewTemplate()">
+        <div class="d-flex gap-2 justify-content-end align-items-center">
+          <button class="btn btn-sm btn-outline-secondary" (click)="importTemplate()">
+            <i class="fas fa-upload me-2"></i>Import Template
+          </button>
+          <button class="btn btn-sm btn-primary" (click)="openNewTemplate()">
             <i class="fas fa-plus me-2"></i>New Template
           </button>
           @if (selectedTemplate()) {
-            <button class="btn btn-sm btn-outline-secondary btn-sm" (click)="editTemplate(selectedTemplate()!)">
+            <button class="btn btn-sm btn-outline-secondary" (click)="editTemplate(selectedTemplate()!)">
               <i class="fas fa-edit me-2"></i>Edit
             </button>
           }
@@ -66,64 +69,16 @@
     <div class="d-flex h-100">
       <!-- Left Panel: Template Browser -->
       <div [style.width.%]="leftWidth()" class="h-100 border-end overflow-auto p-3">
-        <h6 class="mb-3">
-          <i class="fas fa-list me-2"></i>Templates ({{ filteredTemplates().length }})
-        </h6>
-
-        @if (filteredTemplates().length === 0) {
-          <div class="text-center text-muted py-5">
-            <i class="fas fa-inbox fa-3x mb-3"></i>
-            <p>No templates found</p>
-            @if (searchQuery() || selectedCategory() !== 'all') {
-              <p class="small">Try adjusting your filters</p>
-            }
-          </div>
-        }
-
-        <!-- Group by category -->
-        @for (entry of groupedTemplates() | keyvalue; track entry.key) {
-          <div class="mb-4">
-            <div class="d-flex align-items-center mb-2">
-              <i class="fas fa-{{ getCategoryInfo(entry.key).icon }} me-2 text-primary"></i>
-              <strong>{{ getCategoryInfo(entry.key).label }}</strong>
-              <span class="badge bg-secondary ms-2">{{ entry.value.length }}</span>
-            </div>
-
-            @for (template of entry.value; track template.id) {
-              <div
-                class="card mb-2 template-card"
-                [class.selected]="selectedTemplate()?.id === template.id"
-                (click)="selectTemplate(template)"
-                style="cursor: pointer">
-                <div class="card-body p-2">
-                  <div class="d-flex justify-content-between align-items-start">
-                    <div class="flex-grow-1">
-                      <div class="fw-bold">{{ template.name }}</div>
-                      <div class="small text-muted">{{ template.description }}</div>
-                      <div class="mt-1">
-                        @for (tag of template.tags; track tag) {
-                          <span class="badge bg-light text-dark me-1" style="font-size: 0.7em">{{ tag }}</span>
-                        }
-                      </div>
-                    </div>
-                    <div class="ms-2">
-                      @if (template.isSystem) {
-                        <span class="badge bg-info" style="font-size: 0.7em">System</span>
-                      } @else {
-                        <button
-                          class="btn btn-sm btn-outline-danger"
-                          (click)="deleteTemplate(template); $event.stopPropagation()"
-                          title="Delete template">
-                          <i class="fas fa-trash"></i>
-                        </button>
-                      }
-                    </div>
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-        }
+        <app-template-browser
+          [templates]="filteredTemplates()"
+          [selectedTemplate]="selectedTemplate()"
+          [searchQuery]="searchQuery()"
+          [selectedCategory]="selectedCategory()"
+          (selectTemplate)="selectTemplate($event)"
+          (editTemplate)="editTemplate($event)"
+          (deleteTemplate)="deleteTemplate($event)"
+          (exportTemplate)="exportTemplate($event)">
+        </app-template-browser>
       </div>
 
       <!-- Resizable Divider -->
@@ -210,124 +165,31 @@
   </div>
 
   <!-- Template Config Dialog -->
-  @if (showConfigDialog() && selectedTemplate()) {
-    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-      <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-cog me-2"></i>{{ selectedTemplate()!.name }}
-            </h5>
-            <button type="button" class="btn-close" (click)="showConfigDialog.set(false)"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-muted">{{ selectedTemplate()!.description }}</p>
+  <app-template-config-dialog
+    [isOpen]="showConfigDialog()"
+    [template]="selectedTemplate()"
+    (close)="closeConfigDialog()"
+    (execute)="handleTemplateExecution($event)">
+  </app-template-config-dialog>
 
-            <form>
-              @for (param of selectedTemplate()!.parameters; track param.name) {
-                <div class="mb-3">
-                  <label class="form-label">
-                    {{ param.label }}
-                    @if (param.required) {
-                      <span class="text-danger">*</span>
-                    }
-                  </label>
+  <!-- Template Editor Dialog -->
+  <app-template-editor-dialog
+    [isOpen]="showEditorDialog()"
+    [template]="editingTemplate()"
+    (close)="showEditorDialog.set(false)"
+    (save)="saveTemplate($event)">
+  </app-template-editor-dialog>
 
-                  @if (param.type === 'string' || param.type === 'reference' || param.type === 'token') {
-                    <input
-                      type="text"
-                      class="form-control"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name"
-                      [required]="param.required"
-                      [placeholder]="param.hint || ''">
-                  }
-
-                  @if (param.type === 'number') {
-                    <input
-                      type="number"
-                      class="form-control"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name"
-                      [required]="param.required"
-                      [min]="param.min ?? null"
-                      [max]="param.max ?? null"
-                      [placeholder]="param.hint || ''">
-                  }
-
-                  @if (param.type === 'date') {
-                    <input
-                      type="date"
-                      class="form-control"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name"
-                      [required]="param.required">
-                  }
-
-                  @if (param.type === 'boolean') {
-                    <select
-                      class="form-select"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name">
-                      <option value="">-- Select --</option>
-                      <option value="true">True</option>
-                      <option value="false">False</option>
-                    </select>
-                  }
-
-                  @if (param.type === 'choice' && param.choices) {
-                    <select
-                      class="form-select"
-                      [(ngModel)]="parameterValues()[param.name]"
-                      [name]="param.name">
-                      @for (choice of param.choices; track choice.value) {
-                        <option [value]="choice.value">{{ choice.label }}</option>
-                      }
-                    </select>
-                  }
-
-                  @if (param.hint) {
-                    <div class="form-text">{{ param.hint }}</div>
-                  }
-                </div>
-              }
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="showConfigDialog.set(false)">Cancel</button>
-            <button type="button" class="btn btn-primary" (click)="executeTemplate()">
-              <i class="fas fa-bolt me-2"></i>Execute
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
-
-  <!-- Template Editor Dialog (simplified) -->
-  @if (showEditorDialog()) {
-    <div class="modal d-block" tabindex="-1" style="background: rgba(0,0,0,0.5)">
-      <div class="modal-dialog modal-xl">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">
-              <i class="fas fa-edit me-2"></i>
-              {{ editingTemplate() ? 'Edit Template' : 'New Template' }}
-            </h5>
-            <button type="button" class="btn-close" (click)="showEditorDialog.set(false)"></button>
-          </div>
-          <div class="modal-body">
-            <p class="text-muted">Template editor - Create custom query templates with parameters</p>
-            <div class="alert alert-info">
-              <i class="fas fa-info-circle me-2"></i>
-              <strong>Note:</strong> Full template editor coming soon. For now, templates can only be browsed and executed.
-            </div>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" (click)="showEditorDialog.set(false)">Close</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  }
+  <!-- Confirmation Dialog -->
+  <app-confirmation-dialog
+    [isOpen]="showConfirmDialog()"
+    [title]="confirmDialogConfig().title"
+    [message]="confirmDialogConfig().message"
+    [confirmText]="confirmDialogConfig().confirmText"
+    [cancelText]="confirmDialogConfig().cancelText"
+    [confirmButtonClass]="confirmDialogConfig().confirmButtonClass"
+    [icon]="confirmDialogConfig().icon"
+    (confirm)="handleConfirmDialogConfirm()"
+    (cancel)="handleConfirmDialogCancel()">
+  </app-confirmation-dialog>
 </div>

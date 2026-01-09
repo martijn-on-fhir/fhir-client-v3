@@ -1,0 +1,32 @@
+.modal {
+  z-index: 1050;
+}
+.modal .modal-header {
+  padding: 0.5rem 1rem;
+  min-height: auto;
+}
+.modal .modal-footer {
+  padding: 0.5rem 1rem;
+  min-height: auto;
+}
+.modal .modal-title {
+  font-size: 1rem;
+}
+
+.form-label {
+  font-weight: 600;
+  color: var(--bs-body-color);
+}
+
+.form-text {
+  margin-top: 0.25rem;
+}
+
+code {
+  background-color: var(--bs-light);
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+}
+
+/*# sourceMappingURL=template-config-dialog.component.css.map */

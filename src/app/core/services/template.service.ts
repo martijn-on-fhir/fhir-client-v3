@@ -180,14 +180,115 @@ return 0;
   }
 
   /**
+   * Export a template to a JSON file
+   */
+  async exportTemplate(template: SmartQueryTemplate): Promise<void> {
+    const electronAPI = (window as any).electronAPI;
+
+    if (!electronAPI?.file?.saveFile) {
+      throw new Error('File operations not available - not running in Electron environment');
+    }
+
+    try {
+      // Create clean export (remove runtime properties)
+      const exportData: Partial<SmartQueryTemplate> = {
+        name: template.name,
+        description: template.description,
+        category: template.category,
+        queryTemplate: template.queryTemplate,
+        parameters: template.parameters,
+        tags: template.tags,
+        author: template.author,
+        version: template.version
+      };
+
+      const content = JSON.stringify(exportData, null, 2);
+      const defaultFileName = `${template.name.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+
+      const result = await electronAPI.file.saveFile(content, defaultFileName);
+
+      if (result?.success) {
+        this.logger.info('Template exported:', result.path);
+      } else if (result?.error) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      this.logger.error('Failed to export template:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Import a template from a JSON file
+   */
+  async importTemplate(): Promise<SmartQueryTemplate | null> {
+    const electronAPI = (window as any).electronAPI;
+
+    if (!electronAPI?.file?.openFile) {
+      throw new Error('File operations not available - not running in Electron environment');
+    }
+
+    try {
+      const result = await electronAPI.file.openFile();
+
+      if (!result) {
+        return null; // User canceled
+      }
+
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      // Parse and validate template
+      const imported = JSON.parse(result.content) as Partial<SmartQueryTemplate>;
+
+      if (!imported.name || !imported.queryTemplate || !imported.category) {
+        throw new Error('Invalid template file: missing required fields');
+      }
+
+      // Create new template with fresh ID
+      const newTemplate: SmartQueryTemplate = {
+        id: this.generateId(),
+        name: imported.name,
+        description: imported.description || '',
+        category: imported.category,
+        queryTemplate: imported.queryTemplate,
+        parameters: imported.parameters || [],
+        tags: imported.tags || [],
+        author: imported.author || 'Unknown',
+        version: imported.version || '1.0.0',
+        isSystem: false,
+        createdAt: new Date().toISOString()
+      };
+
+      // Save to custom templates
+      this.saveTemplate(newTemplate);
+      this.logger.info('Template imported:', newTemplate.name);
+
+      return newTemplate;
+    } catch (error) {
+      this.logger.error('Failed to import template:', error);
+      throw error;
+    }
+  }
+
+
+  /**
    * Process template with parameter values
    */
   renderTemplate(template: SmartQueryTemplate, values: Record<string, string>): string {
     let query = template.queryTemplate;
 
+    // First, process special tokens in parameter values
+    const processedValues: Record<string, string> = {};
+
+    Object.entries(values).forEach(([key, value]) => {
+      processedValues[key] = this.processSpecialTokens(value);
+    });
+
     // Replace parameters
     template.parameters.forEach(param => {
-      const value = values[param.name] || '';
+      const value = processedValues[param.name] || '';
       const placeholder = new RegExp(`{{${param.name}}}`, 'g');
       query = query.replace(placeholder, encodeURIComponent(value));
     });
@@ -197,5 +298,55 @@ return 0;
     query = query.replace(/[?&]$/, ''); // Remove trailing ? or &
 
     return query;
+  }
+
+  /**
+   * Process special tokens in a value
+   * Supports: {{today}}, {{today-N}}, {{today+N}}, {{now}}, {{uuid}}
+   */
+  private processSpecialTokens(value: string): string {
+
+    if (!value) {
+      return value;
+    }
+
+    let processed = value;
+
+    // {{today}} → current date (YYYY-MM-DD)
+    const today = new Date().toISOString().split('T')[0];
+    processed = processed.replace(/\{\{today\}\}/g, today);
+
+    // {{today-N}} → N days ago (YYYY-MM-DD)
+    processed = processed.replace(/\{\{today-(\d+)\}\}/g, (_, days) => {
+      const date = new Date();
+      date.setDate(date.getDate() - parseInt(days, 10));
+      return date.toISOString().split('T')[0];
+    });
+
+    // {{today+N}} → N days from now (YYYY-MM-DD)
+    processed = processed.replace(/\{\{today\+(\d+)\}\}/g, (_, days) => {
+      const date = new Date();
+      date.setDate(date.getDate() + parseInt(days, 10));
+      return date.toISOString().split('T')[0];
+    });
+
+    // {{now}} → current ISO datetime
+    processed = processed.replace(/\{\{now\}\}/g, () => new Date().toISOString());
+
+    // {{uuid}} → random UUID
+    processed = processed.replace(/\{\{uuid\}\}/g, () => {
+
+      if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+        return crypto.randomUUID();
+      }
+      // Fallback UUID generation for older browsers
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+        const r = Math.random() * 16 | 0;
+        const v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    });
+
+    return processed;
   }
 }
