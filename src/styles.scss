@@ -84,6 +84,11 @@ kbd {
   font-weight: 600;
 }
 
+/* Global modal backdrop styling */
+.modal-backdrop {
+  background: rgba(0, 0, 0, 0.2) !important;
+}
+
 /* Remove glow/focus effects from all inputs and buttons */
 input:focus,
 input:focus-visible,
