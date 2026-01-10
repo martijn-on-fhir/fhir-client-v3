@@ -1,3 +1,15 @@
+# [1.4.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.3.1...v1.4.0) (2026-01-10)
+
+
+### Bug Fixes
+
+*  eslint issues ([7e1f3a5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/7e1f3a5b1b4709c3d82dd27f66feed78f38b54c4))
+
+
+### Features
+
+* enhance log viewer with table layout, performance improvements, and robust parsing ([9fb7309](https://github.com/martijn-on-fhir/fhir-client-v3/commit/9fb73094583137c2566a8ce6a89e9d6ecb45c07b))
+
 ## [1.3.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.3.0...v1.3.1) (2026-01-10)
 
 
