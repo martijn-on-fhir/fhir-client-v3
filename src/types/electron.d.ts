@@ -53,6 +53,8 @@ declare global {
                 raw: string;
                 timestamp: string | null;
                 level: 'debug' | 'info' | 'warn' | 'error' | null;
+                process: string | null;
+                component: string | null;
                 message: string;
               }>;
             }

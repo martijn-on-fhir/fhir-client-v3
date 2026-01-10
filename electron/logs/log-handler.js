@@ -22,30 +22,125 @@ function getLogPaths() {
 }
 
 /**
+ * Parse multiple log lines with multi-line support
+ * Groups continuation lines with their parent entry
+ * @param {string[]} lines - Array of log lines
+ * @param {string} source - Source identifier (main/renderer)
+ * @returns {Object[]} - Parsed log entries
+ */
+function parseLogLines(lines, source = 'main') {
+  const TIMESTAMP_PATTERN = /^\s*\[\d{4}-\d{2}-\d{2}\s+\d{2}:\d{2}:\d{2}\.\d{3}\]/;
+  const entries = [];
+  let currentEntry = null;
+
+  for (const line of lines) {
+    const startsWithTimestamp = TIMESTAMP_PATTERN.test(line);
+
+    if (startsWithTimestamp) {
+      // Save previous entry
+      if (currentEntry) {
+        entries.push(currentEntry);
+      }
+
+      // Start new entry
+      currentEntry = parseLogLine(line, source);
+      currentEntry.lineCount = 1;
+    } else if (currentEntry) {
+      // Safety cap: prevent runaway multi-line entries
+      if (currentEntry.lineCount > 500) {
+        entries.push(currentEntry);
+        currentEntry = null;
+      } else {
+        // Continuation line
+        currentEntry.message += '\n' + line;
+        currentEntry.raw += '\n' + line;
+        currentEntry.lineCount++;
+      }
+    } else {
+      // Orphan line without parent
+      entries.push({
+        source,
+        raw: line,
+        timestamp: null,
+        level: null,
+        process: null,
+        component: null,
+        message: line,
+        lineCount: 1
+      });
+    }
+  }
+
+  // Don't forget last entry
+  if (currentEntry) {
+    entries.push(currentEntry);
+  }
+
+  return entries;
+}
+
+/**
  * Parse a log line into structured format
- * Format: [YYYY-MM-DD HH:mm:ss.SSS] [LEVEL] message
+ * Format: [YYYY-MM-DD HH:mm:ss.SSS] [LEVEL] [Process?] [Component?] message
  */
 function parseLogLine(line, source = 'main') {
-  // Match electron-log format: [timestamp] [level] message
-  const match = line.match(/^\[([^\]]+)\]\s*\[([^\]]+)\]\s*(.*)$/);
+  // Trim leading/trailing whitespace
+  const trimmedLine = line.trim();
 
-  if (match) {
-    const [, timestamp, level, message] = match;
+  // Try to extract bracketed sections step by step
+  let remaining = trimmedLine;
+  const brackets = [];
+
+  // Extract all [bracketed] sections from the start
+  while (remaining.startsWith('[')) {
+    const endIndex = remaining.indexOf(']');
+    if (endIndex === -1) break;
+
+    const content = remaining.substring(1, endIndex);
+    brackets.push(content);
+
+    // Move past this bracket and any whitespace
+    remaining = remaining.substring(endIndex + 1).trimStart();
+  }
+
+  // Now we have all brackets and the remaining message
+  if (brackets.length >= 2) {
+    const timestamp = brackets[0].replace(/\.\d{3}$/, '').trim(); // Remove milliseconds
+    const level = brackets[1].toLowerCase().trim();
+
+    let processInfo = null;
+    let componentInfo = null;
+    let message = remaining;
+
+    // Check if we have process (3rd bracket)
+    if (brackets.length >= 3) {
+      processInfo = brackets[2].trim();
+
+      // Check if we have component (4th bracket)
+      if (brackets.length >= 4) {
+        componentInfo = brackets[3].trim();
+      }
+    }
+
     return {
       source,
       raw: line,
-      timestamp: timestamp.trim(),
-      level: level.toLowerCase().trim(),
+      timestamp,
+      level,
+      process: processInfo || null,
+      component: componentInfo || null,
       message: message.trim()
     };
   }
 
-  // If no match, return as-is
+  // Fallback for unparseable lines
   return {
     source,
     raw: line,
     timestamp: null,
     level: null,
+    process: null,
+    component: null,
     message: line
   };
 }
@@ -73,12 +168,8 @@ function readLogFile(options = {}) {
       lines = lines.slice(-tail);
     }
 
-    // Parse all lines
-    const logs = lines.map(line => {
-      // Detect source from [Renderer] prefix
-      const source = line.includes('[Renderer]') ? 'renderer' : 'main';
-      return parseLogLine(line, source);
-    });
+    // Parse all lines with multi-line support
+    const logs = parseLogLines(lines, 'main');
 
     return { logs };
   } catch (error) {
