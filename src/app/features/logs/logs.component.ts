@@ -69,6 +69,7 @@ export class LogsComponent implements OnInit, OnDestroy {
       // Search filter (includes component and process in search)
       if (search) {
         const searchableText = `${log.message} ${log.raw} ${log.component || ''} ${log.process || ''}`;
+
         if (!searchableText.toLowerCase().includes(search)) {
           return false;
         }
