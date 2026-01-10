@@ -1,11 +1,12 @@
-import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, Output, EventEmitter, signal, computed, HostListener, inject, ViewChild } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { FhirService } from '../../../core/services/fhir.service';
-import { LoggerService } from '../../../core/services/logger.service';
-import { FHIR_TEMPLATES } from '../../../core/utils/fhir-templates';
-import { MonacoEditorComponent, AutocompleteConfig } from '../monaco-editor/monaco-editor.component';
-import { ReferenceSelectorDialogComponent } from '../reference-selector-dialog/reference-selector-dialog.component';
+import {CommonModule} from '@angular/common';
+import {Component, OnInit, OnDestroy, Output, EventEmitter, signal, computed, HostListener, inject, ViewChild} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {FhirService} from '../../../core/services/fhir.service';
+import {LoggerService} from '../../../core/services/logger.service';
+import {FHIR_TEMPLATES} from '../../../core/utils/fhir-templates';
+import {JsonViewerToolbarComponent} from '../json-viewer-toolbar/json-viewer-toolbar.component'
+import {MonacoEditorComponent, AutocompleteConfig} from '../monaco-editor/monaco-editor.component';
+import {ReferenceSelectorDialogComponent} from '../reference-selector-dialog/reference-selector-dialog.component';
 
 /**
  * Resource Editor Dialog Component
@@ -23,15 +24,20 @@ import { ReferenceSelectorDialogComponent } from '../reference-selector-dialog/r
 @Component({
   selector: 'app-resource-editor-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, ReferenceSelectorDialogComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ReferenceSelectorDialogComponent, JsonViewerToolbarComponent],
   templateUrl: './resource-editor-dialog.component.html',
   styleUrl: './resource-editor-dialog.component.scss'
 })
 export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
+
   @ViewChild(ReferenceSelectorDialogComponent) referenceSelectorDialog!: ReferenceSelectorDialogComponent;
+
+  // ViewChild reference to Monaco Editor (text modus)
+  @ViewChild('component') component?: MonacoEditorComponent;
 
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
+
   private get logger() {
     return this.loggerService.component('ResourceEditorDialog');
   }
@@ -74,8 +80,8 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     const query = this.propertySearchQuery().toLowerCase();
 
     if (!query) {
-return this.requiredProperties();
-}
+      return this.requiredProperties();
+    }
 
     return this.requiredProperties().filter(p =>
       p.name.toLowerCase().includes(query) ||
@@ -87,8 +93,8 @@ return this.requiredProperties();
     const query = this.propertySearchQuery().toLowerCase();
 
     if (!query) {
-return this.optionalProperties();
-}
+      return this.optionalProperties();
+    }
 
     return this.optionalProperties().filter(p =>
       p.name.toLowerCase().includes(query) ||
@@ -119,8 +125,8 @@ return this.optionalProperties();
     const sd = this.structureDefinition();
 
     if (!sd) {
-return '';
-}
+      return '';
+    }
 
     return sd.type || sd.id || '';
   });
@@ -312,7 +318,7 @@ return '';
       const parts = path.split('.');
 
       if (parts.length !== 2) {
-        this.logger.debug('Skipping nested element', { path, parts: parts.length });
+        this.logger.debug('Skipping nested element', {path, parts: parts.length});
 
         return;
       }
@@ -402,13 +408,10 @@ return '';
       return '';
     }
 
-    const referenceTypes = element.type
-      .filter((t: any) => t.code === 'Reference')
-      .flatMap((t: any) => t.targetProfile || [])
-      .map((profileUrl: string) =>
-        // Extract resource type from URL (e.g., "http://hl7.org/fhir/StructureDefinition/Patient" -> "Patient")
-         profileUrl.split('/').pop() || profileUrl
-      );
+    const referenceTypes = element.type.filter((t: any) => t.code === 'Reference').flatMap((t: any) => t.targetProfile || []).map((profileUrl: string) =>
+      // Extract resource type from URL (e.g., "http://hl7.org/fhir/StructureDefinition/Patient" -> "Patient")
+      profileUrl.split('/').pop() || profileUrl
+    );
 
     return referenceTypes.join(', ');
   }
@@ -477,40 +480,40 @@ return '';
 
       // Complex types
       case 'CodeableConcept':
-        return { coding: [{ system: '', code: '', display: '' }] };
+        return {coding: [{system: '', code: '', display: ''}]};
 
       case 'Coding':
-        return { system: '', code: '', display: '' };
+        return {system: '', code: '', display: ''};
 
       case 'Identifier':
-        return { system: '', value: '' };
+        return {system: '', value: ''};
 
       case 'Reference':
-        return { reference: '', display: '' };
+        return {reference: '', display: ''};
 
       case 'Period':
-        return { start: '', end: '' };
+        return {start: '', end: ''};
 
       case 'Quantity':
-        return { value: 0, unit: '', system: 'http://unitsofmeasure.org', code: '' };
+        return {value: 0, unit: '', system: 'http://unitsofmeasure.org', code: ''};
 
       case 'Range':
-        return { low: { value: 0 }, high: { value: 0 } };
+        return {low: {value: 0}, high: {value: 0}};
 
       case 'Ratio':
-        return { numerator: { value: 0 }, denominator: { value: 0 } };
+        return {numerator: {value: 0}, denominator: {value: 0}};
 
       case 'HumanName':
-        return { family: '', given: [''] };
+        return {family: '', given: ['']};
 
       case 'Address':
-        return { line: [''], city: '', postalCode: '', country: '' };
+        return {line: [''], city: '', postalCode: '', country: ''};
 
       case 'ContactPoint':
-        return { system: 'phone', value: '' };
+        return {system: 'phone', value: ''};
 
       case 'Attachment':
-        return { contentType: '', data: '' };
+        return {contentType: '', data: ''};
 
       default:
         // For BackboneElement and unknown types, return empty object
@@ -609,31 +612,6 @@ return '';
   }
 
   /**
-   * Format JSON in editor
-   */
-  formatJson() {
-    try {
-      const resource = JSON.parse(this.editorContent());
-      this.editorContent.set(JSON.stringify(resource, null, 2));
-      this.logger.info('JSON formatted');
-    } catch (err) {
-      this.logger.error('Failed to format JSON:', err);
-    }
-  }
-
-  /**
-   * Copy JSON to clipboard
-   */
-  async copyJson() {
-    try {
-      await navigator.clipboard.writeText(this.editorContent());
-      this.logger.info('JSON copied to clipboard');
-    } catch (err) {
-      this.logger.error('Failed to copy JSON to clipboard', err);
-    }
-  }
-
-  /**
    * Open find dialog in Monaco editor
    */
   findInJson() {
@@ -691,14 +669,14 @@ return '';
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     if (!this.isResizingLeft() && !this.isResizingRight()) {
-return;
-}
+      return;
+    }
 
     const container = document.getElementById('resource-editor-container');
 
     if (!container) {
-return;
-}
+      return;
+    }
 
     const containerRect = container.getBoundingClientRect();
     const deltaX = event.clientX - this.startX;
@@ -740,14 +718,9 @@ return;
    */
   @HostListener('document:keydown', ['$event'])
   onKeyDown(event: KeyboardEvent) {
-    if (!this.show()) {
-return;
-}
 
-    // Ctrl+Alt+L - Format JSON
-    if (event.ctrlKey && event.altKey && event.key === 'l') {
-      event.preventDefault();
-      this.formatJson();
+    if (!this.show()) {
+      return;
     }
 
     // Escape - Close dialog
@@ -859,8 +832,8 @@ return;
     const element = property.element;
 
     if (!element?.binding?.strength) {
-return null;
-}
+      return null;
+    }
 
     return element.binding.strength;
   }
@@ -890,8 +863,8 @@ return null;
     const element = property.element;
 
     if (!element?.binding) {
-return null;
-}
+      return null;
+    }
 
     return element.binding.valueSet || element.binding.valueSetReference?.reference || null;
   }
@@ -933,8 +906,8 @@ return null;
     const result = this.validationResult();
 
     if (!result?.issue) {
-return [];
-}
+      return [];
+    }
 
     return result.issue.filter((issue: any) => issue.severity === severity);
   }

@@ -191,33 +191,14 @@
                   <i class="fas fa-code me-2"></i>JSON Editor
                 </h6>
                 <div class="d-flex gap-2 align-items-center">
-                  <!-- Find/Search button -->
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    (click)="findInJson()"
-                    title="Find (Ctrl+F)">
-                    <i class="fas fa-search"></i>
-                  </button>
-
-                  <!-- Format JSON button -->
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    (click)="formatJson()"
-                    title="Format JSON (Ctrl+Alt+L)">
-                    <i class="fas fa-indent"></i>
-                  </button>
-
-                  <!-- Copy button -->
-                  <button
-                    class="btn btn-sm btn-outline-secondary"
-                    (click)="copyJson()"
-                    title="Copy to Clipboard">
-                    <i class="fas fa-copy"></i>
-                  </button>
+                  <app-json-viewer-toolbar
+                    [editor]="this.component?.editor"
+                    [readOnly]="true">
+                  </app-json-viewer-toolbar>
                 </div>
               </div>
               <div class="panel-body p-0">
-                <app-monaco-editor
+                <app-monaco-editor #component
                   [value]="editorContent()"
                   (valueChange)="editorContent.set($event)"
                   [language]="'json'"
