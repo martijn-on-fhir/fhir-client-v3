@@ -32,41 +32,76 @@ interface LogEntry {
 })
 export class LogsComponent implements OnInit, OnDestroy {
 
+  /**
+   * Logger instance for this component
+   */
   private get logger() {
     return this.loggerService.component('LogsComponent');
   }
 
-  // State signals
+  /**
+   * Array of log entries loaded from the log file
+   */
   logs = signal<LogEntry[]>([]);
+
+  /**
+   * Loading state indicator
+   */
   loading = signal(false);
+
+  /**
+   * Error message if log loading fails
+   */
   error = signal<string | null>(null);
+
+  /**
+   * Whether file watching is active for live updates
+   */
   watching = signal(false);
+
+  /**
+   * Search text filter
+   */
   searchText = signal('');
+
+  /**
+   * Selected log level filter
+   */
   selectedLevel = signal<'all' | 'debug' | 'info' | 'warn' | 'error'>('all');
+
+  /**
+   * Whether to auto-scroll to bottom when new logs are loaded
+   */
   autoScroll = signal(true);
+
+  /**
+   * Paths to the log files (main and renderer)
+   */
   logPaths = signal<{ mainLog: string; rendererLog: string } | null>(null);
+
+  /**
+   * Selected component filter
+   */
   selectedComponent = signal<string>('all');
 
+  /**
+   * Filtered logs based on search text, level, and component filters
+   */
   filteredLogs = computed(() => {
-
     const allLogs = this.logs();
     const search = this.searchText().toLowerCase();
     const level = this.selectedLevel();
     const component = this.selectedComponent();
 
     return allLogs.filter(log => {
-
-      // Level filter
       if (level !== 'all' && log.level !== level) {
         return false;
       }
 
-      // Component filter
       if (component !== 'all' && log.component !== component) {
         return false;
       }
 
-      // Search filter (includes component and process in search)
       if (search) {
         const searchableText = `${log.message} ${log.raw} ${log.component || ''} ${log.process || ''}`;
 
@@ -76,13 +111,13 @@ export class LogsComponent implements OnInit, OnDestroy {
       }
 
       return true;
-
     });
   });
 
-  // Stats
+  /**
+   * Statistics about log entries (total, counts per level, filtered count)
+   */
   stats = computed(() => {
-
     const allLogs = this.logs();
 
     return {
@@ -95,7 +130,9 @@ export class LogsComponent implements OnInit, OnDestroy {
     };
   });
 
-  // Get unique components for filter dropdown
+  /**
+   * Unique component names extracted from all logs for the filter dropdown
+   */
   uniqueComponents = computed(() => {
     const components = new Set<string>();
 
@@ -108,29 +145,38 @@ export class LogsComponent implements OnInit, OnDestroy {
     return Array.from(components).sort();
   });
 
+  /**
+   * Callback to unregister the file watcher listener
+   */
   private unwatchCallback?: () => void;
 
+  /**
+   * Creates an instance of LogsComponent
+   * @param loggerService Service for logging operations
+   */
   constructor(private loggerService: LoggerService) {}
 
+  /**
+   * Component initialization lifecycle hook
+   * Loads the last 500 log entries and sets up file watcher for live updates
+   */
   async ngOnInit() {
-
-    // Load only last 500 lines by default for better performance
     await this.loadLogs(500);
     await this.loadLogPaths();
 
-    // Set up listener for log updates
     if (window.electronAPI?.onLogsUpdated) {
-
       this.unwatchCallback = window.electronAPI.onLogsUpdated(() => {
         this.logger.debug('Logs updated, reloading...');
-        // Reload with same tail limit for performance
         this.loadLogs(500);
       });
     }
   }
 
+  /**
+   * Component cleanup lifecycle hook
+   * Stops file watching and cleans up listeners
+   */
   ngOnDestroy() {
-
     this.stopWatching();
 
     if (this.unwatchCallback) {
@@ -139,7 +185,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load log paths from electron
+   * Loads the file system paths to the log files from Electron
+   * @returns Promise that resolves when paths are loaded
    */
   async loadLogPaths() {
     try {
@@ -154,10 +201,11 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load logs from disk
+   * Loads log entries from disk
+   * @param tail Optional number of lines to load from the end of the file. If not specified, loads all entries.
+   * @returns Promise that resolves when logs are loaded
    */
   async loadLogs(tail?: number) {
-
     this.loading.set(true);
     this.error.set(null);
 
@@ -165,10 +213,8 @@ export class LogsComponent implements OnInit, OnDestroy {
       const result = await window.electronAPI?.logs?.read({ tail });
 
       if (result && 'logs' in result) {
-
         this.logs.set(result.logs);
 
-        // Auto-scroll to bottom if enabled
         if (this.autoScroll()) {
           setTimeout(() => this.scrollToBottom(), 100);
         }
@@ -185,7 +231,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Start watching for log updates
+   * Starts watching the log file for changes to enable live updates
+   * @returns Promise that resolves when watching is started
    */
   async startWatching() {
     try {
@@ -204,7 +251,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Stop watching for log updates
+   * Stops watching the log file for changes
+   * @returns Promise that resolves when watching is stopped
    */
   async stopWatching() {
     try {
@@ -220,7 +268,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Toggle watch mode
+   * Toggles the watch mode on or off
+   * @returns Promise that resolves when watch mode is toggled
    */
   async toggleWatch() {
     if (this.watching()) {
@@ -231,7 +280,8 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Export logs to file
+   * Exports log entries to a user-selected file location
+   * @returns Promise that resolves when export is complete or cancelled
    */
   async exportLogs() {
     try {
@@ -239,7 +289,6 @@ export class LogsComponent implements OnInit, OnDestroy {
 
       if (result && 'success' in result && result.success) {
         this.logger.info('Logs exported successfully to:', result.path);
-
       } else if (result && 'error' in result) {
         if (!result.canceled) {
           this.error.set(result.error);
@@ -253,15 +302,15 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Refresh logs
+   * Refreshes the log display by reloading the last 500 entries
+   * @returns Promise that resolves when logs are refreshed
    */
   async refresh() {
-    // Refresh with last 500 lines for performance
     await this.loadLogs(500);
   }
 
   /**
-   * Clear displayed logs (doesn't delete files)
+   * Clears the displayed log entries without deleting the log files
    */
   clear() {
     this.logs.set([]);
@@ -269,14 +318,16 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Load last N lines
+   * Loads a specific number of log lines from the end of the file
+   * @param lines Number of lines to load from the end
+   * @returns Promise that resolves when logs are loaded
    */
   async loadTail(lines: number) {
     await this.loadLogs(lines);
   }
 
   /**
-   * Scroll to bottom of log container
+   * Scrolls the log container to the bottom to show the most recent entries
    */
   private scrollToBottom() {
     const container = document.querySelector('.log-container');
@@ -287,7 +338,9 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get CSS class for log level
+   * Returns the Bootstrap CSS class for styling based on log level
+   * @param level The log level (error, warn, info, debug, or null)
+   * @returns Bootstrap text color class
    */
   getLevelClass(level: string | null): string {
     switch (level) {
@@ -305,7 +358,9 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Get icon for log level
+   * Returns the Font Awesome icon class based on log level
+   * @param level The log level (error, warn, info, debug, or null)
+   * @returns Font Awesome icon class name
    */
   getLevelIcon(level: string | null): string {
     switch (level) {
