@@ -29,61 +29,173 @@ import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monac
   styleUrl: './query.component.scss',
 })
 export class QueryComponent implements OnInit {
+  /**
+   * Injected FHIR service for executing queries
+   */
   private fhirService = inject(FhirService);
+
+  /**
+   * Injected logger service for logging
+   */
   private loggerService = inject(LoggerService);
+
+  /**
+   * Injected navigation service for handling navigation events
+   */
   private navigationService = inject(NavigationService);
+
+  /**
+   * Injected query history service for managing query history
+   */
   private queryHistoryService = inject(QueryHistoryService);
 
+  /**
+   * Logger instance for this component
+   */
   private get logger() {
     return this.loggerService.component('QueryComponent');
   }
 
-  // ViewChild reference to Monaco Editor (text modus)
+  /**
+   * Reference to Monaco Editor component in text mode
+   */
   @ViewChild('component') component?: MonacoEditorComponent;
 
-  // ViewChild reference to Monaco Editor (visual builder modus )
+  /**
+   * Reference to Monaco Editor component in visual builder mode
+   */
   @ViewChild('componentVisual') componentVisual?: MonacoEditorComponent;
 
-  // Query history navigation
+  /**
+   * Indicates whether navigation back in query history is possible
+   */
   canGoBack = computed(() => this.queryHistoryService.canNavigateBack());
+
+  /**
+   * Indicates whether navigation forward in query history is possible
+   */
   canGoForward = computed(() => this.queryHistoryService.canNavigateForward());
 
-  // Metadata state
+  /**
+   * FHIR server capability statement metadata
+   */
   metadata = signal<any>(null);
+
+  /**
+   * Indicates whether metadata is being loaded
+   */
   metadataLoading = signal(true);
+
+  /**
+   * Error message from metadata loading, if any
+   */
   metadataError = signal<string | null>(null);
 
-  // Builder state
+  /**
+   * Currently selected FHIR resource type in visual builder
+   */
   selectedResource = signal<string | null>(this.loadFromStorage('visual-builder-resource'));
+
+  /**
+   * Array of query parameters configured in visual builder
+   */
   parameters = signal<QueryParameter[]>(this.loadParametersFromStorage());
+
+  /**
+   * Array of selected _include parameters
+   */
   selectedIncludes = signal<string[]>(this.loadArrayFromStorage('visual-builder-includes'));
+
+  /**
+   * Array of selected _revinclude parameters
+   */
   selectedRevIncludes = signal<string[]>(this.loadArrayFromStorage('visual-builder-revincludes'));
+
+  /**
+   * _count parameter value
+   */
   count = signal<string>(this.loadFromStorage('visual-builder-count') || '');
+
+  /**
+   * _sort parameter value
+   */
   sort = signal<string>(this.loadFromStorage('visual-builder-sort') || '');
+
+  /**
+   * _summary parameter value
+   */
   summary = signal<string>(this.loadFromStorage('visual-builder-summary') || '');
 
-  // Mode state
+  /**
+   * Current query mode (text or visual builder)
+   */
   queryMode = signal<'text' | 'visual'>(
     (localStorage.getItem('fhir-query-mode') as 'text' | 'visual') || 'text'
   );
+
+  /**
+   * Query string in text mode
+   */
   textQuery = signal(localStorage.getItem('fhir-text-query') || '/Patient');
 
-  // UI state
+  /**
+   * Whether the search box is shown in results
+   */
   showSearch = signal(localStorage.getItem('visual-builder-show-search') === 'true');
+
+  /**
+   * Search term for filtering results
+   */
   searchTerm = signal(localStorage.getItem('visual-builder-search-term') || '');
+
+  /**
+   * Collapsed level for JSON viewer (false means fully expanded)
+   */
   collapsedLevel = signal<number | false>(this.loadCollapsedLevel());
+
+  /**
+   * Current page number for pagination
+   */
   currentPage = signal(1);
+
+  /**
+   * Number of items to display per page
+   */
   itemsPerPage = 10;
+
+  /**
+   * Whether the includes section is expanded
+   */
   includesExpanded = signal(localStorage.getItem('visual-builder-includes-expanded') !== 'false');
+
+  /**
+   * Whether the reverse includes section is expanded
+   */
   revIncludesExpanded = signal(localStorage.getItem('visual-builder-revincludes-expanded') === 'true');
 
-  // Query state
+  /**
+   * Generated query string from visual builder
+   */
   generatedQuery = signal('');
+
+  /**
+   * Indicates whether a query is being executed
+   */
   loading = signal(false);
+
+  /**
+   * Error message from query execution, if any
+   */
   error = signal<string | null>(null);
+
+  /**
+   * Query execution result
+   */
   result = signal<any>(null);
 
-  // Computed properties
+  /**
+   * Metadata for the currently selected resource type
+   */
   resourceMetadata = computed(() => {
     const meta = this.metadata();
     const resource = this.selectedResource();
@@ -97,6 +209,9 @@ export class QueryComponent implements OnInit {
     );
   });
 
+  /**
+   * Array of all available FHIR resource types from server metadata
+   */
   resourceTypes = computed(() => {
     const meta = this.metadata();
 
@@ -109,8 +224,14 @@ export class QueryComponent implements OnInit {
     return types.sort();
   });
 
+  /**
+   * Array of available search parameters for the selected resource
+   */
   availableSearchParams = computed(() => this.resourceMetadata()?.searchParam || []);
 
+  /**
+   * Array of search parameters not yet added to the query
+   */
   unusedParams = computed(() => {
     const available = this.availableSearchParams();
     const used = this.parameters();
@@ -120,7 +241,9 @@ export class QueryComponent implements OnInit {
     );
   });
 
-  // Filtered and paginated results
+  /**
+   * Query result filtered by search term
+   */
   filteredResult = computed(() => {
     const res = this.result();
     const search = this.searchTerm();
@@ -132,16 +255,28 @@ export class QueryComponent implements OnInit {
     return this.filterJSON(res, search);
   });
 
+  /**
+   * Array of entries from the filtered result
+   */
   entries = computed(() => this.filteredResult()?.entry || []);
 
+  /**
+   * Total number of pages based on filtered entries
+   */
   totalPages = computed(() => Math.ceil(this.entries().length / this.itemsPerPage));
 
+  /**
+   * Array of page numbers for pagination
+   */
   pageNumbers = computed(() => {
     const total = this.totalPages();
 
     return Array.from({length: total}, (_, i) => i + 1);
   });
 
+  /**
+   * Entries for the current page
+   */
   paginatedEntries = computed(() => {
     const entries = this.entries();
     const page = this.currentPage();
@@ -151,6 +286,9 @@ export class QueryComponent implements OnInit {
     return entries.slice(start, end);
   });
 
+  /**
+   * Query result with entries limited to current page
+   */
   paginatedResult = computed(() => {
     const filtered = this.filteredResult();
 
@@ -164,25 +302,28 @@ export class QueryComponent implements OnInit {
     };
   });
 
-  // JSON string for Monaco Editor
+  /**
+   * JSON string representation of paginated result for Monaco Editor
+   */
   resultJson = computed(() => {
     const result = this.paginatedResult();
 
     return result ? JSON.stringify(result, null, 2) : '';
   });
 
+  /**
+   * Constructor initializes Angular effects for auto-saving state to localStorage
+   * and handling various component behaviors
+   */
   constructor() {
-    // Auto-save query mode
     effect(() => {
       localStorage.setItem('fhir-query-mode', this.queryMode());
     });
 
-    // Auto-save text query
     effect(() => {
       localStorage.setItem('fhir-text-query', this.textQuery());
     });
 
-    // Auto-save builder state to localStorage
     effect(() => {
       const resource = this.selectedResource();
 
@@ -237,70 +378,64 @@ export class QueryComponent implements OnInit {
       localStorage.setItem('visual-builder-revincludes-expanded', String(this.revIncludesExpanded()));
     });
 
-    // Generate query whenever builder state changes
     effect(() => {
-
       this.generatedQuery.set(this.generateQueryString());
     }, {allowSignalWrites: true});
 
-    // Reset page when results change
     effect(() => {
       this.result();
       this.currentPage.set(1);
     }, {allowSignalWrites: true});
 
-    // Handle navigation events from sidebar
     effect(() => {
       const navEvent = this.navigationService.queryNavigationEvent();
 
       if (navEvent) {
-        // Switch to specified mode
         this.queryMode.set(navEvent.mode);
 
-        // Set the query based on mode
         if (navEvent.mode === 'text') {
           this.textQuery.set(`/${navEvent.resource}`);
-          // Execute the query immediately
           this.executeTextQuery();
         } else {
           this.selectedResource.set(navEvent.resource);
-          // Execute the query immediately
           this.executeQuery();
         }
 
-        // Clear the event
         this.navigationService.clearQueryNavigationEvent();
       }
     }, {allowSignalWrites: true});
   }
 
+  /**
+   * Component initialization lifecycle hook
+   * Loads FHIR server metadata on component initialization
+   */
   async ngOnInit() {
     await this.loadMetadata();
   }
 
   /**
-   * Load metadata from cache or server
+   * Loads FHIR server capability statement metadata
+   * First attempts to load from local cache (electron-store), then fetches from server if not available
+   * Handles Observable unwrapping if needed
+   * @returns Promise that resolves when metadata is loaded
    */
   async loadMetadata() {
     this.metadataLoading.set(true);
     this.metadataError.set(null);
 
     try {
-      // Try to load from electron-store first
       let storedMetadata = await window.electronAPI?.metadata?.get();
 
-      // Check if it's an Observable and unwrap it
       if (storedMetadata && typeof storedMetadata === 'object' && 'subscribe' in storedMetadata) {
         this.logger.info('Unwrapping Observable from electron store');
         storedMetadata = await firstValueFrom(storedMetadata as any);
       }
 
-      // If not in storage, fetch from server
       if (!storedMetadata) {
         this.logger.info('Fetching metadata from FHIR server...');
         const result = await this.fhirService.getMetadata();
 
-        // Check if result is Observable
         if (result && typeof result === 'object' && 'subscribe' in result) {
           this.logger.info('Unwrapping Observable from FHIR service');
           storedMetadata = await firstValueFrom(result as any);
@@ -325,7 +460,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Generate FHIR query string from current state
+   * Generates a FHIR query string from the current visual builder state
+   * Combines resource type, search parameters, includes, and modifiers into a complete query URL
+   * @returns Complete FHIR query string (e.g., "/Patient?name=John&_count=10")
    */
   generateQueryString(): string {
     const resource = this.selectedResource();
@@ -337,7 +474,6 @@ export class QueryComponent implements OnInit {
     let query = `/${resource}`;
     const parts: string[] = [];
 
-    // Add search parameters
     this.parameters().forEach((param) => {
       const validValues = param.values.filter((v) => v && String(v).trim() !== '');
 
@@ -345,7 +481,6 @@ export class QueryComponent implements OnInit {
         return;
       }
 
-      // Build parameter name with chain and/or modifier
       let paramName = param.name;
 
       if (param.chain) {
@@ -356,23 +491,19 @@ export class QueryComponent implements OnInit {
         paramName = `${paramName}:${param.modifier}`;
       }
 
-      // Apply prefix operator if present
       const operator = param.operator || '';
       const encodedValues = validValues.map((v) => encodeURIComponent(operator + v)).join(',');
       parts.push(`${paramName}=${encodedValues}`);
     });
 
-    // Add includes
     this.selectedIncludes().forEach((inc) => {
       parts.push(`_include=${inc}`);
     });
 
-    // Add reverse includes
     this.selectedRevIncludes().forEach((rev) => {
       parts.push(`_revinclude=${rev}`);
     });
 
-    // Add modifiers
     const cnt = this.count();
     const srt = this.sort();
     const sum = this.summary();
@@ -397,7 +528,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Execute the generated query (visual mode)
+   * Executes the generated query from visual builder mode
+   * @returns Promise that resolves when query execution completes
    */
   async executeQuery() {
     const query = this.generatedQuery();
@@ -409,7 +541,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Execute text query (text mode)
+   * Executes the query from text mode
+   * @returns Promise that resolves when query execution completes
    */
   async executeTextQuery() {
     const query = this.textQuery();
@@ -421,7 +554,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Navigate to previous query in history
+   * Navigates to the previous query in history
+   * Updates the text query with the previous query from history
    */
   navigateBack() {
     const previousQuery = this.queryHistoryService.navigateBack();
@@ -433,7 +567,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Navigate to next query in history
+   * Navigates to the next query in history
+   * Updates the text query with the next query from history
    */
   navigateForward() {
     const nextQuery = this.queryHistoryService.navigateForward();
@@ -445,7 +580,10 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Execute a query string
+   * Executes a FHIR query string
+   * Handles Observable unwrapping and adds successful queries to history
+   * @param query FHIR query string to execute
+   * @returns Promise that resolves when query execution completes
    */
   private async executeQueryString(query: string) {
     this.loading.set(true);
@@ -455,16 +593,13 @@ export class QueryComponent implements OnInit {
       this.logger.info('Executing query:', query);
       let result = await this.fhirService.executeQuery(query);
 
-      // Check if result is Observable and unwrap it
       if (result && typeof result === 'object' && 'subscribe' in result) {
         this.logger.info('Unwrapping Observable from FHIR service');
         result = await firstValueFrom(result as any);
       }
 
       this.result.set(result);
-      this.logger.info('Query executed successfully');
 
-      // Add to history after successful execution
       this.queryHistoryService.addQuery(query, this.queryMode());
     } catch (err: any) {
       this.logger.error('Query execution failed:', err);
@@ -475,14 +610,16 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Switch query mode
+   * Switches between text and visual query modes
+   * @param mode The mode to switch to ('text' or 'visual')
    */
   setQueryMode(mode: 'text' | 'visual') {
     this.queryMode.set(mode);
   }
 
   /**
-   * Copy query to clipboard
+   * Copies the generated query to clipboard
+   * @returns Promise that resolves when copy operation completes
    */
   async copyQuery() {
     const query = this.generatedQuery();
@@ -500,7 +637,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Clear all builder state
+   * Clears all visual builder state including parameters, includes, and modifiers
+   * Also removes corresponding localStorage entries
    */
   clearAll() {
     this.parameters.set([]);
@@ -519,25 +657,29 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Handle resource selection change
+   * Handles resource selection change in visual builder
+   * Clears all parameters when resource type changes
+   * @param resource The selected resource type
    */
   onResourceChange(resource: string) {
     this.selectedResource.set(resource || null);
-    // Clear all parameters when resource changes
     this.parameters.set([]);
     this.selectedIncludes.set([]);
     this.selectedRevIncludes.set([]);
   }
 
   /**
-   * Remove parameter at index
+   * Removes a query parameter at the specified index
+   * @param index Index of the parameter to remove
    */
   removeParameter(index: number) {
     this.parameters.set(this.parameters().filter((_, i) => i !== index));
   }
 
   /**
-   * Update parameter operator
+   * Updates the operator for a query parameter (e.g., 'eq', 'gt', 'lt')
+   * @param param The parameter to update
+   * @param operator The new operator value
    */
   updateParameterOperator(param: QueryParameter, operator: string) {
     param.operator = operator;
@@ -545,7 +687,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Update parameter modifier
+   * Updates the modifier for a query parameter (e.g., 'exact', 'contains')
+   * @param param The parameter to update
+   * @param modifier The new modifier value
    */
   updateParameterModifier(param: QueryParameter, modifier: string) {
     param.modifier = modifier;
@@ -553,7 +697,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Update parameter chain
+   * Updates the chain for a query parameter (for chained searches)
+   * @param param The parameter to update
+   * @param chain The new chain value
    */
   updateParameterChain(param: QueryParameter, chain: string) {
     param.chain = chain;
@@ -561,7 +707,10 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Update parameter value
+   * Updates a specific value in a parameter's values array
+   * @param param The parameter to update
+   * @param valueIndex Index of the value to update
+   * @param value The new value
    */
   updateParameterValue(param: QueryParameter, valueIndex: number, value: string) {
     param.values[valueIndex] = value;
@@ -569,12 +718,14 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Remove value from parameter
+   * Removes a value from a parameter's values array
+   * Ensures at least one value remains
+   * @param param The parameter to update
+   * @param valueIndex Index of the value to remove
    */
   removeParameterValue(param: QueryParameter, valueIndex: number) {
     param.values = param.values.filter((_, i) => i !== valueIndex);
 
-    // Keep at least one value
     if (param.values.length === 0) {
       param.values = [''];
     }
@@ -582,7 +733,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Add value to parameter
+   * Adds an empty value to a parameter's values array
+   * @param param The parameter to add a value to
    */
   addParameterValue(param: QueryParameter) {
     param.values = [...param.values, ''];
@@ -590,7 +742,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Add parameter by name
+   * Adds a new query parameter by name
+   * Initializes the parameter with default values
+   * @param paramName Name of the parameter to add
    */
   addParameter(paramName: string) {
     if (!paramName) {
@@ -617,7 +771,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Toggle include
+   * Toggles an _include parameter
+   * @param include The include parameter value
+   * @param checked Whether to add or remove the include
    */
   toggleInclude(include: string, checked: boolean) {
     if (checked) {
@@ -628,7 +784,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Toggle reverse include
+   * Toggles a _revinclude parameter
+   * @param revInclude The revinclude parameter value
+   * @param checked Whether to add or remove the revinclude
    */
   toggleRevInclude(revInclude: string, checked: boolean) {
     if (checked) {
@@ -639,7 +797,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Handle checkbox change event
+   * Handles checkbox change event for _include parameters
+   * @param include The include parameter value
+   * @param event The checkbox change event
    */
   onIncludeCheckChange(include: string, event: Event) {
     const checked = (event.target as HTMLInputElement).checked;
@@ -647,7 +807,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Handle reverse include checkbox change event
+   * Handles checkbox change event for _revinclude parameters
+   * @param revInclude The revinclude parameter value
+   * @param event The checkbox change event
    */
   onRevIncludeCheckChange(revInclude: string, event: Event) {
     const checked = (event.target as HTMLInputElement).checked;
@@ -655,7 +817,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Expand one collapsed level
+   * Expands the JSON viewer by one level
+   * If fully collapsed (level 1), fully expands the viewer
    */
   expandOneLevel() {
     const level = this.collapsedLevel();
@@ -672,7 +835,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Collapse one level
+   * Collapses the JSON viewer by one level
+   * If fully expanded, collapses to level 1
    */
   collapseOneLevel() {
     const level = this.collapsedLevel();
@@ -685,7 +849,11 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Filter JSON recursively based on search term
+   * Recursively filters JSON object based on search term
+   * Matches keys and values against the search term
+   * @param obj The JSON object to filter
+   * @param term The search term to filter by
+   * @returns Filtered JSON object containing only matching keys/values
    */
   private filterJSON(obj: any, term: string): any {
     if (!term) {
@@ -727,14 +895,19 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Load value from localStorage
+   * Loads a string value from localStorage
+   * @param key The localStorage key
+   * @returns The stored value or null if not found
    */
   private loadFromStorage(key: string): string | null {
     return localStorage.getItem(key);
   }
 
   /**
-   * Load array from localStorage
+   * Loads an array from localStorage
+   * Safely parses JSON, returning empty array on error
+   * @param key The localStorage key
+   * @returns The parsed array or empty array if not found/invalid
    */
   private loadArrayFromStorage(key: string): string[] {
     const stored = localStorage.getItem(key);
@@ -751,7 +924,9 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Load parameters from localStorage with migration
+   * Loads query parameters from localStorage with migration support
+   * Migrates old format (single value) to new format (array of values)
+   * @returns Array of query parameters
    */
   private loadParametersFromStorage(): QueryParameter[] {
     const stored = localStorage.getItem('visual-builder-parameters');
@@ -763,7 +938,6 @@ export class QueryComponent implements OnInit {
     try {
       const parsed = JSON.parse(stored);
 
-      // Migrate old format (value: string) to new format (values: string[])
       return parsed.map((param: any) => ({
         name: param.name,
         type: param.type,
@@ -778,7 +952,8 @@ export class QueryComponent implements OnInit {
   }
 
   /**
-   * Load collapsed level from localStorage
+   * Loads the collapsed level setting from localStorage
+   * @returns Collapsed level number or false for fully expanded
    */
   private loadCollapsedLevel(): number | false {
     const stored = localStorage.getItem('visual-builder-collapsed-level');
