@@ -58,16 +58,13 @@
   }
 
   .btn-close {
-    background: none;
     border: none;
-    font-size: 1.5rem;
-    color: var(--bs-secondary-color);
     cursor: pointer;
     padding: 0.5rem;
-    transition: color 0.2s;
+    transition: opacity 0.2s;
 
     &:hover {
-      color: var(--bs-body-color);
+      opacity: 0.7;
     }
   }
 }
