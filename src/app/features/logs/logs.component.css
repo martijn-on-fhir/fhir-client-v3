@@ -15,6 +15,17 @@
   font-size: 0.9em;
   transition: background-color 0.15s ease;
 }
+.log-container .log-entry .log-message {
+  white-space: pre-wrap;
+  word-break: break-word;
+  line-height: 1.4;
+}
+.log-container .log-entry .log-timestamp,
+.log-container .log-entry .log-level,
+.log-container .log-entry .log-process,
+.log-container .log-entry .log-component {
+  flex-shrink: 0;
+}
 .log-container .log-entry:hover {
   background-color: rgba(0, 0, 0, 0.02);
 }

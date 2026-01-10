@@ -26,6 +26,19 @@
           <option value="error">Error</option>
         </select>
 
+        <!-- Component Filter -->
+        <select
+          class="form-select"
+          style="width: auto; max-width: 200px"
+          [(ngModel)]="selectedComponent"
+          (ngModelChange)="selectedComponent.set($event)"
+          title="Filter by component">
+          <option value="all">All Components</option>
+          @for (comp of uniqueComponents(); track comp) {
+            <option [value]="comp">{{ comp }}</option>
+          }
+        </select>
+
         <!-- Quick Load Buttons -->
         <div class="btn-group">
           <button class="btn btn-sm btn-outline-secondary" (click)="loadTail(100)" title="Load last 100 lines">
@@ -85,7 +98,7 @@
           <i class="fas fa-bug me-1"></i>
           Debug: <strong>{{ stats().debug }}</strong>
         </span>
-        <span class="text-info">
+        <span class="text-primary">
           <i class="fas fa-info-circle me-1"></i>
           Info: <strong>{{ stats().info }}</strong>
         </span>
@@ -129,7 +142,7 @@
       </span>
     </div>
 
-    <div class="card-body p-0 log-container" style="overflow-y: auto; flex: 1; font-family: 'Courier New', monospace;">
+    <div class="card-body p-0 log-container" style="overflow-y: auto; flex: 1;">
       <!-- Loading State -->
       @if (loading()) {
         <div class="text-center p-4">
@@ -155,28 +168,41 @@
 
       <!-- Log Entries -->
       @if (!loading() && filteredLogs().length > 0) {
-        <div class="p-2">
-          @for (log of filteredLogs(); track $index) {
-            <div class="log-entry py-1 border-bottom" [class]="getLevelClass(log.level)">
-              <!-- Timestamp and Level -->
-              <div class="d-flex align-items-start">
-                <span class="text-muted me-2" style="min-width: 200px; font-size: 0.85em;">
+        <table class="table table-sm table-hover mb-0" style="font-size: 0.85em;">
+          <tbody>
+            @for (log of filteredLogs(); track $index) {
+              <tr>
+                <!-- Level Icon -->
+                <td style="width: 40px; text-align: center; font-size: 1.2em;">
+                  <i class="fas {{ getLevelIcon(log.level) }}"
+                     [ngClass]="getLevelClass(log.level)"
+                     [title]="log.level || 'unknown'"
+                     style="opacity: 1 !important;"></i>
+                </td>
+
+                <!-- Timestamp -->
+                <td class="text-muted" style="width: 170px;">
                   {{ log.timestamp || 'N/A' }}
-                </span>
-                <span class="me-2" style="min-width: 80px;">
-                  <i class="fas {{ getLevelIcon(log.level) }} me-1"></i>
-                  <strong>{{ log.level?.toUpperCase() || 'LOG' }}</strong>
-                </span>
-                <span class="me-2" style="min-width: 80px;">
-                  {{ log.source }}
-                </span>
-                <span class="flex-grow-1" style="font-size: 0.9em; word-break: break-all;">
+                </td>
+
+                <!-- Process -->
+                <td style="width: 90px;">
+                  {{ log.process || 'N/A' }}
+                </td>
+
+                <!-- Component -->
+                <td class="text-muted text-truncate" style="width: 150px;" [title]="log.component || '-'">
+                  {{ log.component || '-' }}
+                </td>
+
+                <!-- Message (multi-line support) -->
+                <td style="white-space: pre-wrap; word-break: break-word;">
                   {{ log.message }}
-                </span>
-              </div>
-            </div>
-          }
-        </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
       }
     </div>
   </div>

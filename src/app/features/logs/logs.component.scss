@@ -15,6 +15,21 @@
     font-size: 0.9em;
     transition: background-color 0.15s ease;
 
+    // Multi-line message support
+    .log-message {
+      white-space: pre-wrap;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    // Compact metadata styling
+    .log-timestamp,
+    .log-level,
+    .log-process,
+    .log-component {
+      flex-shrink: 0; // Prevent shrinking
+    }
+
     &:hover {
       background-color: rgba(0, 0, 0, 0.02);
     }
@@ -24,6 +39,9 @@
     }
   }
 }
+
+// Responsive breakpoints - removed problematic mobile stacking behavior
+// that was causing log entries to display vertically even on desktop screens
 
 // Dark theme support (if needed)
 @media (prefers-color-scheme: dark) {

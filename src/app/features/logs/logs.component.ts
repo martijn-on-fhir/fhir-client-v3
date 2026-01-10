@@ -8,6 +8,8 @@ interface LogEntry {
   raw: string;
   timestamp: string | null;
   level: 'debug' | 'info' | 'warn' | 'error' | null;
+  process: string | null;
+  component: string | null;
   message: string;
 }
 
@@ -43,21 +45,36 @@ export class LogsComponent implements OnInit, OnDestroy {
   selectedLevel = signal<'all' | 'debug' | 'info' | 'warn' | 'error'>('all');
   autoScroll = signal(true);
   logPaths = signal<{ mainLog: string; rendererLog: string } | null>(null);
+  selectedComponent = signal<string>('all');
 
   filteredLogs = computed(() => {
 
     const allLogs = this.logs();
     const search = this.searchText().toLowerCase();
     const level = this.selectedLevel();
+    const component = this.selectedComponent();
 
     return allLogs.filter(log => {
 
+      // Level filter
       if (level !== 'all' && log.level !== level) {
         return false;
       }
 
-      return !(search && !log.message.toLowerCase().includes(search) &&
-        !log.raw.toLowerCase().includes(search));
+      // Component filter
+      if (component !== 'all' && log.component !== component) {
+        return false;
+      }
+
+      // Search filter (includes component and process in search)
+      if (search) {
+        const searchableText = `${log.message} ${log.raw} ${log.component || ''} ${log.process || ''}`;
+        if (!searchableText.toLowerCase().includes(search)) {
+          return false;
+        }
+      }
+
+      return true;
 
     });
   });
@@ -77,13 +94,27 @@ export class LogsComponent implements OnInit, OnDestroy {
     };
   });
 
+  // Get unique components for filter dropdown
+  uniqueComponents = computed(() => {
+    const components = new Set<string>();
+
+    this.logs().forEach(log => {
+      if (log.component) {
+        components.add(log.component);
+      }
+    });
+
+    return Array.from(components).sort();
+  });
+
   private unwatchCallback?: () => void;
 
   constructor(private loggerService: LoggerService) {}
 
   async ngOnInit() {
 
-    await this.loadLogs();
+    // Load only last 500 lines by default for better performance
+    await this.loadLogs(500);
     await this.loadLogPaths();
 
     // Set up listener for log updates
@@ -91,7 +122,8 @@ export class LogsComponent implements OnInit, OnDestroy {
 
       this.unwatchCallback = window.electronAPI.onLogsUpdated(() => {
         this.logger.debug('Logs updated, reloading...');
-        this.loadLogs();
+        // Reload with same tail limit for performance
+        this.loadLogs(500);
       });
     }
   }
@@ -223,7 +255,8 @@ export class LogsComponent implements OnInit, OnDestroy {
    * Refresh logs
    */
   async refresh() {
-    await this.loadLogs();
+    // Refresh with last 500 lines for performance
+    await this.loadLogs(500);
   }
 
   /**
@@ -262,7 +295,7 @@ export class LogsComponent implements OnInit, OnDestroy {
       case 'warn':
         return 'text-warning';
       case 'info':
-        return 'text-info';
+        return 'text-primary';
       case 'debug':
         return 'text-secondary';
       default:

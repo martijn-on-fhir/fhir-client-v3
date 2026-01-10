@@ -14,7 +14,8 @@ log.initialize();
 // Configure electron-log
 log.transports.file.level = 'info';
 log.transports.console.level = 'debug';
-log.transports.file.maxSize = 5 * 1024 * 1024; // 5MB
+log.transports.file.maxSize = 1 * 1024 * 1024; // 1MB (smaller for better performance)
+log.transports.file.maxFiles = 5; // Keep last 5 log files
 
 // Register logging IPC handlers
 ipcMain.handle('log:error', (event, ...args) => {
