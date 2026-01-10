@@ -1,3 +1,10 @@
+## [1.3.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.3.0...v1.3.1) (2026-01-10)
+
+
+### Bug Fixes
+
+* restore close button visibility in resource editor dialog ([1373fa3](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1373fa304af4f85e45c1089a4cc703eaaa8e7d45))
+
 # [1.3.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.2.1...v1.3.0) (2026-01-10)
 
 
