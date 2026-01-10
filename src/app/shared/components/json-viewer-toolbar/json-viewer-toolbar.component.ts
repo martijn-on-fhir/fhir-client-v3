@@ -126,9 +126,9 @@ export class JsonViewerToolbarComponent {
    * Uses Monaco's fold actions to collapse nested structures.
    *
    * @param level - Target fold level (2-7)
-   *   - Level 2: Maximally collapsed (only top-level visible)
-   *   - Level 7: Fully expanded (all content visible)
-   *   - Intermediate levels: Progressive detail visibility
+   * Level 2: Maximally collapsed (only top-level visible)
+   * Level 7: Fully expanded (all content visible)
+   * Intermediate levels: Progressive detail visibility
    *
    * Implementation note: Uses setTimeout to ensure proper fold sequence
    * when transitioning between levels. First unfolds all, then folds to target level.

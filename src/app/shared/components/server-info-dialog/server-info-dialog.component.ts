@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, inject, HostListener } from '@angular/core';
 import { FhirService } from '../../../core/services/fhir.service';
 import { LoggerService } from '../../../core/services/logger.service';
 
@@ -43,6 +43,22 @@ export class ServerInfoDialogComponent {
   }
 
   /**
+   * Handle keyboard events
+   */
+  @HostListener('document:keydown', ['$event'])
+  onKeyDown(event: KeyboardEvent) {
+    if (!this.isOpen()) {
+      return;
+    }
+
+    // Escape - Close dialog
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.close();
+    }
+  }
+
+  /**
    * Load server metadata (CapabilityStatement)
    */
   private async loadServerInfo() {
@@ -67,6 +83,7 @@ export class ServerInfoDialogComponent {
    */
   getServerName(): string {
     const meta = this.metadata();
+
     return meta?.software?.name || meta?.name || 'Unknown';
   }
 
@@ -86,6 +103,7 @@ export class ServerInfoDialogComponent {
    */
   getFhirVersion(): string {
     const meta = this.metadata();
+
     return meta?.fhirVersion || 'Unknown';
   }
 
@@ -94,6 +112,7 @@ export class ServerInfoDialogComponent {
    */
   getServerDescription(): string {
     const meta = this.metadata();
+
     return meta?.implementation?.description || meta?.description || 'No description available';
   }
 
@@ -109,6 +128,7 @@ export class ServerInfoDialogComponent {
    */
   getPublisher(): string {
     const meta = this.metadata();
+
     return meta?.publisher || 'Unknown';
   }
 
@@ -117,6 +137,7 @@ export class ServerInfoDialogComponent {
    */
   getStatus(): string {
     const meta = this.metadata();
+
     return meta?.status || 'Unknown';
   }
 
@@ -133,6 +154,7 @@ export class ServerInfoDialogComponent {
 
     try {
       const date = new Date(dateStr);
+
       if (isNaN(date.getTime())) {
         return dateStr; // Return original if invalid
       }
@@ -152,6 +174,7 @@ export class ServerInfoDialogComponent {
    */
   getCopyright(): string | null {
     const meta = this.metadata();
+
     return meta?.copyright || null;
   }
 
