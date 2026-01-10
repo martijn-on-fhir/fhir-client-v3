@@ -1,3 +1,11 @@
+# [1.3.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.2.1...v1.3.0) (2026-01-10)
+
+
+### Features
+
+* add Escape key support to server info dialog ([49a566e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/49a566e64019db92c2bffc9cca3d8fe4baeb4c0b))
+* add server info dialog and improve UI components ([60ed8e7](https://github.com/martijn-on-fhir/fhir-client-v3/commit/60ed8e76412e8e79cbcd50acb50ab881737683bd))
+
 ## [1.2.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.2.0...v1.2.1) (2026-01-10)
 
 # [1.2.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.1.0...v1.2.0) (2026-01-09)
