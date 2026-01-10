@@ -74,6 +74,16 @@ select,
   font-size: 0.875rem !important;
 }
 
+/* Global kbd styling */
+kbd {
+  background-color: var(--bs-primary);
+  color: #fff;
+  padding: 0.2rem 0.4rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+  font-weight: 600;
+}
+
 /* Remove glow/focus effects from all inputs and buttons */
 input:focus,
 input:focus-visible,

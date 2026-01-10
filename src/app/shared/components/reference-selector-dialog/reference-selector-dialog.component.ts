@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, signal, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, signal, inject, ViewChild, ElementRef } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FhirService } from '../../../core/services/fhir.service';
 
@@ -18,6 +18,8 @@ import { FhirService } from '../../../core/services/fhir.service';
 })
 export class ReferenceSelectorDialogComponent {
   private fhirService = inject(FhirService);
+
+  @ViewChild('queryInput') queryInput?: ElementRef<HTMLInputElement>;
 
   @Input() propertyName = '';
   @Output() close = new EventEmitter<void>();
@@ -39,6 +41,11 @@ export class ReferenceSelectorDialogComponent {
     this.query.set('');
     this.results.set([]);
     this.error.set(null);
+
+    // Focus input field after view is rendered
+    setTimeout(() => {
+      this.queryInput?.nativeElement.focus();
+    }, 0);
   }
 
   /**

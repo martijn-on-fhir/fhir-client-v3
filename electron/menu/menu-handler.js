@@ -127,6 +127,15 @@ function createApplicationMenu() {
       },
       { type: 'separator' },
       {
+        label: 'Server Info',
+        click: () => {
+          const focusedWindow = BrowserWindow.getFocusedWindow();
+          if (focusedWindow) {
+            focusedWindow.webContents.send('show-server-info');
+          }
+        }
+      },
+      {
         label: 'About',
         click: () => {
           const focusedWindow = BrowserWindow.getFocusedWindow();

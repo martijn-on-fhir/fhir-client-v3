@@ -264,7 +264,14 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
       resourceType,
       meta: {
         profile: [profileUrl]
-      }
+      },
+      security: [
+        {
+          system: "http://hl7.org/fhir/v3/Confidentiality",
+          code: "N",
+          display: "normal"
+        }
+      ]
     };
   }
 

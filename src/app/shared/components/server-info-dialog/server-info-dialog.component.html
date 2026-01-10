@@ -1,0 +1,126 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fas fa-server me-2"></i>
+          Server Information
+        </h2>
+        <button type="button" class="btn-close" (click)="close()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Loading State -->
+        @if (loading()) {
+          <div class="text-center py-4">
+            <div class="spinner-border text-primary mb-3" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="text-muted">Loading server information...</p>
+          </div>
+        }
+
+        <!-- Error State -->
+        @if (error()) {
+          <div class="alert alert-danger">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            {{ error() }}
+          </div>
+        }
+
+        <!-- Server Info Content -->
+        @if (!loading() && !error() && metadata()) {
+          <div class="server-info-content">
+            <!-- Server Details -->
+            <div class="info-section">
+              <h5 class="section-title">
+                <i class="fas fa-info-circle me-2"></i>
+                Server Details
+              </h5>
+              <table class="info-table">
+                <tr>
+                  <td class="label">Server Name:</td>
+                  <td class="value">{{ getServerName() }}</td>
+                </tr>
+                <tr>
+                  <td class="label">Version:</td>
+                  <td class="value">{{ getServerVersion() }}</td>
+                </tr>
+                <tr>
+                  <td class="label">FHIR Version:</td>
+                  <td class="value">{{ getFhirVersion() }}</td>
+                </tr>
+                <tr>
+                  <td class="label">Status:</td>
+                  <td class="value">
+                    <span class="badge bg-success">{{ getStatus() }}</span>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="label">Publisher:</td>
+                  <td class="value">{{ getPublisher() }}</td>
+                </tr>
+                <tr>
+                  <td class="label">Release Date:</td>
+                  <td class="value">{{ getReleaseDate() }}</td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Connection Details -->
+            <div class="info-section">
+              <h5 class="section-title">
+                <i class="fas fa-network-wired me-2"></i>
+                Connection
+              </h5>
+              <table class="info-table">
+                <tr>
+                  <td class="label">Server URL:</td>
+                  <td class="value">
+                    <code class="server-url">{{ getServerUrl() }}</code>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- Description -->
+            @if (getServerDescription() !== 'No description available') {
+              <div class="info-section">
+                <h5 class="section-title">
+                  <i class="fas fa-align-left me-2"></i>
+                  Description
+                </h5>
+                <p class="description">{{ getServerDescription() }}</p>
+              </div>
+            }
+
+            <!-- License/Copyright -->
+            @if (hasLicense()) {
+              <div class="info-section">
+                <h5 class="section-title">
+                  <i class="fas fa-certificate me-2"></i>
+                  License
+                </h5>
+                <p class="description">{{ getCopyright() }}</p>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-danger" (click)="close()">
+          <i class="fas fa-times me-2"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

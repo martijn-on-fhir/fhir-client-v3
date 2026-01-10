@@ -16,14 +16,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Event listeners
   on: (channel, callback) => {
-    const validChannels = ['show-about'];
+    const validChannels = ['show-about', 'show-server-info'];
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, callback);
     }
   },
 
   off: (channel, callback) => {
-    const validChannels = ['show-about'];
+    const validChannels = ['show-about', 'show-server-info'];
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback);
     }

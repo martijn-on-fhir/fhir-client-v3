@@ -30,13 +30,13 @@
           <div class="mb-3">
             <div class="input-group">
               <input
+                #queryInput
                 type="text"
                 class="form-control"
                 placeholder="e.g., Patient?name=Duck or Practitioner?family=Smith"
                 [value]="query()"
                 (input)="query.set($any($event.target).value)"
                 (keypress)="onKeyPress($event)"
-                autofocus
               />
               <button
                 type="button"

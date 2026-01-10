@@ -58,6 +58,13 @@ export class FhirService {
   }
 
   /**
+   * Get the FHIR server base URL (public accessor)
+   */
+  getServerUrl(): string {
+    return this.getFhirServerUrl();
+  }
+
+  /**
    * Execute a FHIR query
    *
    * @example
