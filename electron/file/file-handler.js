@@ -9,12 +9,14 @@ function registerFileHandlers() {
    * Open file dialog and read file content
    */
   ipcMain.handle('file:open', async () => {
+
     try {
       const result = await dialog.showOpenDialog({
         properties: ['openFile'],
         filters: [
+          { name: 'All Files', extensions: ['*'] },
           { name: 'JSON Files', extensions: ['json'] },
-          { name: 'All Files', extensions: ['*'] }
+          { name: 'Xml Files', extensions: ['xml'] },
         ]
       });
 
@@ -29,6 +31,7 @@ function registerFileHandlers() {
         path: filePath,
         content: content
       };
+
     } catch (error) {
       console.error('Error opening file:', error);
       return { error: error.message };
@@ -39,6 +42,7 @@ function registerFileHandlers() {
    * Save file dialog and write content
    */
   ipcMain.handle('file:save', async (event, content, defaultFileName = 'export.json') => {
+
     try {
       const result = await dialog.showSaveDialog({
         defaultPath: defaultFileName,

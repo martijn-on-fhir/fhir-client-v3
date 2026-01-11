@@ -91,8 +91,8 @@ function createWindow() {
   const iconPath = path.join(__dirname, 'assets/icons/icon.png');
 
   mainWindow = new BrowserWindow({
-    width: 1400,
-    height: 900,
+    width: 1920,
+    height: 1080,
     icon: iconPath,
     webPreferences: {
       nodeIntegration: false,
@@ -101,7 +101,7 @@ function createWindow() {
       sandbox: false, // Disabled for ESM preload compatibility - would need CommonJS preload for sandbox
       v8CacheOptions: 'code'
     },
-    title: 'FHIR Client',
+    title: 'FHIR Client MX',
     show: false, // Don't show until ready
     alwaysOnTop: false
   });
