@@ -1,3 +1,10 @@
+## [1.5.4](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.3...v1.5.4) (2026-01-11)
+
+
+### Bug Fixes
+
+* resolve visual builder layout and change detection issues ([61cdb68](https://github.com/martijn-on-fhir/fhir-client-v3/commit/61cdb687ac707fd90b87fcec2b368332240edb2b))
+
 ## [1.5.3](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.2...v1.5.3) (2026-01-11)
 
 
