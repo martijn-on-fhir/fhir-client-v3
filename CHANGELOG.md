@@ -1,3 +1,11 @@
+## [1.5.3](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.2...v1.5.3) (2026-01-11)
+
+
+### Bug Fixes
+
+* always show result headers, only toggle body content ([716a536](https://github.com/martijn-on-fhir/fhir-client-v3/commit/716a536a14239f92fc8911217d9a87c39bcff965))
+* always show toolbar regardless of editor availability ([5365051](https://github.com/martijn-on-fhir/fhir-client-v3/commit/536505143ec8be29f086d56d993b73c778fa042d))
+
 ## [1.5.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.1...v1.5.2) (2026-01-11)
 
 ## [1.5.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.0...v1.5.1) (2026-01-11)
