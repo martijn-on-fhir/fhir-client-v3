@@ -14,11 +14,12 @@ import {
 } from '../../core/utils/fhir-validator';
 import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
+import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 @Component({
   selector: 'app-validator',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent],
   templateUrl: './validator.component.html',
   styleUrl: './validator.component.scss'
 })

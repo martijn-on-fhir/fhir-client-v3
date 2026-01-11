@@ -9,6 +9,7 @@ import { TemplateService } from '../../core/services/template.service';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
 import { TemplateBrowserComponent } from './components/template-browser.component';
 import { TemplateConfigDialogComponent } from './dialogs/template-config-dialog.component';
 import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.component';
@@ -22,7 +23,7 @@ import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.
 @Component({
   selector: 'app-predefined',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, TemplateBrowserComponent, ConfirmationDialogComponent, TemplateConfigDialogComponent, TemplateEditorDialogComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent, TemplateBrowserComponent, ConfirmationDialogComponent, TemplateConfigDialogComponent, TemplateEditorDialogComponent],
   templateUrl: './predefined.component.html',
   styleUrl: './predefined.component.scss'
 })

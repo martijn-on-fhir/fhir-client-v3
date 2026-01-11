@@ -33,16 +33,12 @@
 
   <!-- Results Panel -->
   <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
-    <div class="card-header d-flex justify-content-between align-items-center" style="flex-shrink: 0">
-      <span>
-        <i class="fas fa-shapes me-2"></i>
-        XML Transformation
-      </span>
-      <app-json-viewer-toolbar
-        [editor]="this.leftEditor?.editor"
-        [readOnly]="true">
-      </app-json-viewer-toolbar>
-    </div>
+    <app-result-header
+      icon="fa-shapes"
+      title="XML Transformation"
+      [editor]="this.leftEditor?.editor"
+      [readOnly]="false">
+    </app-result-header>
 
     <div class="card-body flex-grow-1 overflow-hidden p-0" id="pluriform-results-container">
       <div class="d-flex h-100">

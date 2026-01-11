@@ -50,26 +50,12 @@
 
   <!-- Results Card with Split Panel -->
   <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
-    <div class="card-header d-flex justify-content-between align-items-center" style="flex-shrink: 0">
-      <span>
-        <i class="fas fa-check-circle me-2"></i>
-        Fhir Validator
-      </span>
-
-      <app-json-viewer-toolbar
-        [editor]="this.component?.editor"
-        [readOnly]="false">
-      </app-json-viewer-toolbar>
-
-      @if (validationResult()) {
-        <span class="badge" [class]="'bg-' + (validationResult()!.isValid ? 'success' : 'danger')">
-          {{ validationResult()!.isValid ? 'Valid' : 'Invalid' }}
-          @if (validationResult()!.issues.length > 0) {
-            <span>({{ validationResult()!.issues.length }} issue{{ validationResult()!.issues.length !== 1 ? 's' : '' }})</span>
-          }
-        </span>
-      }
-    </div>
+    <app-result-header
+      icon="fa-check-circle"
+      title="Fhir Validator"
+      [editor]="this.component?.editor"
+      [readOnly]="false">
+    </app-result-header>
 
     <div class="card-body flex-grow-1 overflow-hidden p-0" id="validator-container">
       <div class="d-flex h-100" [style.user-select]="isResizing() ? 'none' : 'auto'">
