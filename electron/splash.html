@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loading FHIR Client</title>
+  <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css">
+  <script>
+    // Set version when page loads
+    window.addEventListener('DOMContentLoaded', () => {
+      const versionElement = document.getElementById('app-version');
+      if (versionElement && window.appVersion) {
+        versionElement.textContent = `Version ${window.appVersion}`;
+      }
+    });
+  </script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      width: 100%;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      background: linear-gradient(135deg, rgb(41, 83, 107) 0%, rgb(33, 66, 86) 100%);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      overflow: hidden;
+    }
+
+    .splash-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 30px;
+    }
+
+    .logo {
+      width: 120px;
+      height: 120px;
+      background: white;
+      border-radius: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .logo i {
+      font-size: 80px;
+      color: rgb(41, 83, 107);
+    }
+
+    .title {
+      color: white;
+      font-size: 32px;
+      font-weight: 600;
+      letter-spacing: -0.5px;
+      text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 16px;
+      font-weight: 400;
+      margin-top: -15px;
+    }
+
+    .loader {
+      width: 200px;
+      height: 4px;
+      background: rgba(255, 255, 255, 0.2);
+      border-radius: 2px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .loader-bar {
+      height: 100%;
+      background: white;
+      border-radius: 2px;
+      animation: loading 1.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        transform: scale(1);
+      }
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes loading {
+      0% {
+        width: 0%;
+        margin-left: 0%;
+      }
+      50% {
+        width: 50%;
+        margin-left: 25%;
+      }
+      100% {
+        width: 0%;
+        margin-left: 100%;
+      }
+    }
+
+    .version {
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 12px;
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <div class="splash-container">
+    <div class="logo">
+      <i class="fas fa-heartbeat brand-icon"></i>
+    </div>
+    <div class="title">FHIR Client</div>
+    <div class="subtitle">Loading application...</div>
+    <div class="loader">
+      <div class="loader-bar"></div>
+    </div>
+    <div class="version" id="app-version">Version 1.5.5</div>
+  </div>
+</body>
+</html>

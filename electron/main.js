@@ -41,6 +41,49 @@ ipcMain.handle('log:verbose', (event, ...args) => {
 log.info('Application starting...');
 
 let mainWindow;
+let splashWindow;
+let splashStartTime;
+
+/**
+ * Create splash screen window
+ */
+function createSplashWindow() {
+  splashWindow = new BrowserWindow({
+    width: 500,
+    height: 400,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    resizable: false,
+    webPreferences: {
+      nodeIntegration: false,
+      contextIsolation: true,
+      preload: path.join(__dirname, 'splash-preload.js')
+    }
+  });
+
+  // Configure CSP for splash screen to allow FontAwesome local files
+  splashWindow.webContents.session.webRequest.onHeadersReceived((details, callback) => {
+    callback({
+      responseHeaders: {
+        ...details.responseHeaders,
+        'Content-Security-Policy': [
+          "default-src 'self'; " +
+          "style-src 'self' 'unsafe-inline'; " +
+          "font-src 'self' data:; " +
+          "img-src 'self' data:; " +
+          "script-src 'self' 'unsafe-inline'"
+        ]
+      }
+    });
+  });
+
+  splashWindow.loadFile(path.join(__dirname, 'splash.html'));
+  splashWindow.center();
+
+  // Record when splash screen was created
+  splashStartTime = Date.now();
+}
 
 function createWindow() {
 
@@ -59,7 +102,7 @@ function createWindow() {
       v8CacheOptions: 'code'
     },
     title: 'FHIR Client',
-    show: true, // Show immediately for debugging
+    show: false, // Don't show until ready
     alwaysOnTop: false
   });
 
@@ -112,6 +155,24 @@ function createWindow() {
     mainWindow.loadFile(path.join(__dirname, '../dist/fhir-client/browser/index.html'));
   }
 
+  // Show main window when ready and close splash
+  mainWindow.once('ready-to-show', () => {
+    // Ensure splash screen is visible for at least 5 seconds
+    const elapsedTime = Date.now() - splashStartTime;
+    const remainingTime = Math.max(0, 4000 - elapsedTime);
+
+    setTimeout(() => {
+      // Close splash window
+      if (splashWindow && !splashWindow.isDestroyed()) {
+        splashWindow.close();
+        splashWindow = null;
+      }
+
+      // Show main window
+      mainWindow.show();
+    }, remainingTime);
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -128,7 +189,10 @@ app.whenReady().then(() => {
   // Create application menu
   createApplicationMenu();
 
-  // Create window
+  // Create splash window first
+  createSplashWindow();
+
+  // Create main window (hidden initially)
   createWindow();
 
   // Register log handlers (requires mainWindow)
