@@ -12,6 +12,7 @@ import { LoggerService } from './logger.service';
   providedIn: 'root'
 })
 export class SettingsService {
+
   private readonly STORAGE_KEY = 'fhir_app_settings';
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('SettingsService');

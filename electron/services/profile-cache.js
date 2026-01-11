@@ -10,6 +10,7 @@ const path = require('path');
 const { app } = require('electron');
 
 class ProfileCacheService {
+
   constructor() {
     // Cache directory in user data
     this.cacheDir = path.join(app.getPath('userData'), 'profile-cache');
@@ -67,6 +68,7 @@ class ProfileCacheService {
    * @returns {Promise<void>}
    */
   async setProfile(title, data) {
+
     try {
       await this.ensureCacheDir();
 
@@ -91,6 +93,7 @@ class ProfileCacheService {
    * @returns {Promise<void>}
    */
   async clearCache() {
+
     try {
       const files = await fs.readdir(this.cacheDir);
 
@@ -110,6 +113,7 @@ class ProfileCacheService {
    * @returns {Promise<Object>} Cache stats (fileCount, totalSize)
    */
   async getCacheStats() {
+
     try {
       await this.ensureCacheDir();
       const files = await fs.readdir(this.cacheDir);

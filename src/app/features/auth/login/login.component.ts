@@ -224,6 +224,7 @@ export class LoginComponent implements OnInit {
    * @private
    */
   private async performAutoLogin() {
+
     this.loading.set(true);
     this.error.set(null);
 
@@ -261,6 +262,7 @@ export class LoginComponent implements OnInit {
    * @private
    */
   private async performLogin() {
+
     this.loading.set(true);
     this.error.set(null);
 
