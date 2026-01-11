@@ -1,3 +1,10 @@
+# [1.8.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.7.0...v1.8.0) (2026-01-11)
+
+
+### Features
+
+* rebrand to FHIR Client MX and improve file handling ([8c9188e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/8c9188eb886ec6af1d196f3b3a0c49cc86341f8a))
+
 # [1.7.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.6.0...v1.7.0) (2026-01-11)
 
 
