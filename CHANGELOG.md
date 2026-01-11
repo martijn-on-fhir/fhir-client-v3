@@ -1,3 +1,10 @@
+## [1.5.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.0...v1.5.1) (2026-01-11)
+
+
+### Bug Fixes
+
+* add XML support and retry mechanism to toolbar load/save ([c13f35b](https://github.com/martijn-on-fhir/fhir-client-v3/commit/c13f35b31699072c04fd80eb476068b0403d27ab))
+
 # [1.5.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.4.1...v1.5.0) (2026-01-11)
 
 
