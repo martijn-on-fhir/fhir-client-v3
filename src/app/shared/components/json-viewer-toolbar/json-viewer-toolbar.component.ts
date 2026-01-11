@@ -164,8 +164,9 @@ export class JsonViewerToolbarComponent {
   }
 
   /**
-   * Save the current JSON content to a file.
+   * Save the current content to a file.
    * Retrieves content from Monaco editor and triggers Electron save file dialog.
+   * Supports JSON (formatted) and XML/other formats (as-is).
    */
   async save(): Promise<void> {
     if (!this.editor) {
@@ -192,35 +193,63 @@ export class JsonViewerToolbarComponent {
         return;
       }
 
-      // Format JSON with pretty-print
-      const formatted = JSON.stringify(JSON.parse(content), null, 2);
+      // Get the editor's language to determine format
+      const model = this.editor.getModel();
+      const language = model?.getLanguageId() || 'json';
+
+      let finalContent = content;
+      let defaultFilename = 'export.txt';
+
+      // Format based on language
+      if (language === 'json') {
+        try {
+          // Format JSON with pretty-print
+          finalContent = JSON.stringify(JSON.parse(content), null, 2);
+          defaultFilename = 'export.json';
+        } catch {
+          // If JSON parse fails, save as-is
+          this.logger.warn('Could not parse JSON, saving as-is');
+        }
+      } else if (language === 'xml') {
+        defaultFilename = 'export.xml';
+      }
 
       // Trigger Electron save file dialog
-      await window.electronAPI.file.saveFile(formatted, 'export.json');
+      await window.electronAPI.file.saveFile(finalContent, defaultFilename);
 
     } catch (error) {
       this.logger.error('Failed to save file:', error);
-      alert('Failed to save file. Please check that the content is valid JSON.');
+      alert('Failed to save file.');
     }
   }
 
   /**
-   * Load JSON content from a file.
+   * Load content from a file.
    * Opens Electron file dialog and loads content into Monaco editor.
+   * Supports both JSON and XML formats based on editor language.
    * Only available for editable editors (readOnly = false).
    */
   async load(): Promise<void> {
     if (this.readOnly) {
       this.logger.warn('Cannot load into read-only editor');
-      alert('This editor is read-only. Switch to Validator tab to load files.');
+      alert('This editor is read-only. Switch to Validator or Pluriform tab to load files.');
 
       return;
     }
 
+    // Retry mechanism for async Monaco editor loading
     if (!this.editor) {
-      this.logger.warn('No editor available for load operation');
+      this.logger.warn('Editor not yet available, waiting...');
 
-      return;
+      // Wait a bit and retry
+      await new Promise(resolve => setTimeout(resolve, 300));
+
+      if (!this.editor) {
+        this.logger.error('No editor available after retry');
+        alert('Editor is not yet loaded. Please wait a moment and try again.');
+
+        return;
+      }
     }
 
     try {
@@ -236,8 +265,20 @@ export class JsonViewerToolbarComponent {
       const result = await window.electronAPI.file.openFile();
 
       if (result && !('error' in result)) {
-        // Validate JSON before loading
-        JSON.parse(result.content);
+        // Get the editor's language to determine validation type
+        const model = this.editor.getModel();
+        const language = model?.getLanguageId() || 'json';
+
+        // Validate content based on language
+        if (language === 'json') {
+          // Validate JSON
+          JSON.parse(result.content);
+        } else if (language === 'xml') {
+          // Basic XML validation - check if it looks like XML
+          if (!result.content.trim().startsWith('<')) {
+            throw new Error('File does not appear to contain valid XML');
+          }
+        }
 
         // Set content in Monaco editor
         this.editor.setValue(result.content);
@@ -247,7 +288,10 @@ export class JsonViewerToolbarComponent {
 
     } catch (error) {
       this.logger.error('Failed to load file:', error);
-      alert('Failed to load file. Please check that the file contains valid JSON.');
+      const model = this.editor?.getModel();
+      const language = model?.getLanguageId() || 'json';
+      const expectedFormat = language === 'xml' ? 'XML' : 'JSON';
+      alert(`Failed to load file. Please check that the file contains valid ${expectedFormat}.`);
     }
   }
 }
