@@ -4,27 +4,44 @@ import { FormsModule } from '@angular/forms';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 
+/**
+ * Represents a FHIR search parameter for a resource type
+ */
 interface SearchParameter {
+  /** Name of the search parameter */
   name: string;
+  /** Data type of the search parameter (string, token, reference, etc.) */
   type: string;
+  /** Optional documentation describing the search parameter */
   documentation?: string;
 }
 
+/**
+ * Information about a FHIR resource type from CapabilityStatement
+ */
 interface ResourceTypeInfo {
+  /** Resource type name (e.g., Patient, Observation) */
   type: string;
+  /** Array of _include paths supported for this resource */
   searchInclude?: string[];
+  /** Array of _revinclude paths supported for this resource */
   searchRevInclude?: string[];
+  /** Array of search parameters supported for this resource */
   searchParam?: SearchParameter[];
 }
 
 /**
- * Resource Info Component - Display FHIR server metadata and resource capabilities
+ * Resource Info Component
+ *
+ * Displays FHIR server metadata and resource type capabilities from CapabilityStatement.
  *
  * Features:
- * - Shows FHIR resource search parameters, includes, and reverse includes
- * - Resource type selector with all available resources
- * - Displays Patient resource by default
+ * - Lists all available FHIR resource types from server
+ * - Shows search parameters for selected resource type
+ * - Displays _include and _revinclude paths
+ * - Caches metadata in Electron store for performance
  * - Real-time resource information lookup
+ * - Defaults to Patient resource type
  */
 @Component({
   selector: 'app-resource-info',
@@ -35,17 +52,30 @@ interface ResourceTypeInfo {
 })
 export class ResourceInfoComponent implements OnInit {
 
+  /**
+   * Component-specific logger instance
+   * @private
+   */
   private get logger() {
     return this.loggerService.component('ResourceInfoComponent');
   }
 
-  // State signals
+  /** Server CapabilityStatement metadata */
   metadata = signal<any>(null);
+
+  /** Loading state while fetching metadata */
   loading = signal(false);
+
+  /** Error message from metadata loading failures */
   error = signal<string | null>(null);
+
+  /** Currently selected resource type for display */
   selectedResourceType = signal<string>('Patient');
 
-  // Computed resource types list
+  /**
+   * Computed list of all available resource types from server
+   * Extracted from CapabilityStatement and sorted alphabetically
+   */
   resourceTypes = computed(() => {
     const meta = this.metadata();
 
@@ -58,7 +88,17 @@ export class ResourceInfoComponent implements OnInit {
       .sort();
   });
 
-  // Computed current resource info
+  /**
+   * Computed information about currently selected resource type
+   *
+   * Extracts and formats:
+   * - Resource type name
+   * - Supported search parameters
+   * - Supported _include paths (sorted)
+   * - Supported _revinclude paths (sorted)
+   *
+   * Returns null if resource type not found in metadata.
+   */
   currentResourceInfo = computed(() => {
     const meta = this.metadata();
     const selectedType = this.selectedResourceType();
@@ -81,24 +121,43 @@ export class ResourceInfoComponent implements OnInit {
     } as ResourceTypeInfo;
   });
 
+  /**
+   * Creates an instance of ResourceInfoComponent
+   *
+   * @param fhirService - Service for FHIR server communication
+   * @param loggerService - Service for application logging
+   */
   constructor(
     private fhirService: FhirService,
     private loggerService: LoggerService
   ) {}
 
+  /**
+   * Angular lifecycle hook called on component initialization
+   * Loads FHIR server metadata from cache or server
+   */
   async ngOnInit() {
     await this.loadMetadata();
   }
 
   /**
-   * Load FHIR server metadata
+   * Loads FHIR server CapabilityStatement metadata
+   *
+   * Loading strategy:
+   * 1. First attempts to load from Electron store cache
+   * 2. If not cached, fetches from FHIR server via FhirService
+   * 3. Saves fetched metadata to cache for future use
+   *
+   * Updates metadata signal on success or error signal on failure.
+   * Sets loading state during operation.
+   *
+   * @returns Promise that resolves when metadata is loaded
    */
   async loadMetadata() {
     this.loading.set(true);
     this.error.set(null);
 
     try {
-      // Try to get from electron store first
       if (window.electronAPI?.metadata?.get) {
         const stored = await window.electronAPI.metadata.get();
 
@@ -111,14 +170,12 @@ export class ResourceInfoComponent implements OnInit {
         }
       }
 
-      // Fallback to fetching from FHIR server
       this.fhirService.getMetadata().subscribe({
         next: (data) => {
           this.metadata.set(data);
           this.loading.set(false);
           this.logger.info('Loaded metadata from FHIR server');
 
-          // Store for future use
           if (window.electronAPI?.metadata?.save) {
             window.electronAPI.metadata.save(data);
           }
@@ -137,7 +194,12 @@ export class ResourceInfoComponent implements OnInit {
   }
 
   /**
-   * Handle resource type selection change
+   * Handles resource type selection change from dropdown
+   *
+   * Updates selectedResourceType signal with new value.
+   * This triggers recomputation of currentResourceInfo.
+   *
+   * @param event - DOM change event from select element
    */
   onResourceTypeChange(event: Event) {
     const select = event.target as HTMLSelectElement;
@@ -146,10 +208,18 @@ export class ResourceInfoComponent implements OnInit {
   }
 
   /**
-   * Refresh metadata
+   * Refreshes metadata by clearing cache and fetching from server
+   *
+   * Workflow:
+   * 1. Clears cached metadata from Electron store
+   * 2. Fetches fresh metadata from FHIR server
+   * 3. Updates cache with new metadata
+   *
+   * Useful when server capabilities have changed.
+   *
+   * @returns Promise that resolves when refresh completes
    */
   async refresh() {
-    // Clear stored metadata and fetch fresh
     if (window.electronAPI?.metadata?.clear) {
       await window.electronAPI.metadata.clear();
     }

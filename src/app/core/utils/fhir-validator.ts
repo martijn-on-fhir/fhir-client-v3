@@ -5,17 +5,31 @@
  * Validates structure, required fields, data types, and references.
  */
 
+/**
+ * Represents a single validation issue found during FHIR resource validation
+ */
 export interface ValidationIssue {
+  /** Severity level of the validation issue */
   severity: 'error' | 'warning' | 'information';
+  /** Error code identifying the type of issue */
   code: string;
+  /** Human-readable description of the issue */
   diagnostics: string;
+  /** Array of paths indicating where the issue was found in the resource */
   location: string[];
+  /** Optional FHIRPath expressions identifying the issue location */
   expression?: string[];
 }
 
+/**
+ * Result of FHIR resource validation
+ */
 export interface ValidationResult {
+  /** Whether the resource passed validation (no errors) */
   isValid: boolean;
+  /** Array of validation issues found (errors, warnings, information) */
   issues: ValidationIssue[];
+  /** The resource type being validated */
   resourceType?: string;
 }
 
@@ -84,6 +98,7 @@ const FHIR_STU3_RESOURCES = [
 
 /**
  * Common required fields for FHIR R4 resources
+ * Maps resource type names to arrays of required field paths
  */
 const R4_REQUIRED_FIELDS: Record<string, string[]> = {
   Patient: ['resourceType'],
@@ -99,6 +114,7 @@ const R4_REQUIRED_FIELDS: Record<string, string[]> = {
 
 /**
  * Common required fields for FHIR STU3 resources
+ * Maps resource type names to arrays of required field paths
  */
 const STU3_REQUIRED_FIELDS: Record<string, string[]> = {
   Patient: ['resourceType'],
@@ -113,7 +129,29 @@ const STU3_REQUIRED_FIELDS: Record<string, string[]> = {
 };
 
 /**
- * Validate a FHIR resource
+ * Validates a FHIR resource against FHIR specification rules
+ *
+ * Performs comprehensive validation including:
+ * - JSON structure validation
+ * - Resource type validation
+ * - Required field validation
+ * - ID format validation
+ * - Reference format validation
+ * - Resource-specific business rules
+ * - Best practice recommendations
+ *
+ * @param resource - The FHIR resource to validate (JSON string or object)
+ * @param version - FHIR version to validate against (R4 or STU3)
+ * @returns ValidationResult containing validation status and any issues found
+ *
+ * @example
+ * ```typescript
+ * const patient = { resourceType: 'Patient', id: 'example-123' };
+ * const result = validateFhirResource(patient, 'R4');
+ * if (!result.isValid) {
+ *   console.log('Validation errors:', result.issues);
+ * }
+ * ```
  */
 export const validateFhirResource = (resource: any, version: 'R4' | 'STU3' = 'R4'): ValidationResult => {
   const issues: ValidationIssue[] = [];
@@ -199,6 +237,23 @@ export const validateFhirResource = (resource: any, version: 'R4' | 'STU3' = 'R4
   };
 }
 
+/**
+ * Checks if an object has a field at the specified path
+ *
+ * Traverses nested object properties using dot notation to determine
+ * if a field exists and has a non-null, non-undefined value.
+ *
+ * @param obj - The object to check
+ * @param path - Dot-separated path to the field (e.g., 'meta.lastUpdated')
+ * @returns True if the field exists and is not null/undefined
+ *
+ * @example
+ * ```typescript
+ * const patient = { name: [{ given: ['John'] }] };
+ * hasField(patient, 'name'); // true
+ * hasField(patient, 'name.0.given'); // false (doesn't handle array indices)
+ * ```
+ */
 const hasField = (obj: any, path: string): boolean => {
   const keys = path.split('.');
   let current = obj;
@@ -211,12 +266,42 @@ const hasField = (obj: any, path: string): boolean => {
   return current !== null && current !== undefined;
 };
 
+/**
+ * Validates a FHIR resource ID format
+ *
+ * FHIR resource IDs must:
+ * - Contain only alphanumeric characters, hyphens, and periods
+ * - Be between 1 and 64 characters in length
+ *
+ * @param id - The resource ID to validate
+ * @returns True if the ID matches FHIR ID format requirements
+ *
+ * @example
+ * ```typescript
+ * isValidId('patient-123'); // true
+ * isValidId('patient_123'); // false (underscore not allowed)
+ * ```
+ */
 const isValidId = (id: string): boolean => /^[A-Za-z0-9-.]{1,64}$/.test(id);
 
+/**
+ * Recursively validates FHIR references within a resource
+ *
+ * Checks that all reference fields follow one of the valid FHIR reference formats:
+ * - Relative: ResourceType/id (e.g., 'Patient/123')
+ * - Absolute URL: http://example.com/fhir/Patient/123
+ * - URN: urn:uuid:... or urn:oid:...
+ *
+ * Traverses the entire object tree to find and validate all reference fields.
+ *
+ * @param obj - The object or resource to validate
+ * @param path - Current path in the object tree (used for error reporting)
+ * @param issues - Array to accumulate validation issues
+ */
 const validateReferences = (obj: any, path: string, issues: ValidationIssue[]): void => {
   if (!obj || typeof obj !== 'object') {
-return;
-}
+    return;
+  }
 
   if (obj.reference) {
     const reference = obj.reference;
@@ -251,6 +336,19 @@ return;
   }
 };
 
+/**
+ * Performs resource-type-specific validation rules
+ *
+ * Validates business rules and constraints specific to individual FHIR resource types.
+ * Currently supports validation for:
+ * - Patient: Should have name or identifier
+ * - Observation: Should have a value, component, or dataAbsentReason
+ * - Condition: Should have a code
+ *
+ * @param resource - The FHIR resource to validate
+ * @param resourceType - The type of the resource being validated
+ * @param issues - Array to accumulate validation issues
+ */
 const validateResourceSpecific = (resource: any, resourceType: string, issues: ValidationIssue[]): void => {
   switch (resourceType) {
     case 'Patient':
@@ -290,6 +388,20 @@ const validateResourceSpecific = (resource: any, resourceType: string, issues: V
   }
 };
 
+/**
+ * Adds best practice recommendations and informational warnings
+ *
+ * Checks for recommended but not strictly required FHIR elements and adds
+ * informational or warning level issues for missing best practices including:
+ * - meta.lastUpdated for resource versioning
+ * - Patient contact information (telecom)
+ * - Patient gender
+ * - Identifier system URLs
+ *
+ * @param resource - The FHIR resource to check
+ * @param resourceType - The type of the resource being checked
+ * @param issues - Array to accumulate validation issues
+ */
 const addBestPracticeWarnings = (resource: any, resourceType: string, issues: ValidationIssue[]): void => {
   if (!resource.meta || !resource.meta.lastUpdated) {
     issues.push({
@@ -333,6 +445,18 @@ const addBestPracticeWarnings = (resource: any, resourceType: string, issues: Va
   }
 };
 
+/**
+ * Maps validation issue severity to Bootstrap color class
+ *
+ * @param severity - The severity level (error, warning, information)
+ * @returns Bootstrap color class name (danger, warning, info, secondary)
+ *
+ * @example
+ * ```typescript
+ * getSeverityColor('error'); // 'danger'
+ * getSeverityColor('warning'); // 'warning'
+ * ```
+ */
 export const getSeverityColor = (severity: string): string => {
   switch (severity) {
     case 'error': return 'danger';
@@ -342,6 +466,18 @@ export const getSeverityColor = (severity: string): string => {
   }
 };
 
+/**
+ * Maps validation issue severity to FontAwesome icon name
+ *
+ * @param severity - The severity level (error, warning, information)
+ * @returns FontAwesome icon class name (without 'fa-' prefix)
+ *
+ * @example
+ * ```typescript
+ * getSeverityIcon('error'); // 'times-circle'
+ * getSeverityIcon('warning'); // 'exclamation-triangle'
+ * ```
+ */
 export const getSeverityIcon = (severity: string): string => {
   switch (severity) {
     case 'error': return 'times-circle';
@@ -351,6 +487,28 @@ export const getSeverityIcon = (severity: string): string => {
   }
 };
 
+/**
+ * Validates a FHIR resource against server capabilities
+ *
+ * Uses the server's CapabilityStatement to validate that:
+ * - The resource type is supported by the server
+ * - The FHIR version is compatible
+ * - Available operations are documented
+ *
+ * This is a lighter validation focused on server compatibility rather than
+ * full FHIR specification compliance.
+ *
+ * @param resource - The FHIR resource to validate (JSON string or object)
+ * @param metadata - The server's CapabilityStatement resource
+ * @returns ValidationResult with server-specific validation issues
+ *
+ * @example
+ * ```typescript
+ * const capabilityStatement = await fetch('/metadata').then(r => r.json());
+ * const patient = { resourceType: 'Patient', id: '123' };
+ * const result = validateAgainstServer(patient, capabilityStatement);
+ * ```
+ */
 export const validateAgainstServer = (resource: any, metadata: any): ValidationResult => {
   const issues: ValidationIssue[] = [];
   let parsedResource: any;

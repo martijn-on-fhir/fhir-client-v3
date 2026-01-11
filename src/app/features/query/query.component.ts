@@ -7,7 +7,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, signal, computed, effect, inject, OnInit, AfterViewInit, OnDestroy, ViewChild} from '@angular/core';
+import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {firstValueFrom} from 'rxjs';
 import {
@@ -19,18 +19,17 @@ import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
 import {QueryHistoryService} from '../../core/services/query-history.service';
-import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 @Component({
   selector: 'app-query',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
 })
-export class QueryComponent implements OnInit, AfterViewInit, OnDestroy {
+export class QueryComponent implements OnInit, OnDestroy {
   /**
    * Injected FHIR service for executing queries
    */
@@ -319,8 +318,15 @@ export class QueryComponent implements OnInit, AfterViewInit, OnDestroy {
   });
 
   /**
-   * Constructor initializes Angular effects for auto-saving state to localStorage
-   * and handling various component behaviors
+   * Creates an instance of QueryComponent
+   *
+   * Sets up reactive effects for:
+   * - Auto-saving query state to localStorage (query mode, text query, visual builder parameters)
+   * - Auto-generating query strings from visual builder state
+   * - Resetting pagination when results change
+   * - Handling navigation events from other components
+   * - Registering Monaco editor with EditorStateService when results are available
+   * (with retry mechanism for async Monaco loading, tracking both query mode and results)
    */
   constructor() {
     effect(() => {
@@ -412,23 +418,18 @@ export class QueryComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }, {allowSignalWrites: true});
 
-    // Register editor when it becomes available (after query results load)
-    // Must track both queryMode and results to register the correct editor
     effect(() => {
       const hasResults = this.resultJson() !== '';
       const mode = this.queryMode();
 
       if (hasResults) {
-        // Use setTimeout with delay to ensure Monaco editor is fully initialized
         setTimeout(() => {
-          // Select the correct editor based on current mode
           const activeEditor = mode === 'text' ? this.component : this.componentVisual;
 
           if (activeEditor?.editor) {
             this.editorStateService.registerEditor(activeEditor, false, '/app/query');
             this.logger.info(`Query editor registered as read-only (${mode} mode)`);
           } else {
-            // Retry after a longer delay
             setTimeout(() => {
               const retryEditor = mode === 'text' ? this.component : this.componentVisual;
 
@@ -449,13 +450,6 @@ export class QueryComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   async ngOnInit() {
     await this.loadMetadata();
-  }
-
-  /**
-   * After view initialization lifecycle hook
-   */
-  ngAfterViewInit() {
-    // Editor registration happens in ngOnInit effect
   }
 
   /**

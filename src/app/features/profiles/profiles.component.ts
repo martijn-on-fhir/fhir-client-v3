@@ -10,10 +10,18 @@ import { ProfileCacheDropdownComponent } from '../../shared/components/profile-c
 import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
 
 /**
- * Profiles Component - Angular version with Signals
+ * FHIR Profiles Component
  *
- * Displays FHIR profiles from server metadata (CapabilityStatement)
- * Uses merged elements from profile inheritance chain
+ * Displays and manages FHIR StructureDefinition profiles from server metadata.
+ *
+ * Features:
+ * - Lists all profiles from CapabilityStatement
+ * - Loads and displays StructureDefinition details
+ * - Merges profile elements from inheritance chain (baseDefinition)
+ * - Extracts and displays constraints
+ * - Caches profiles to disk for performance
+ * - Provides cache management (clear, refresh)
+ * - Opens profiles in resource editor dialog
  */
 @Component({
   selector: 'app-profiles',
@@ -23,43 +31,91 @@ import { ResourceEditorDialogComponent } from '../../shared/components/resource-
   styleUrls: ['./profiles.component.scss']
 })
 export class ProfilesComponent implements OnInit {
+  /** Service for FHIR server communication */
   private fhirService = inject(FhirService);
+
+  /** Service for application logging */
   private loggerService = inject(LoggerService);
+
+  /** Component-specific logger instance */
   private logger = this.loggerService.component('ProfilesComponent');
 
+  /** Reference to resource editor dialog component */
   @ViewChild(ResourceEditorDialogComponent) editorDialog!: ResourceEditorDialogComponent;
 
-  // State signals
+  /** Array of available profile information from server metadata */
   profiles = signal<ProfileInfo[]>([]);
+
+  /** Loading state while fetching metadata */
   loading = signal(false);
+
+  /** URL of currently selected profile */
   selectedProfileUrl = signal('');
+
+  /** Title/resource type of currently selected profile */
   selectedProfileTitle = signal('');
+
+  /** Loaded StructureDefinition for selected profile */
   structureDefinition = signal<StructureDefinition | null>(null);
+
+  /** Array of base definitions in inheritance chain */
   baseDefinitions = signal<any[]>([]);
+
+  /** Merged elements from profile and base definitions */
   mergedElements = signal<any[]>([]);
+
+  /** Extracted constraints from profile */
   constraints = signal<any[]>([]);
+
+  /** Loading state while fetching profile details */
   loadingProfile = signal(false);
+
+  /** Error message from profile loading */
   profileError = signal<string | null>(null);
+
+  /** Cache statistics (size, count) */
   cacheStats = signal<any>(null);
 
-  // Export utilities for template
+  /** Utility function for formatting element paths in template */
   formatElementPath = formatElementPath;
+
+  /** Utility function for rendering element types in template */
   renderElementType = renderElementType;
+
+  /** Utility function for cardinality badge CSS classes in template */
   getCardinalityBadgeClass = getCardinalityBadgeClass;
+
+  /** Utility function for severity badge CSS classes in template */
   getSeverityBadgeClass = getSeverityBadgeClass;
 
+  /**
+   * Angular lifecycle hook called on component initialization
+   * Loads metadata and cache statistics
+   */
   async ngOnInit() {
     await this.loadMetadata();
     await this.loadCacheStatsData();
   }
 
+  /**
+   * Loads profile cache statistics
+   * Updates cacheStats signal with disk cache size and profile count
+   */
   async loadCacheStatsData() {
     const stats = await loadCacheStats();
     this.cacheStats.set(stats);
   }
 
   /**
-   * Load metadata and extract profiles
+   * Loads FHIR server metadata and extracts profile information
+   *
+   * Workflow:
+   * 1. Fetches CapabilityStatement from server
+   * 2. Extracts profile and supportedProfile URLs from each resource type
+   * 3. Sorts profiles by resource type
+   * 4. Auto-selects Account profile if available
+   *
+   * @private
    */
   private async loadMetadata() {
     this.loading.set(true);
@@ -70,7 +126,6 @@ export class ProfilesComponent implements OnInit {
 
         if (metadata.rest?.[0]?.resource) {
           metadata.rest[0].resource.forEach((resource: any) => {
-            // Extract profiles from resource
             if (resource.profile) {
               this.extractProfiles(resource.profile, resource.type, profileList);
             }
@@ -81,11 +136,9 @@ export class ProfilesComponent implements OnInit {
           });
         }
 
-        // Sort by resourceType
         profileList.sort((a, b) => a.resourceType.localeCompare(b.resourceType));
         this.profiles.set(profileList);
 
-        // Auto-select Account
         const accountProfile = profileList.find(p => p.resourceType === 'Account');
 
         if (accountProfile) {
@@ -103,6 +156,17 @@ export class ProfilesComponent implements OnInit {
     });
   }
 
+  /**
+   * Extracts profile URLs from metadata and adds to profile list
+   *
+   * Handles both string URLs and reference objects.
+   * Supports single profile or array of profiles.
+   *
+   * @param profiles - Profile URL(s) from metadata (string, object, or array)
+   * @param resourceType - FHIR resource type for the profile
+   * @param list - Profile list to append to
+   * @private
+   */
   private extractProfiles(profiles: any, resourceType: string, list: ProfileInfo[]) {
     const profileArray = Array.isArray(profiles) ? profiles : [profiles];
 
@@ -116,8 +180,19 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Load StructureDefinition for selected profile
-   * Uses disk cache and merges inheritance chain
+   * Loads StructureDefinition for selected profile
+   *
+   * Loading strategy:
+   * 1. First attempts to load from Electron disk cache
+   * 2. If not cached, fetches from FHIR server
+   * 3. Fetches entire base definition chain (inheritance)
+   * 4. Merges elements from profile and base definitions
+   * 5. Extracts constraints
+   * 6. Caches merged result to disk
+   *
+   * @param url - Canonical URL of the StructureDefinition
+   * @param profileTitle - Title/resource type for cache key
+   * @returns Promise that resolves when loading completes
    */
   async loadStructureDefinition(url: string, profileTitle: string) {
     if (!url) {
@@ -134,11 +209,9 @@ export class ProfilesComponent implements OnInit {
     this.constraints.set([]);
 
     try {
-      // Try to load from disk cache first
       const cached = await window.electronAPI?.profileCache?.getProfile(profileTitle);
 
       if (cached) {
-        // Reconstruct full StructureDefinition with snapshot from cache
         const fullSD = {
           ...cached.profile,
           snapshot: {
@@ -155,12 +228,10 @@ export class ProfilesComponent implements OnInit {
         return;
       }
 
-      // Fetch from server
       this.fhirService.getStructureDefinition(url).subscribe({
         next: async (sd) => {
           this.structureDefinition.set(sd);
 
-          // Fetch base definition chain (if exists)
           let baseChain: any[] = [];
 
           if (sd.baseDefinition) {
@@ -168,14 +239,12 @@ export class ProfilesComponent implements OnInit {
             this.baseDefinitions.set(baseChain);
           }
 
-          // Merge elements and extract constraints
           const merged = mergeProfileElements(sd, baseChain);
           const extractedConstraints = extractConstraints(sd, baseChain);
 
           this.mergedElements.set(merged);
           this.constraints.set(extractedConstraints);
 
-          // Cache the merged profile
           try {
             await window.electronAPI?.profileCache?.setProfile(profileTitle, {
               profile: {
@@ -217,7 +286,14 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Recursively fetch base definition chain
+   * Recursively fetches base definition chain for profile inheritance
+   *
+   * Traverses the baseDefinition property recursively to build the complete
+   * inheritance chain. Stops when reaching base FHIR resources (hl7.org URLs)
+   * or when maximum depth is reached.
+   *
+   * @param baseDefUrl - URL of the base StructureDefinition
+   * @returns Promise resolving to array of base definitions (ordered from direct parent to root)
    */
   async fetchBaseDefinitionChain(baseDefUrl: string): Promise<any[]> {
     const chain: any[] = [];
@@ -236,7 +312,6 @@ export class ProfilesComponent implements OnInit {
 
         chain.push(baseDef);
 
-        // Stop at base FHIR resources
         if (currentUrl.includes('http://hl7.org/fhir/StructureDefinition/')) {
           break;
         }
@@ -253,7 +328,13 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Handle profile selection change
+   * Handles profile selection change from dropdown
+   *
+   * Updates selected profile URL and title, then loads the StructureDefinition.
+   * Clears all profile data if no selection.
+   *
+   * @param event - DOM change event from select element
+   * @returns Promise that resolves when profile is loaded
    */
   async onProfileChange(event: Event) {
     const value = (event.target as HTMLSelectElement).value;
@@ -279,7 +360,10 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Execute/refresh current profile
+   * Executes/refreshes the currently selected profile
+   * Reloads the StructureDefinition for the selected profile
+   *
+   * @returns Promise that resolves when profile is reloaded
    */
   async execute() {
     const url = this.selectedProfileUrl();
@@ -291,7 +375,12 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Clear all cached profiles
+   * Clears all cached profiles from disk
+   *
+   * Shows confirmation dialog before clearing.
+   * Clears profile cache, updates cache stats, and resets current profile view.
+   *
+   * @returns Promise that resolves when cache is cleared
    */
   async handleClearCache() {
     if (!confirm('Are you sure you want to clear all cached profiles? This will force profiles to be re-downloaded from the server.')) {
@@ -313,7 +402,12 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Refresh current profile from server
+   * Refreshes the currently selected profile from server
+   *
+   * Shows confirmation dialog before refreshing.
+   * Clears cache for this specific profile and re-downloads from server.
+   *
+   * @returns Promise that resolves when profile is refreshed
    */
   async handleRefreshProfile() {
     const url = this.selectedProfileUrl();
@@ -330,7 +424,6 @@ export class ProfilesComponent implements OnInit {
     }
 
     try {
-      // Clear cache for this profile
       await window.electronAPI?.profileCache?.setProfile(title, null);
       await this.loadStructureDefinition(url, title);
       await this.loadCacheStatsData();
@@ -342,7 +435,8 @@ export class ProfilesComponent implements OnInit {
   }
 
   /**
-   * Open resource editor dialog
+   * Opens the current StructureDefinition in resource editor dialog
+   * Only opens if a StructureDefinition is currently loaded
    */
   openEditor() {
     const sd = this.structureDefinition();

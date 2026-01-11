@@ -6,10 +6,18 @@ import { AuthService } from '../../../core/services/auth.service';
 import { LoggerService } from '../../../core/services/logger.service';
 
 /**
- * Two-Factor Setup Component
+ * Two-Factor Authentication Setup Component
  *
- * Allows users to enable TOTP-based 2FA
- * Shows QR code and secret for authenticator apps
+ * Provides interface for enabling and managing TOTP-based two-factor authentication.
+ *
+ * Features:
+ * - Generates TOTP secret and QR code for authenticator apps
+ * - Supports popular authenticator apps (Google Authenticator, Authy, etc.)
+ * - Verification code validation before enabling 2FA
+ * - Ability to disable 2FA with confirmation
+ * - Secret copying to clipboard for manual entry
+ * - Setup completion tracking
+ * - Navigation back to login after setup
  */
 @Component({
   selector: 'app-two-factor-setup',
@@ -19,29 +27,65 @@ import { LoggerService } from '../../../core/services/logger.service';
   styleUrls: ['./two-factor-setup.component.scss']
 })
 export class TwoFactorSetupComponent implements OnInit {
+
+  /** Service for authentication operations */
   private authService = inject(AuthService);
+
+  /** Angular router for navigation */
   private router = inject(Router);
+
+  /** Service for application logging */
   private loggerService = inject(LoggerService);
+
+  /** Component-specific logger instance */
   private logger = this.loggerService.component('TwoFactorSetupComponent');
 
-  // Setup state
+  /** Generated TOTP secret key */
   secret = signal('');
+
+  /** Base64-encoded QR code image for authenticator app scanning */
   qrCode = signal('');
+
+  /** User-friendly account name displayed in authenticator app */
   accountName = signal('My FHIR Account');
+
+  /** Six-digit verification code entered by user */
   verificationCode = signal('');
 
-  // UI state
+  /** Loading state during 2FA operations */
   loading = signal(false);
+
+  /** Error message from 2FA setup or verification failures */
   error = signal<string | null>(null);
+
+  /** Whether 2FA setup has been successfully completed */
   setupComplete = signal(false);
+
+  /** Whether 2FA is currently enabled for the account */
   twoFactorEnabled = signal(false);
 
+  /**
+   * Angular lifecycle hook called on component initialization
+   *
+   * Checks if two-factor authentication is already enabled for the user
+   * and updates the twoFactorEnabled signal accordingly.
+   *
+   * @returns Promise that resolves when initialization completes
+   */
   async ngOnInit() {
     this.twoFactorEnabled.set(await this.authService.isTwoFactorEnabled());
   }
 
   /**
-   * Generate new 2FA secret and QR code
+   * Generates new TOTP secret and QR code for 2FA setup
+   *
+   * Creates a new time-based one-time password (TOTP) secret and generates
+   * a QR code image that can be scanned by authenticator apps.
+   * Uses the account name to label the account in the authenticator app.
+   *
+   * Sets loading state during generation and error state on failure.
+   *
+   * @returns Promise that resolves when secret generation completes
    */
   async generate2FASecret() {
     this.loading.set(true);
@@ -59,7 +103,18 @@ export class TwoFactorSetupComponent implements OnInit {
   }
 
   /**
-   * Verify and save 2FA setup
+   * Verifies the TOTP code and saves 2FA configuration
+   *
+   * Validates the six-digit verification code from the user's authenticator app
+   * against the generated secret. If valid, enables 2FA for the account and
+   * marks setup as complete.
+   *
+   * Workflow:
+   * 1. Verifies the entered code matches the secret
+   * 2. On success, enables 2FA and marks setup as complete
+   * 3. On failure, displays error message for retry
+   *
+   * @returns Promise that resolves when verification completes
    */
   async verify2FASetup() {
     this.loading.set(true);
@@ -85,7 +140,13 @@ export class TwoFactorSetupComponent implements OnInit {
   }
 
   /**
-   * Disable 2FA
+   * Disables two-factor authentication for the account
+   *
+   * Shows confirmation dialog before disabling.
+   * Removes 2FA requirement from the account and clears all setup state.
+   * User will no longer need to provide verification codes during login.
+   *
+   * @returns Promise that resolves when 2FA is disabled
    */
   async disable2FA() {
     if (!confirm('Are you sure you want to disable two-factor authentication?')) {
@@ -109,7 +170,12 @@ export class TwoFactorSetupComponent implements OnInit {
   }
 
   /**
-   * Copy secret to clipboard
+   * Copies the TOTP secret to clipboard
+   *
+   * Allows users to manually enter the secret into their authenticator app
+   * if they cannot scan the QR code. Shows alert on successful copy.
+   *
+   * @returns Promise that resolves when copy operation completes
    */
   async copySecret() {
     try {
@@ -121,14 +187,25 @@ export class TwoFactorSetupComponent implements OnInit {
   }
 
   /**
-   * Navigate back to login
+   * Navigates back to the login page
+   *
+   * Redirects user to the login screen, typically after completing
+   * or canceling the 2FA setup process.
    */
   backToLogin() {
     this.router.navigate(['/login']);
   }
 
   /**
-   * Start new setup
+   * Resets the setup flow to start a new 2FA configuration
+   *
+   * Clears all setup state including:
+   * - Secret and QR code
+   * - Verification code input
+   * - Setup completion status
+   * - Error messages
+   *
+   * Allows user to generate a new secret and QR code.
    */
   startNewSetup() {
     this.secret.set('');

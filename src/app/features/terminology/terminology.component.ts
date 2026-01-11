@@ -1,99 +1,166 @@
 import {CommonModule} from '@angular/common';
-import {Component, OnInit, AfterViewInit, OnDestroy, inject, signal, computed, effect, HostListener, ViewChild} from '@angular/core';
+import {Component, OnInit, OnDestroy, inject, signal, computed, effect, HostListener, ViewChild} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {EditorStateService} from '../../core/services/editor-state.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams} from '../../core/services/terminology.service';
-import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 /**
- * Terminology Tab Component
+ * FHIR Terminology Operations Component
  *
- * Provides FHIR Terminology Operations:
- * - CodeSystem/$lookup - Get code details
- * - ValueSet/$expand - Expand value set to codes
- * - ValueSet/$validate-code - Validate code membership
- * - ConceptMap/$translate - Translate codes between systems
+ * Provides interactive interface for FHIR Terminology Operations:
+ * - CodeSystem/$lookup - Retrieve concept details from code system
+ * - ValueSet/$expand - Expand value set to list of codes
+ * - ValueSet/$validate-code - Validate code membership in value set
+ * - ConceptMap/$translate - Translate codes between terminology systems
+ *
+ * Features:
+ * - Monaco editor for JSON result display
+ * - Split-panel interface with resizable sections
+ * - Real-time parameter configuration
+ * - Support for multilingual terminology operations
  */
 
+/** Type definition for supported FHIR terminology operations */
 type OperationType = 'lookup' | 'expand' | 'validate-code' | 'translate';
 
 @Component({
   selector: 'app-terminology',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent],
   templateUrl: './terminology.component.html',
   styleUrls: ['./terminology.component.scss']
 })
-export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
+export class TerminologyComponent implements OnInit, OnDestroy {
 
-  // ViewChild reference to Monaco Editor (text modus)
+  /** Reference to Monaco editor component for JSON result display */
   @ViewChild('component') component?: MonacoEditorComponent;
 
+  /** Service for FHIR terminology operations */
   private terminologyService = inject(TerminologyService);
+
+  /** Service for application logging */
   private loggerService = inject(LoggerService);
+
+  /** Service for managing editor state and file operations */
   private editorStateService = inject(EditorStateService);
+
+  /** Component-specific logger instance */
   private logger = this.loggerService.component('TerminologyComponent');
 
-  // Operation selection
+  /** Currently selected terminology operation type */
   operation = signal<OperationType>('lookup');
 
-  // Results
+  /** Result from last terminology operation execution */
   result = signal<any>(null);
+
+  /** Error message from failed operations */
   error = signal<string | null>(null);
+
+  /** Loading state from terminology service */
   loading = computed(() => this.terminologyService.loading());
 
-  // JSON viewer settings
+  /** JSON viewer collapse level (false = fully expanded) */
   collapsedLevel = signal<number | false>(4);
+
+  /** Whether JSON search is visible */
   showSearch = signal(false);
+
+  /** Search term for filtering JSON content */
   searchTerm = signal('');
 
-  // Monaco editor JSON content
+  /** Computed JSON string from operation result */
   jsonContent = computed(() => {
     const res = this.result();
 
     return res ? JSON.stringify(res, null, 2) : '';
   });
 
-  // Split panel (JSON left, formatted right)
-  leftWidth = signal(50); // percentage
+  /** Width percentage of left panel in split view */
+  leftWidth = signal(50);
+
+  /** Whether panel resize is in progress */
   isResizing = signal(false);
+
+  /** Starting X position for resize operation */
   private startX = 0;
+
+  /** Starting width percentage for resize operation */
   private startWidth = 0;
 
-  // Lookup parameters
+  /** Code system URL for $lookup operation */
   lookupSystem = signal('http://snomed.info/sct');
-  lookupCode = signal('73211009'); // Diabetes mellitus
+
+  /** Code value for $lookup operation (default: Diabetes mellitus) */
+  lookupCode = signal('73211009');
+
+  /** Code system version for $lookup operation */
   lookupVersion = signal('');
-  lookupLanguage = signal('nl-x-sctlang-31000146-106'); // Dutch medical
+
+  /** Display language for $lookup operation (default: Dutch medical) */
+  lookupLanguage = signal('nl-x-sctlang-31000146-106');
+
+  /** Property to retrieve for $lookup operation */
   lookupProperty = signal('designation');
 
-  // Expand parameters
+  /** Value set URL for $expand operation */
   expandUrl = signal('http://terminology.hl7.org/ValueSet/v3-NullFlavor');
+
+  /** Filter text for $expand operation */
   expandFilter = signal('');
+
+  /** Maximum number of codes to return in $expand */
   expandCount = signal(100);
+
+  /** Offset for pagination in $expand */
   expandOffset = signal(0);
+
+  /** Whether to include designations in $expand */
   expandIncludeDesignations = signal(true);
+
+  /** Display language for $expand operation */
   expandDisplayLanguage = signal('nl-x-sctlang-31000146-106');
 
-  // Validate parameters
+  /** Value set URL for $validate-code operation */
   validateUrl = signal('http://terminology.hl7.org/ValueSet/v3-NullFlavor');
+
+  /** Code to validate in $validate-code operation */
   validateCode = signal('UNK');
+
+  /** Code system for $validate-code operation */
   validateSystem = signal('http://terminology.hl7.org/CodeSystem/v3-NullFlavor');
+
+  /** Display text for code in $validate-code operation */
   validateDisplay = signal('');
+
+  /** Version for $validate-code operation */
   validateVersion = signal('');
 
-  // Translate parameters
+  /** ConceptMap URL for $translate operation */
   translateUrl = signal('');
+
+  /** Code to translate in $translate operation */
   translateCode = signal('');
+
+  /** Source code system for $translate operation */
   translateSystem = signal('');
+
+  /** Source value set URL for $translate operation */
   translateSource = signal('');
+
+  /** Target value set URL for $translate operation */
   translateTarget = signal('');
 
+  /**
+   * Creates an instance of TerminologyComponent
+   *
+   * Sets up reactive effect for Monaco editor registration.
+   * The editor is registered as read-only when operation results are available,
+   * with retry mechanism for async Monaco loading.
+   */
   constructor() {
-    // Register editor when it becomes available (after operation results load)
     effect(() => {
       const hasResults = this.result() != null;
 
@@ -103,7 +170,6 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
             this.editorStateService.registerEditor(this.component, false, '/app/terminology');
             this.logger.info('Terminology editor registered as read-only');
           } else {
-            // Retry after Monaco editor has had time to initialize
             setTimeout(() => {
               if (this.component?.editor) {
                 this.editorStateService.registerEditor(this.component, false, '/app/terminology');
@@ -116,20 +182,35 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
     });
   }
 
+  /**
+   * Angular lifecycle hook called on component initialization
+   * Logs component initialization for debugging
+   */
   ngOnInit() {
     this.logger.info('Component initialized');
   }
 
-  ngAfterViewInit() {
-    // Editor registration happens in ngOnInit effect
-  }
-
+  /**
+   * Angular lifecycle hook called on component destruction
+   * Unregisters editor from EditorStateService
+   */
   ngOnDestroy() {
     this.editorStateService.unregisterEditor('/app/terminology');
   }
 
   /**
-   * Execute selected terminology operation
+   * Executes the currently selected terminology operation
+   *
+   * Dispatches to appropriate operation handler based on operation signal:
+   * - lookup: CodeSystem/$lookup
+   * - expand: ValueSet/$expand
+   * - validate-code: ValueSet/$validate-code
+   * - translate: ConceptMap/$translate
+   *
+   * Clears previous results and errors before execution.
+   * Updates result signal on success or error signal on failure.
+   *
+   * @returns Promise that resolves when operation completes
    */
   async executeOperation() {
     this.error.set(null);
@@ -161,7 +242,17 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Execute lookup operation
+   * Executes CodeSystem/$lookup operation
+   *
+   * Retrieves concept details from a code system including:
+   * - Display text
+   * - Designations in specified language
+   * - Properties (if requested)
+   *
+   * Builds parameters from lookup signals and calls terminology service.
+   *
+   * @returns Promise resolving to FHIR Parameters resource with concept details
+   * @private
    */
   private async executeLookup(): Promise<any> {
     const params: LookupParams = {
@@ -185,7 +276,19 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Execute expand operation
+   * Executes ValueSet/$expand operation
+   *
+   * Expands a value set to return the list of codes it contains.
+   * Supports:
+   * - Text filtering
+   * - Pagination (count/offset)
+   * - Designation inclusion
+   * - Language-specific displays
+   *
+   * Builds parameters from expand signals and calls terminology service.
+   *
+   * @returns Promise resolving to FHIR ValueSet with expansion
+   * @private
    */
   private async executeExpand(): Promise<any> {
     const params: ExpandParams = {
@@ -216,7 +319,18 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Execute validate-code operation
+   * Executes ValueSet/$validate-code operation
+   *
+   * Validates whether a code is a member of a value set.
+   * Returns a Parameters resource with validation result including:
+   * - Boolean result
+   * - Display text
+   * - Message (if invalid)
+   *
+   * Builds parameters from validate signals and calls terminology service.
+   *
+   * @returns Promise resolving to FHIR Parameters resource with validation result
+   * @private
    */
   private async executeValidate(): Promise<any> {
     const params: ValidateCodeParams = {
@@ -237,7 +351,18 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Execute translate operation
+   * Executes ConceptMap/$translate operation
+   *
+   * Translates a code from one code system to another using a ConceptMap.
+   * Returns a Parameters resource with translation results including:
+   * - Match status
+   * - Equivalent codes
+   * - Equivalence level
+   *
+   * Builds parameters from translate signals and calls terminology service.
+   *
+   * @returns Promise resolving to FHIR Parameters resource with translation results
+   * @private
    */
   private async executeTranslate(): Promise<any> {
     const params: TranslateParams = {
@@ -258,7 +383,12 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Change operation type
+   * Changes the selected terminology operation type
+   *
+   * Updates operation signal and clears previous results and errors.
+   * This allows user to switch between different terminology operations.
+   *
+   * @param op - The operation type to select (lookup, expand, validate-code, translate)
    */
   selectOperation(op: OperationType) {
     this.operation.set(op);
@@ -267,21 +397,26 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Collapse JSON viewer
+   * Collapses all levels of JSON viewer to show only top level
+   * Sets collapsed level to 1 (minimum)
    */
   collapseAll() {
     this.collapsedLevel.set(1);
   }
 
   /**
-   * Expand JSON viewer
+   * Expands all levels of JSON viewer to show entire structure
+   * Sets collapsed level to false (fully expanded)
    */
   expandAll() {
     this.collapsedLevel.set(false);
   }
 
   /**
-   * Expand one level
+   * Expands JSON viewer by one level
+   *
+   * Decreases the collapse level by 1, or sets to false (fully expanded)
+   * if already at level 1. Has no effect if already fully expanded.
    */
   expandOneLevel() {
     const level = this.collapsedLevel();
@@ -298,7 +433,9 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Collapse one level
+   * Collapses JSON viewer by one level
+   *
+   * Increases the collapse level by 1, or sets to 1 if currently fully expanded.
    */
   collapseOneLevel() {
     const level = this.collapsedLevel();
@@ -311,7 +448,12 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Start resizing split panel
+   * Initiates panel resize operation
+   *
+   * Records starting position and width for drag calculation.
+   * Sets appropriate cursor and disables text selection during resize.
+   *
+   * @param event - Mouse down event on resize divider
    */
   startResize(event: MouseEvent) {
     event.preventDefault();
@@ -323,7 +465,12 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Handle mouse move during resize
+   * Handles mouse movement during panel resize
+   *
+   * Calculates new panel width based on mouse position delta.
+   * Constrains width between 20% and 80% to prevent unusable layouts.
+   *
+   * @param event - Mouse move event during drag
    */
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
@@ -340,7 +487,9 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Stop resizing
+   * Stops panel resize operation on mouse up
+   *
+   * Resets resize state and restores normal cursor and text selection.
    */
   @HostListener('document:mouseup')
   stopResize() {
@@ -352,7 +501,15 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Get parameter value from FHIR Parameters resource
+   * Extracts a parameter value from FHIR Parameters resource
+   *
+   * Searches for a parameter by name and returns its value.
+   * Handles multiple value types: valueString, valueBoolean, valueCode,
+   * valueInteger, or part (for complex parameters).
+   *
+   * @param parameters - FHIR Parameters resource
+   * @param name - Name of parameter to find
+   * @returns Parameter value or null if not found
    */
   getParameterValue(parameters: any, name: string): any {
     if (!parameters?.parameter) {
@@ -364,12 +521,18 @@ export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
       return null;
     }
 
-    // Check for different value types
     return param.valueString || param.valueBoolean || param.valueCode || param.valueInteger || param.part;
   }
 
   /**
-   * Get all parameters with a specific name from FHIR Parameters resource
+   * Extracts all parameters with a specific name from FHIR Parameters resource
+   *
+   * Returns an array of all parameters matching the given name.
+   * Useful for parameters that can appear multiple times (e.g., designations).
+   *
+   * @param parameters - FHIR Parameters resource
+   * @param name - Name of parameters to find
+   * @returns Array of matching parameters (empty if none found)
    */
   getAllParameters(parameters: any, name: string): any[] {
     if (!parameters?.parameter) {

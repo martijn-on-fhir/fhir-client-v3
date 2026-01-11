@@ -4,25 +4,46 @@ import { FormsModule } from '@angular/forms';
 import { LoggerService } from '../../core/services/logger.service';
 import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
 
+/**
+ * Represents a single log entry from the application log file
+ */
 interface LogEntry {
+  /** Source of the log entry (main or renderer process) */
   source: string;
+
+  /** Raw unparsed log line from the file */
   raw: string;
+
+  /** ISO timestamp of the log entry */
   timestamp: string | null;
+
+  /** Log level severity (debug, info, warn, error) */
   level: 'debug' | 'info' | 'warn' | 'error' | null;
+
+  /** Process that generated the log (main or renderer) */
   process: string | null;
+
+  /** Component name that generated the log */
   component: string | null;
+
+  /** Log message content */
   message: string;
 }
 
 /**
- * Logs Component - View application logs
+ * Logs Component
+ *
+ * Provides comprehensive log viewing and management interface.
  *
  * Features:
- * - Real-time log viewing from disk
- * - Live updates (watch mode)
- * - Filter by level and search text
- * - Export logs to file
- * - Color-coded log levels
+ * - Real-time log viewing from disk with file system integration
+ * - Live updates via file watcher (watch mode)
+ * - Multi-criteria filtering (level, component, search text)
+ * - Log statistics and component-based filtering
+ * - Export logs to file via Electron file API
+ * - Auto-scroll to latest entries
+ * - Color-coded log levels with icons
+ * - Tail functionality for loading recent entries
  */
 @Component({
   selector: 'app-logs',
@@ -33,60 +54,45 @@ interface LogEntry {
 })
 export class LogsComponent implements OnInit, OnDestroy {
 
-  /**
-   * Logger instance for this component
-   */
+  /** Component-specific logger instance */
   private get logger() {
     return this.loggerService.component('LogsComponent');
   }
 
-  /**
-   * Array of log entries loaded from the log file
-   */
+  /** Array of log entries loaded from the log file */
   logs = signal<LogEntry[]>([]);
 
-  /**
-   * Loading state indicator
-   */
+  /** Loading state while reading log file */
   loading = signal(false);
 
-  /**
-   * Error message if log loading fails
-   */
+  /** Error message from log file operations */
   error = signal<string | null>(null);
 
-  /**
-   * Whether file watching is active for live updates
-   */
+  /** Whether file watching is active for live updates */
   watching = signal(false);
 
-  /**
-   * Search text filter
-   */
+  /** Search text filter for log content */
   searchText = signal('');
 
-  /**
-   * Selected log level filter
-   */
+  /** Selected log level filter (all, debug, info, warn, error) */
   selectedLevel = signal<'all' | 'debug' | 'info' | 'warn' | 'error'>('all');
 
-  /**
-   * Whether to auto-scroll to bottom when new logs are loaded
-   */
+  /** Whether to auto-scroll to bottom when new logs are loaded */
   autoScroll = signal(true);
 
-  /**
-   * Paths to the log files (main and renderer)
-   */
+  /** File system paths to main and renderer log files */
   logPaths = signal<{ mainLog: string; rendererLog: string } | null>(null);
 
-  /**
-   * Selected component filter
-   */
+  /** Selected component name filter for logs */
   selectedComponent = signal<string>('all');
 
   /**
-   * Filtered logs based on search text, level, and component filters
+   * Computed filtered logs based on current filters
+   *
+   * Applies three filters in sequence:
+   * 1. Log level filter (if not 'all')
+   * 2. Component filter (if not 'all')
+   * 3. Text search across message, raw content, component, and process
    */
   filteredLogs = computed(() => {
     const allLogs = this.logs();
@@ -116,7 +122,12 @@ export class LogsComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * Statistics about log entries (total, counts per level, filtered count)
+   * Computed statistics about log entries
+   *
+   * Provides counts for:
+   * - Total number of loaded logs
+   * - Count by each log level (debug, info, warn, error)
+   * - Count of filtered logs after applying current filters
    */
   stats = computed(() => {
     const allLogs = this.logs();
@@ -132,7 +143,10 @@ export class LogsComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * Unique component names extracted from all logs for the filter dropdown
+   * Computed unique component names from all loaded logs
+   *
+   * Extracts all unique component names and sorts them alphabetically
+   * for use in the component filter dropdown.
    */
   uniqueComponents = computed(() => {
     const components = new Set<string>();
@@ -146,20 +160,23 @@ export class LogsComponent implements OnInit, OnDestroy {
     return Array.from(components).sort();
   });
 
-  /**
-   * Callback to unregister the file watcher listener
-   */
+  /** Cleanup callback to unregister the file watcher listener from Electron */
   private unwatchCallback?: () => void;
 
   /**
    * Creates an instance of LogsComponent
-   * @param loggerService Service for logging operations
+   *
+   * @param loggerService - Service for logging operations
    */
   constructor(private loggerService: LoggerService) {}
 
   /**
-   * Component initialization lifecycle hook
-   * Loads the last 500 log entries and sets up file watcher for live updates
+   * Angular lifecycle hook called on component initialization
+   *
+   * Workflow:
+   * 1. Loads the last 500 log entries from disk
+   * 2. Loads file system paths to log files
+   * 3. Sets up Electron file watcher listener for automatic log updates
    */
   async ngOnInit() {
     await this.loadLogs(500);
@@ -174,8 +191,10 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Component cleanup lifecycle hook
-   * Stops file watching and cleans up listeners
+   * Angular lifecycle hook called on component destruction
+   *
+   * Cleans up file watcher and unregisters Electron event listeners
+   * to prevent memory leaks.
    */
   ngOnDestroy() {
     this.stopWatching();
@@ -187,6 +206,10 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Loads the file system paths to the log files from Electron
+   *
+   * Retrieves the absolute file paths for both main and renderer process log files
+   * from Electron API and updates the logPaths signal.
+   *
    * @returns Promise that resolves when paths are loaded
    */
   async loadLogPaths() {
@@ -202,8 +225,13 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Loads log entries from disk
-   * @param tail Optional number of lines to load from the end of the file. If not specified, loads all entries.
+   * Loads log entries from disk via Electron file API
+   *
+   * Reads log file from disk, parses entries, and updates the logs signal.
+   * If autoScroll is enabled, scrolls to the bottom after loading.
+   * Sets loading state during operation and error state on failure.
+   *
+   * @param tail - Optional number of lines to load from the end of the file. If not specified, loads all entries.
    * @returns Promise that resolves when logs are loaded
    */
   async loadLogs(tail?: number) {
@@ -233,6 +261,11 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Starts watching the log file for changes to enable live updates
+   *
+   * Activates file system watcher via Electron API. When the log file changes,
+   * Electron triggers the onLogsUpdated event (registered in ngOnInit) which
+   * automatically reloads the logs.
+   *
    * @returns Promise that resolves when watching is started
    */
   async startWatching() {
@@ -253,6 +286,10 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Stops watching the log file for changes
+   *
+   * Deactivates the file system watcher via Electron API.
+   * Logs will no longer automatically reload when the file changes.
+   *
    * @returns Promise that resolves when watching is stopped
    */
   async stopWatching() {
@@ -270,6 +307,10 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Toggles the watch mode on or off
+   *
+   * If currently watching, stops watching.
+   * If not watching, starts watching.
+   *
    * @returns Promise that resolves when watch mode is toggled
    */
   async toggleWatch() {
@@ -282,6 +323,11 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Exports log entries to a user-selected file location
+   *
+   * Opens a save dialog via Electron file API and writes the current
+   * log file contents to the selected location. Does not set error
+   * if user cancels the dialog.
+   *
    * @returns Promise that resolves when export is complete or cancelled
    */
   async exportLogs() {
@@ -304,6 +350,10 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Refreshes the log display by reloading the last 500 entries
+   *
+   * Clears current logs and reloads from disk.
+   * Useful for manually updating logs when watch mode is disabled.
+   *
    * @returns Promise that resolves when logs are refreshed
    */
   async refresh() {
@@ -311,7 +361,10 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Clears the displayed log entries without deleting the log files
+   * Clears the displayed log entries from the UI
+   *
+   * Empties the logs signal without deleting the actual log files.
+   * The log files remain on disk and can be reloaded.
    */
   clear() {
     this.logs.set([]);
@@ -320,7 +373,11 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Loads a specific number of log lines from the end of the file
-   * @param lines Number of lines to load from the end
+   *
+   * Delegates to loadLogs with the tail parameter to load only
+   * the most recent N lines from the log file.
+   *
+   * @param lines - Number of lines to load from the end
    * @returns Promise that resolves when logs are loaded
    */
   async loadTail(lines: number) {
@@ -329,6 +386,11 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Scrolls the log container to the bottom to show the most recent entries
+   *
+   * Automatically triggered after loading logs when autoScroll is enabled.
+   * Uses DOM manipulation to scroll the container to its maximum scroll height.
+   *
+   * @private
    */
   private scrollToBottom() {
     const container = document.querySelector('.log-container');
@@ -340,8 +402,16 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Returns the Bootstrap CSS class for styling based on log level
-   * @param level The log level (error, warn, info, debug, or null)
-   * @returns Bootstrap text color class
+   *
+   * Maps log levels to Bootstrap text color classes:
+   * - error: text-danger (red)
+   * - warn: text-warning (yellow)
+   * - info: text-primary (blue)
+   * - debug: text-secondary (gray)
+   * - null/unknown: text-muted (light gray)
+   *
+   * @param level - The log level (error, warn, info, debug, or null)
+   * @returns Bootstrap text color class name
    */
   getLevelClass(level: string | null): string {
     switch (level) {
@@ -360,7 +430,15 @@ export class LogsComponent implements OnInit, OnDestroy {
 
   /**
    * Returns the Font Awesome icon class based on log level
-   * @param level The log level (error, warn, info, debug, or null)
+   *
+   * Maps log levels to appropriate Font Awesome icons:
+   * - error: fa-times-circle (X in circle)
+   * - warn: fa-exclamation-triangle (warning triangle)
+   * - info: fa-info-circle (i in circle)
+   * - debug: fa-bug (bug icon)
+   * - null/unknown: fa-circle (simple circle)
+   *
+   * @param level - The log level (error, warn, info, debug, or null)
    * @returns Font Awesome icon class name
    */
   getLevelIcon(level: string | null): string {

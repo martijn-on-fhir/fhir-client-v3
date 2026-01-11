@@ -12,65 +12,113 @@ import {
   ValidationResult,
   getSeverityIcon
 } from '../../core/utils/fhir-validator';
-import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
+/**
+ * FHIR Validator Component
+ *
+ * Provides comprehensive validation of FHIR resources including:
+ * - Client-side validation against FHIR R4/STU3 specifications
+ * - Server-side validation against CapabilityStatement
+ * - Support for single resources, arrays, and Bundles
+ * - Monaco editor integration for JSON editing
+ * - Split-panel interface with resizable validation results
+ */
 @Component({
   selector: 'app-validator',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent],
   templateUrl: './validator.component.html',
   styleUrl: './validator.component.scss'
 })
 export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
+  /** Reference to Monaco editor component for JSON input */
   @ViewChild('component') component?: MonacoEditorComponent;
 
+  /** Service for FHIR server communication */
   private fhirService = inject(FhirService);
+
+  /** Service for application logging */
   private loggerService = inject(LoggerService);
+
+  /** Component-specific logger instance */
   private logger = this.loggerService.component('ValidatorComponent');
+
+  /** Service for managing editor state and file operations */
   private editorStateService = inject(EditorStateService);
 
-  // Signals for state management
+  /** JSON input content from Monaco editor */
   jsonInput = signal<string>('');
+
+  /** Parsed JSON data object */
   parsedData = signal<any>(null);
+
+  /** Current validation result with issues */
   validationResult = signal<ValidationResult | null>(null);
+
+  /** Error message for display to user */
   error = signal<string | null>(null);
+
+  /** Loading state during validation operations */
   loading = signal<boolean>(false);
+
+  /** Selected validation profile (server-capability, fhir-r4-base, fhir-stu3-base) */
   selectedProfile = signal<string>('server-capability');
+
+  /** Server CapabilityStatement metadata for server validation */
   serverMetadata = signal<any>(null);
+
+  /** Width percentage of left panel in split view */
   leftWidth = signal<number>(50);
+
+  /** Whether panel resize is in progress */
   isResizing = signal<boolean>(false);
 
-  // Computed signals
+  /** Computed array of error-level validation issues */
   errors = computed(() => {
     const result = this.validationResult();
 
     return result ? result.issues.filter(i => i.severity === 'error') : [];
   });
 
+  /** Computed array of warning-level validation issues */
   warnings = computed(() => {
     const result = this.validationResult();
 
     return result ? result.issues.filter(i => i.severity === 'warning') : [];
   });
 
+  /** Computed array of information-level validation issues */
   information = computed(() => {
     const result = this.validationResult();
 
     return result ? result.issues.filter(i => i.severity === 'information') : [];
   });
 
-  // Event handlers
+  /** Mouse move event handler for panel resizing */
   private mouseMoveHandler?: (e: MouseEvent) => void;
+
+  /** Mouse up event handler for panel resizing */
   private mouseUpHandler?: () => void;
+
+  /** Cleanup function for file operations */
   private fileOpenCleanup?: () => void;
 
+  /** Utility function reference for severity icon mapping */
   getSeverityIcon = getSeverityIcon;
 
+  /**
+   * Creates an instance of ValidatorComponent
+   *
+   * Sets up reactive effects for:
+   * - Auto-parsing JSON input when it changes
+   * - Loading server metadata when server validation profile is selected
+   *
+   * @param themeService - Service for managing application theme (light/dark mode)
+   */
   constructor(public themeService: ThemeService) {
-    // Auto-parse JSON when input changes
     effect(() => {
       const input = this.jsonInput();
 
@@ -87,7 +135,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }, {allowSignalWrites: true});
 
-    // Load server metadata when server validation is selected
     effect(async () => {
       if (this.selectedProfile() === 'server-capability') {
         await this.loadServerMetadata();
@@ -96,23 +143,28 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
   }
 
   /**
-   * Load server metadata from cache or FHIR server
+   * Loads server metadata (CapabilityStatement) from cache or FHIR server
+   *
+   * Attempts to load metadata in the following order:
+   * 1. From electron-store cache
+   * 2. From FHIR server via FhirService
+   *
+   * Handles both Observable and direct value returns from the APIs.
+   * Updates serverMetadata signal on success or sets error message on failure.
+   *
+   * @private
    */
   private async loadServerMetadata() {
     try {
-      // Try to load from electron-store first
       let storedMetadata = await window.electronAPI?.metadata?.get();
 
-      // Check if it's an Observable and unwrap it
       if (storedMetadata && typeof storedMetadata === 'object' && 'subscribe' in storedMetadata) {
         storedMetadata = await firstValueFrom(storedMetadata as any);
       }
 
-      // If not in storage, fetch from server
       if (!storedMetadata) {
         const result = await this.fhirService.getMetadata();
 
-        // Check if result is Observable
         if (result && typeof result === 'object' && 'subscribe' in result) {
           storedMetadata = await firstValueFrom(result as any);
         } else {
@@ -132,18 +184,32 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Angular lifecycle hook called on component initialization
+   * Logs component initialization for debugging
+   */
   ngOnInit() {
     this.logger.info('Validator tab initialized');
   }
 
+  /**
+   * Angular lifecycle hook called after view initialization
+   * Registers Monaco editor with EditorStateService for file operations
+   */
   ngAfterViewInit() {
-    // Register Monaco editor with EditorStateService
-    // Use retry mechanism because Monaco loads asynchronously from CDN
     this.registerEditorWithRetry();
   }
 
   /**
-   * Register editor with retry mechanism for async Monaco loading
+   * Registers Monaco editor with retry mechanism for async loading
+   *
+   * Monaco editor loads asynchronously, so this method:
+   * 1. Attempts to register after 100ms delay
+   * 2. Retries after 200ms if first attempt fails
+   *
+   * Registers editor as editable for file load/save operations.
+   *
+   * @private
    */
   private registerEditorWithRetry() {
     setTimeout(() => {
@@ -151,7 +217,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.editorStateService.registerEditor(this.component, true, '/app/validator');
         this.logger.info('Validator editor registered as editable');
       } else {
-        // Retry after longer delay
         setTimeout(() => {
           if (this.component?.editor) {
             this.editorStateService.registerEditor(this.component, true, '/app/validator');
@@ -162,11 +227,23 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }, 100);
   }
 
+  /**
+   * Angular lifecycle hook called on component destruction
+   * Cleans up event listeners and unregisters editor from EditorStateService
+   */
   ngOnDestroy() {
     this.cleanup();
     this.editorStateService.unregisterEditor('/app/validator');
   }
 
+  /**
+   * Handles file open operation via Electron file API
+   *
+   * Opens a file dialog and loads the selected file content into the editor.
+   * Updates jsonInput signal with file content on success, or sets error message on failure.
+   *
+   * @returns Promise that resolves when file operation completes
+   */
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
       this.error.set('File API not available');
@@ -186,6 +263,26 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Validates FHIR resource(s) based on selected validation profile
+   *
+   * Supports validation of:
+   * - Single FHIR resources
+   * - Arrays of resources (batch validation)
+   * - Bundle resources (validates all entries)
+   *
+   * Validation modes:
+   * - Server validation: Validates against server CapabilityStatement + FHIR spec
+   * - R4 Base: Validates against FHIR R4 specification
+   * - STU3 Base: Validates against FHIR STU3 specification
+   *
+   * Updates validationResult signal with combined results, including:
+   * - Overall validation status (isValid)
+   * - Array of all validation issues with location paths
+   * - Resource type information
+   *
+   * Sets loading state during validation and error state on failure.
+   */
   handleValidate() {
     this.loading.set(true);
     this.error.set(null);
@@ -200,11 +297,8 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
       const isServerValidation = this.selectedProfile() === 'server-capability';
       const fhirVersion = this.selectedProfile() === 'fhir-stu3-base' ? 'STU3' : 'R4';
 
-      // Handle array of resources
       if (Array.isArray(data)) {
-
         const results = data.map((resource, index) => {
-
           let result;
 
           if (isServerValidation) {
@@ -235,7 +329,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
           resourceType: `Batch (${results.length} resources)`,
         });
       } else if (data.resourceType === 'Bundle') {
-        // Handle Bundle
         const entries = data.entry || [];
         const results = entries.map((entry: any, index: number) => {
           const resource = entry.resource;
@@ -274,7 +367,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
           resourceType: `Bundle (${results.length} entries)`,
         });
       } else {
-        // Handle single resource
         if (isServerValidation) {
           const serverResult = validateAgainstServer(data, this.serverMetadata());
           const baseResult = validateFhirResource(data, fhirVersion);
@@ -296,6 +388,15 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Clears all validation state and resets the component
+   *
+   * Resets:
+   * - JSON input editor content
+   * - Parsed data
+   * - Validation results
+   * - Error messages
+   */
   handleClear() {
     this.jsonInput.set('');
     this.parsedData.set(null);
@@ -303,10 +404,22 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.error.set(null);
   }
 
+  /**
+   * Clears only the validation result without affecting input
+   * Useful for clearing results while keeping the input JSON
+   */
   clearResult() {
     this.validationResult.set(null);
   }
 
+  /**
+   * Initiates panel resize operation
+   *
+   * Sets up mouse event listeners for tracking drag movement.
+   * Prevents default browser behavior and sets appropriate cursor.
+   *
+   * @param event - Mouse down event on the resize divider
+   */
   startResizing(event: MouseEvent) {
     event.preventDefault();
     this.isResizing.set(true);
@@ -320,6 +433,15 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     document.body.style.userSelect = 'none';
   }
 
+  /**
+   * Handles panel resize during drag operation
+   *
+   * Calculates new panel width as percentage of container width.
+   * Constrains width between 20% and 80% to prevent unusable layouts.
+   *
+   * @param e - Mouse move event during drag
+   * @private
+   */
   private resize(e: MouseEvent) {
     if (!this.isResizing()) {
       return;
@@ -339,11 +461,27 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }
   }
 
+  /**
+   * Stops panel resize operation
+   * Cleans up event listeners and resets resize state
+   *
+   * @private
+   */
   private stopResizing() {
     this.isResizing.set(false);
     this.cleanup();
   }
 
+  /**
+   * Cleans up event listeners and resets document styles
+   *
+   * Removes:
+   * - Mouse move and mouse up event listeners
+   * - Custom cursor styles
+   * - User-select prevention
+   *
+   * @private
+   */
   private cleanup() {
     if (this.mouseMoveHandler) {
       document.removeEventListener('mousemove', this.mouseMoveHandler);
