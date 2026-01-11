@@ -70,31 +70,29 @@ function createWindow() {
     const cspPolicy = isDev
       ? [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-inline' 'unsafe-eval' http://localhost:4200 https://cdn.jsdelivr.net",
-          "worker-src 'self' blob: data: https://cdn.jsdelivr.net",
-          "style-src 'self' 'unsafe-inline' http://localhost:4200 https://cdn.jsdelivr.net",
+          "script-src 'self' 'unsafe-inline' http://localhost:4200",
+          "worker-src 'self' blob:",
+          "style-src 'self' 'unsafe-inline' http://localhost:4200",
           "img-src 'self' data: http://localhost:4200",
           "connect-src 'self' http://localhost:4200 http://localhost:* https://*",
           "font-src 'self' data:",
           "object-src 'none'",
           "base-uri 'self'",
           "form-action 'self'",
-          "frame-ancestors 'none'",
-          "upgrade-insecure-requests"
+          "frame-ancestors 'none'"
         ].join('; ')
       : [
           "default-src 'self'",
-          "script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net",
-          "worker-src 'self' blob: data: https://cdn.jsdelivr.net",
-          "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net",
+          "script-src 'self'",
+          "worker-src 'self' blob:",
+          "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data:",
           "connect-src 'self' https://*",
           "font-src 'self' data:",
           "object-src 'none'",
           "base-uri 'self'",
           "form-action 'self'",
-          "frame-ancestors 'none'",
-          "upgrade-insecure-requests"
+          "frame-ancestors 'none'"
         ].join('; ');
 
     callback({
