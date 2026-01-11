@@ -16,14 +16,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Event listeners
   on: (channel, callback) => {
-    const validChannels = ['show-about', 'show-server-info', 'file-open', 'file-save'];
+    const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'file-open', 'file-save'];
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, callback);
     }
   },
 
   off: (channel, callback) => {
-    const validChannels = ['show-about', 'show-server-info', 'file-open', 'file-save'];
+    const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'file-open', 'file-save'];
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback);
     }

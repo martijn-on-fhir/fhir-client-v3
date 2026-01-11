@@ -53,6 +53,25 @@ function createApplicationMenu() {
               focusedWindow.webContents.send('file-save');
             }
           }
+        },
+        { type: 'separator' },
+        {
+          label: 'Settings',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('show-settings');
+            }
+          }
+        },
+        {
+          label: 'Certificate Manager',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('show-certificate-manager');
+            }
+          }
         }
       ]
     });
@@ -119,6 +138,25 @@ function createApplicationMenu() {
             const focusedWindow = BrowserWindow.getFocusedWindow();
             if (focusedWindow) {
               focusedWindow.webContents.send('file-save');
+            }
+          }
+        },
+        { type: 'separator' },
+        {
+          label: 'Settings',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('show-settings');
+            }
+          }
+        },
+        {
+          label: 'Certificate Manager',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('show-certificate-manager');
             }
           }
         },

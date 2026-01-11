@@ -5,6 +5,7 @@ import { EditorStateService } from '../../core/services/editor-state.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { AboutDialogComponent } from '../../shared/components/about-dialog/about-dialog.component';
 import { ServerInfoDialogComponent } from '../../shared/components/server-info-dialog/server-info-dialog.component';
+import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TabNavComponent } from '../tab-nav/tab-nav.component';
@@ -28,7 +29,8 @@ import { TabNavComponent } from '../tab-nav/tab-nav.component';
     TabNavComponent,
     SidebarComponent,
     AboutDialogComponent,
-    ServerInfoDialogComponent
+    ServerInfoDialogComponent,
+    SettingsDialogComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
@@ -39,6 +41,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   @ViewChild(AboutDialogComponent) aboutDialog!: AboutDialogComponent;
   @ViewChild(ServerInfoDialogComponent) serverInfoDialog!: ServerInfoDialogComponent;
+  @ViewChild(SettingsDialogComponent) settingsDialog!: SettingsDialogComponent;
 
   // Store callback references for cleanup
   private showAboutCallback = () => {
@@ -47,6 +50,15 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private showServerInfoCallback = () => {
     this.serverInfoDialog?.open();
+  };
+
+  private showSettingsCallback = () => {
+    this.settingsDialog?.open();
+  };
+
+  private showCertificateManagerCallback = () => {
+    // TODO: Open certificate manager dialog when implemented
+    console.log('Certificate Manager menu item clicked');
   };
 
   private handleFileOpen = async () => {
@@ -115,6 +127,8 @@ return;
     if (window.electronAPI?.on) {
       window.electronAPI.on('show-about', this.showAboutCallback);
       window.electronAPI.on('show-server-info', this.showServerInfoCallback);
+      window.electronAPI.on('show-settings', this.showSettingsCallback);
+      window.electronAPI.on('show-certificate-manager', this.showCertificateManagerCallback);
       window.electronAPI.on('file-open', this.handleFileOpen);
       window.electronAPI.on('file-save', this.handleFileSave);
     }
@@ -125,6 +139,8 @@ return;
     if (window.electronAPI?.off) {
       window.electronAPI.off('show-about', this.showAboutCallback);
       window.electronAPI.off('show-server-info', this.showServerInfoCallback);
+      window.electronAPI.off('show-settings', this.showSettingsCallback);
+      window.electronAPI.off('show-certificate-manager', this.showCertificateManagerCallback);
       window.electronAPI.off('file-open', this.handleFileOpen);
       window.electronAPI.off('file-save', this.handleFileSave);
     }
