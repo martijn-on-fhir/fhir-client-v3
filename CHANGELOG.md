@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.6.0...v1.7.0) (2026-01-11)
+
+
+### Features
+
+* add splash screen with branding and version display ([c99544a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/c99544aaf4a5340b760980781da1524ffe9dbc30))
+
 # [1.6.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.5...v1.6.0) (2026-01-11)
 
 
