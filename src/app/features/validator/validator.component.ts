@@ -1,7 +1,8 @@
 import {CommonModule} from '@angular/common';
-import {Component, OnInit, OnDestroy, signal, computed, effect, inject} from '@angular/core';
+import {Component, OnInit, OnDestroy, AfterViewInit, ViewChild, signal, computed, effect, inject} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {firstValueFrom} from 'rxjs';
+import {EditorStateService} from '../../core/services/editor-state.service';
 import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {ThemeService} from '../../core/services/theme.service';
@@ -11,20 +12,24 @@ import {
   ValidationResult,
   getSeverityIcon
 } from '../../core/utils/fhir-validator';
+import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 
 @Component({
   selector: 'app-validator',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
   templateUrl: './validator.component.html',
   styleUrl: './validator.component.scss'
 })
-export class ValidatorComponent implements OnInit, OnDestroy {
+export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
+
+  @ViewChild('monacoEditor') component?: MonacoEditorComponent;
 
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('ValidatorComponent');
+  private editorStateService = inject(EditorStateService);
 
   // Signals for state management
   jsonInput = signal<string>('');
@@ -127,20 +132,20 @@ export class ValidatorComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    // Listen for file open events
-    if (window.electronAPI?.onOpenFile) {
-      this.fileOpenCleanup = window.electronAPI.onOpenFile(async () => {
-        await this.handleOpenFile();
-      });
+    this.logger.info('Validator tab initialized');
+  }
+
+  ngAfterViewInit() {
+    // Register Monaco editor with EditorStateService
+    if (this.component?.editor) {
+      this.editorStateService.registerEditor(this.component, true, '/app/validator');
+      this.logger.info('Validator editor registered as editable');
     }
   }
 
   ngOnDestroy() {
     this.cleanup();
-
-    if (this.fileOpenCleanup) {
-      this.fileOpenCleanup();
-    }
+    this.editorStateService.unregisterEditor('/app/validator');
   }
 
   async handleOpenFile() {

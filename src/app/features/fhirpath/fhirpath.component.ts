@@ -4,12 +4,13 @@ import { FormsModule } from '@angular/forms';
 import * as fhirpath from 'fhirpath';
 import { LoggerService } from '../../core/services/logger.service';
 import { ThemeService } from '../../core/services/theme.service';
+import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component'
 
 @Component({
   selector: 'app-fhirpath',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
   templateUrl: './fhirpath.component.html',
   styleUrl: './fhirpath.component.scss'
 })
@@ -146,20 +147,6 @@ export class FhirpathComponent implements OnInit, OnDestroy {
     } catch {
       return String(res);
     }
-  }
-
-  getResultBadgeText(): string {
-    const res = this.result();
-
-    if (res === null || res === undefined) {
-      return '';
-    }
-
-    if (Array.isArray(res)) {
-      return `${res.length} item${res.length !== 1 ? 's' : ''}`;
-    }
-
-    return 'Single value';
   }
 
   startResizing(event: MouseEvent) {

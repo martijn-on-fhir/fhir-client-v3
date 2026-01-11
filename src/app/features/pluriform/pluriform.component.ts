@@ -1,27 +1,28 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, effect, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-// eslint-disable-next-line @typescript-eslint/naming-convention
-import Prism from 'prismjs';
 import { LoggerService } from '../../core/services/logger.service';
 import { ThemeService } from '../../core/services/theme.service';
-import 'prismjs/components/prism-markup';
+import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component'
+import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 
 @Component({
   selector: 'app-pluriform',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
   templateUrl: './pluriform.component.html',
   styleUrl: './pluriform.component.scss'
 })
 export class PluriformComponent implements OnInit, OnDestroy {
+  @ViewChild('leftEditor') leftEditor?: MonacoEditorComponent;
+  @ViewChild('rightEditor') rightEditor?: MonacoEditorComponent;
+
   error = signal<string | null>(null);
   loading = signal<boolean>(false);
   leftWidth = signal<number>(50); // percentage
   isResizing = signal<boolean>(false);
-  leftContent = signal<string>('Open an XML file to get started.');
+  leftContent = signal<string>('');
   rightContent = signal<string>('');
-  highlightedCode = signal<string>('');
 
   private mouseMoveHandler?: (e: MouseEvent) => void;
   private mouseUpHandler?: () => void;
@@ -29,13 +30,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('PluriformComponent');
 
-  constructor(public themeService: ThemeService) {
-    // Update highlighted code whenever left content changes
-    effect(() => {
-      const code = this.leftContent();
-      this.highlightedCode.set(this.highlightCode(code));
-    });
-  }
+  constructor(public themeService: ThemeService) {}
 
   ngOnInit() {
     // Listen for file open events from Electron
@@ -51,19 +46,6 @@ export class PluriformComponent implements OnInit, OnDestroy {
 
     if (this.fileOpenCleanup) {
       this.fileOpenCleanup();
-    }
-  }
-
-  /**
-   * Highlight code using PrismJS
-   */
-  private highlightCode(code: string): string {
-    try {
-      return Prism.highlight(code, Prism.languages['markup'], 'markup');
-    } catch (error) {
-      this.logger.error('Error highlighting code:', error);
-
-      return code;
     }
   }
 
@@ -168,25 +150,4 @@ return;
     document.body.style.userSelect = '';
   }
 
-  /**
-   * Handle left content changes from textarea
-   */
-  onLeftContentChange(event: Event) {
-    const target = event.target as HTMLTextAreaElement;
-    this.leftContent.set(target.value);
-  }
-
-  /**
-   * Get editor background color based on theme
-   */
-  getEditorBgColor(): string {
-    return this.themeService.currentTheme() === 'dark' ? '#2d2d30' : '#ffffff';
-  }
-
-  /**
-   * Get editor text color based on theme
-   */
-  getEditorTextColor(): string {
-    return this.themeService.currentTheme() === 'dark' ? '#d4d4d4' : '#000000';
-  }
 }

@@ -53,8 +53,14 @@
     <div class="card-header d-flex justify-content-between align-items-center" style="flex-shrink: 0">
       <span>
         <i class="fas fa-check-circle me-2"></i>
-        FHIR Validator
+        Fhir Validator
       </span>
+
+      <app-json-viewer-toolbar
+        [editor]="this.component?.editor"
+        [readOnly]="false">
+      </app-json-viewer-toolbar>
+
       @if (validationResult()) {
         <span class="badge" [class]="'bg-' + (validationResult()!.isValid ? 'success' : 'danger')">
           {{ validationResult()!.isValid ? 'Valid' : 'Invalid' }}
@@ -69,31 +75,19 @@
       <div class="d-flex h-100" [style.user-select]="isResizing() ? 'none' : 'auto'">
         <!-- Left Panel: JSON Input -->
         <div [style.width.%]="leftWidth()" [style.min-width.%]="leftWidth()" class="h-100 d-flex flex-column">
-          @if (parsedData()) {
-            <div class="flex-grow-1" style="min-height: 0">
-              <app-monaco-editor
-                [value]="jsonInput()"
-                [language]="'json'"
-                [readOnly]="true"
-                [theme]="'light'"
-              />
-            </div>
-          } @else {
-            <!-- Empty State with Monaco Editor -->
-            <div class="text-center text-muted p-3" style="flex-shrink: 0">
-              <i class="fas fa-file-code fa-3x mb-3 opacity-50"></i>
-              <p>Paste JSON or use File > Open to load a FHIR resource.</p>
-            </div>
-            <div class="flex-grow-1 p-2" style="min-height: 0">
-              <textarea
-                class="form-control h-100"
-                [(ngModel)]="jsonInput"
-                placeholder="Paste your FHIR JSON resource here..."
-                spellcheck="false"
-                style="font-family: monospace; font-size: 0.875rem; resize: none">
-              </textarea>
-            </div>
-          }
+
+          <div class="d-flex gap-2 align-items-center">
+
+          </div>
+          <div class="flex-grow-1" style="min-height: 0">
+            <app-monaco-editor #component
+              [value]="jsonInput()"
+              (valueChange)="jsonInput.set($event)"
+              [language]="'json'"
+              [readOnly]="false"
+              [theme]="'light'"
+            />
+          </div>
         </div>
 
         <!-- Resize Divider -->

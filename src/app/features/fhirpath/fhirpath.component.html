@@ -47,41 +47,26 @@
         <i class="fas fa-sitemap me-2"></i>
         FhirPath Tester
       </span>
-      @if (result() !== null) {
-        <span class="badge bg-primary">{{ getResultBadgeText() }}</span>
-      }
+      <app-json-viewer-toolbar
+        [editor]="this.component?.editor"
+        [readOnly]="true">
+      </app-json-viewer-toolbar>
     </div>
 
     <div class="card-body flex-grow-1 overflow-hidden p-0" id="fhirpath-container">
       <div class="d-flex h-100" [style.user-select]="isResizing() ? 'none' : 'auto'">
         <!-- Left Panel: JSON Input -->
-        <div [style.width.%]="leftWidth()" [style.min-width.%]="leftWidth()" class="h-100 overflow-auto p-3">
-          @if (parsedData()) {
-            <!-- Formatted JSON Display -->
-            <div class="json-display">
-              <div class="d-flex justify-content-end mb-2">
-                <button class="btn btn-sm btn-outline-secondary" (click)="formatJson()">
-                  <i class="fas fa-align-left me-1"></i>
-                  Format JSON
-                </button>
-              </div>
-              <pre class="json-pre">{{ jsonInput() }}</pre>
-            </div>
-          } @else {
-            <!-- Empty State -->
-            <div class="text-center text-muted py-5">
-              <i class="fas fa-file-lines fa-3x mb-3 opacity-50"></i>
-              <p>Paste JSON or use File > Open to load a FHIR resource.</p>
-              <textarea
-                class="form-control mt-3"
-                [(ngModel)]="jsonInput"
-                placeholder="Paste your FHIR JSON resource here..."
-                spellcheck="false"
-                rows="10"
-                style="font-family: monospace; font-size: 0.875rem">
-              </textarea>
-            </div>
-          }
+        <div [style.width.%]="leftWidth()" [style.min-width.%]="leftWidth()" class="h-100 d-flex flex-column">
+          <div class="flex-grow-1" style="min-height: 0">
+            <app-monaco-editor
+              #component
+              [value]="jsonInput()"
+              (valueChange)="jsonInput.set($event)"
+              [language]="'json'"
+              [readOnly]="false"
+              [theme]="'light'"
+            />
+          </div>
         </div>
 
         <!-- Resize Divider -->
@@ -92,12 +77,12 @@
         </div>
 
         <!-- Right Panel: Result -->
-        <div [style.width.%]="100 - leftWidth()" [style.min-width.%]="100 - leftWidth()" class="h-100 overflow-auto p-3">
+        <div [style.width.%]="100 - leftWidth()" [style.min-width.%]="100 - leftWidth()" class="h-100 d-flex flex-column">
           @if (result() === null) {
             <div class="text-center text-muted py-5">
               <i class="fas fa-bolt fa-3x mb-3 opacity-50"></i>
               <p>Enter a FHIRPath expression and click Execute to see results.</p>
-              <div class="mt-4 text-start">
+              <div class="mt-4 text-start p-2">
                 <h6>Example Expressions:</h6>
                 <ul class="small">
                   <li><code>name.family</code> - Get all family names</li>
@@ -109,12 +94,18 @@
             </div>
           } @else {
             <!-- Result Display -->
-            <div class="result-display">
-              <div class="d-flex justify-content-between align-items-center mb-2">
+            <div class="d-flex flex-column h-100">
+              <div class="d-flex justify-content-between align-items-center p-2" style="flex-shrink: 0">
                 <h6 class="mb-0">Result</h6>
-                <span class="badge bg-success">{{ getResultBadgeText() }}</span>
               </div>
-              <pre class="json-pre">{{ formatResult() }}</pre>
+              <div class="flex-grow-1" style="min-height: 0">
+                <app-monaco-editor
+                  [value]="formatResult()"
+                  [language]="'json'"
+                  [readOnly]="true"
+                  [theme]="'light'"
+                />
+              </div>
             </div>
           }
         </div>
