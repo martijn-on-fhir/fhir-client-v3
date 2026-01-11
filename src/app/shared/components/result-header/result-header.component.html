@@ -16,7 +16,7 @@
     <ng-content select="[slot='actions']"></ng-content>
 
     <!-- Monaco Editor Toolbar -->
-    @if (showToolbar && editor) {
+    @if (showToolbar) {
       <app-json-viewer-toolbar
         [editor]="editor"
         [readOnly]="readOnly">
