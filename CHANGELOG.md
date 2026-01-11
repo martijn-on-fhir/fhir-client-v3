@@ -1,3 +1,10 @@
+# [1.6.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.5...v1.6.0) (2026-01-11)
+
+
+### Features
+
+* add Settings and Certificate Manager menu items to File menu ([bd8e393](https://github.com/martijn-on-fhir/fhir-client-v3/commit/bd8e39319259e20d64d5e0c4762bb45cbad30040))
+
 ## [1.5.5](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.5.4...v1.5.5) (2026-01-11)
 
 
