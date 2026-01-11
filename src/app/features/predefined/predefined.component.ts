@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import {Component, OnInit, OnDestroy, signal, computed, HostListener, inject, ViewChild} from '@angular/core';
+import {Component, OnInit, AfterViewInit, OnDestroy, signal, computed, effect, HostListener, inject, ViewChild} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } from '../../core/models/smart-template.model';
+import { EditorStateService } from '../../core/services/editor-state.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { TemplateService } from '../../core/services/template.service';
@@ -25,7 +26,7 @@ import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.
   templateUrl: './predefined.component.html',
   styleUrl: './predefined.component.scss'
 })
-export class PredefinedComponent implements OnInit, OnDestroy {
+export class PredefinedComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ViewChild reference to Monaco Editor (text modus)
   @ViewChild('component') component?: MonacoEditorComponent;
@@ -33,6 +34,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
   private templateService = inject(TemplateService);
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
+  private editorStateService = inject(EditorStateService);
   private get logger() {
     return this.loggerService.component('PredefinedComponent');
   }
@@ -104,12 +106,41 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     return res ? JSON.stringify(res, null, 2) : '';
   });
 
+  constructor() {
+    // Register editor when it becomes available (after query results load)
+    effect(() => {
+      const hasResults = this.result() != null;
+
+      if (hasResults) {
+        setTimeout(() => {
+          if (this.component?.editor) {
+            this.editorStateService.registerEditor(this.component, false, '/app/predefined');
+            this.logger.info('Predefined editor registered as read-only');
+          } else {
+            // Retry after Monaco editor has had time to initialize
+            setTimeout(() => {
+              if (this.component?.editor) {
+                this.editorStateService.registerEditor(this.component, false, '/app/predefined');
+                this.logger.info('Predefined editor registered as read-only');
+              }
+            }, 200);
+          }
+        }, 100);
+      }
+    });
+  }
+
   ngOnInit() {
     this.logger.info('Predefined tab initialized');
   }
 
+  ngAfterViewInit() {
+    // Editor registration happens in ngOnInit effect
+  }
+
   ngOnDestroy() {
     this.stopResizing();
+    this.editorStateService.unregisterEditor('/app/predefined');
   }
 
   /**
@@ -127,7 +158,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     this.currentQuery.set(event.query);
     this.showConfigDialog.set(false);
 
-    this.logger.info('Executing template:', event.template.name);
+    this.logger.debug('Executing template:', event.template.name);
     await this.executeQuery(event.query);
   }
 
@@ -149,7 +180,6 @@ export class PredefinedComponent implements OnInit, OnDestroy {
       this.fhirService.executeQuery(query).subscribe({
         next: (data) => {
           this.result.set(data);
-          this.logger.info('Query executed successfully');
           this.loading.set(false);
         },
         error: (err) => {

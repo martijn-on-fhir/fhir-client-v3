@@ -30,6 +30,33 @@ function createApplicationMenu() {
       ]
     });
 
+    // File menu
+    template.push({
+      label: 'File',
+      submenu: [
+        {
+          label: 'Open file',
+          accelerator: 'CmdOrCtrl+O',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('file-open');
+            }
+          }
+        },
+        {
+          label: 'Save file as',
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('file-save');
+            }
+          }
+        }
+      ]
+    });
+
     // Edit menu
     template.push({
       label: 'Edit',
@@ -75,6 +102,27 @@ function createApplicationMenu() {
     template.push({
       label: 'File',
       submenu: [
+        {
+          label: 'Open file',
+          accelerator: 'CmdOrCtrl+O',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('file-open');
+            }
+          }
+        },
+        {
+          label: 'Save file as',
+          accelerator: 'CmdOrCtrl+Shift+S',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('file-save');
+            }
+          }
+        },
+        { type: 'separator' },
         { role: 'quit' }
       ]
     });

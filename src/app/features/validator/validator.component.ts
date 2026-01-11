@@ -24,7 +24,7 @@ import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monac
 })
 export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
-  @ViewChild('monacoEditor') component?: MonacoEditorComponent;
+  @ViewChild('component') component?: MonacoEditorComponent;
 
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
@@ -137,10 +137,28 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   ngAfterViewInit() {
     // Register Monaco editor with EditorStateService
-    if (this.component?.editor) {
-      this.editorStateService.registerEditor(this.component, true, '/app/validator');
-      this.logger.info('Validator editor registered as editable');
-    }
+    // Use retry mechanism because Monaco loads asynchronously from CDN
+    this.registerEditorWithRetry();
+  }
+
+  /**
+   * Register editor with retry mechanism for async Monaco loading
+   */
+  private registerEditorWithRetry() {
+    setTimeout(() => {
+      if (this.component?.editor) {
+        this.editorStateService.registerEditor(this.component, true, '/app/validator');
+        this.logger.info('Validator editor registered as editable');
+      } else {
+        // Retry after longer delay
+        setTimeout(() => {
+          if (this.component?.editor) {
+            this.editorStateService.registerEditor(this.component, true, '/app/validator');
+            this.logger.info('Validator editor registered as editable (retry)');
+          }
+        }, 200);
+      }
+    }, 100);
   }
 
   ngOnDestroy() {

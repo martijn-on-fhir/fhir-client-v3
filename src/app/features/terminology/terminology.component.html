@@ -245,10 +245,11 @@
   <!-- Results Section -->
   <div class="results-card card">
     <div class="card-header d-flex justify-content-between align-items-center">
-      <h5 class="card-title mb-0">
+      <span>
         <i class="fas fa-chart-bar me-2"></i>
         Results
-      </h5>
+      </span>
+
       @if (result()) {
         <div class="d-flex gap-2 align-items-center">
           <app-json-viewer-toolbar

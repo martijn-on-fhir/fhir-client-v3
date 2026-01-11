@@ -5,6 +5,8 @@
   "main": "electron/main.js",
   "scripts": {
     "ng": "ng",
+    "copy-monaco": "cpx \"node_modules/monaco-editor/min/vs/**/*\" \"public/assets/monaco/vs\"",
+    "prestart": "npm run copy-monaco",
     "start": "concurrently \"ng serve\" \"wait-on http://localhost:4200 && electron .\"",
     "build": "ng build",
     "build:prod": "ng build --configuration production && electron-builder",
@@ -64,6 +66,7 @@
     "@typescript-eslint/eslint-plugin": "^8.52.0",
     "@typescript-eslint/parser": "^8.52.0",
     "concurrently": "^9.2.1",
+    "cpx2": "^8.0.0",
     "electron": "^39.2.7",
     "electron-builder": "^26.4.0",
     "eslint": "^9.39.2",

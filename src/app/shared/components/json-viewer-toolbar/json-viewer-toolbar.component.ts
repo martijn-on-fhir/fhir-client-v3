@@ -164,20 +164,90 @@ export class JsonViewerToolbarComponent {
   }
 
   /**
-   * Save the current JSON content.
-   * Placeholder method for future save functionality.
-   * Currently logs save action to console.
+   * Save the current JSON content to a file.
+   * Retrieves content from Monaco editor and triggers Electron save file dialog.
    */
-  save(): void {
-    this.logger.info('save')
+  async save(): Promise<void> {
+    if (!this.editor) {
+      this.logger.warn('No editor available for save operation');
+
+      return;
+    }
+
+    try {
+      // Get content from Monaco editor
+      const content = this.editor.getValue();
+
+      if (!content || content.trim() === '') {
+        this.logger.warn('No content to save');
+
+        return;
+      }
+
+      // Type guard for window.electronAPI
+      if (!window.electronAPI?.file?.saveFile) {
+        this.logger.error('File API not available');
+        alert('File save functionality is not available');
+
+        return;
+      }
+
+      // Format JSON with pretty-print
+      const formatted = JSON.stringify(JSON.parse(content), null, 2);
+
+      // Trigger Electron save file dialog
+      await window.electronAPI.file.saveFile(formatted, 'export.json');
+
+    } catch (error) {
+      this.logger.error('Failed to save file:', error);
+      alert('Failed to save file. Please check that the content is valid JSON.');
+    }
   }
 
   /**
-   * Load JSON content from external source.
-   * Placeholder method for future load functionality.
-   * Currently logs load action to console.
+   * Load JSON content from a file.
+   * Opens Electron file dialog and loads content into Monaco editor.
+   * Only available for editable editors (readOnly = false).
    */
-  load(): void {
-    this.logger.info('load')
+  async load(): Promise<void> {
+    if (this.readOnly) {
+      this.logger.warn('Cannot load into read-only editor');
+      alert('This editor is read-only. Switch to Validator tab to load files.');
+
+      return;
+    }
+
+    if (!this.editor) {
+      this.logger.warn('No editor available for load operation');
+
+      return;
+    }
+
+    try {
+      // Type guard for window.electronAPI
+      if (!window.electronAPI?.file?.openFile) {
+        this.logger.error('File API not available');
+        alert('File open functionality is not available');
+
+        return;
+      }
+
+      // Trigger Electron open file dialog
+      const result = await window.electronAPI.file.openFile();
+
+      if (result && !('error' in result)) {
+        // Validate JSON before loading
+        JSON.parse(result.content);
+
+        // Set content in Monaco editor
+        this.editor.setValue(result.content);
+
+        this.logger.info('File loaded successfully');
+      }
+
+    } catch (error) {
+      this.logger.error('Failed to load file:', error);
+      alert('Failed to load file. Please check that the file contains valid JSON.');
+    }
   }
 }

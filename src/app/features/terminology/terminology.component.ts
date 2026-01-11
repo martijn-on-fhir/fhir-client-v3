@@ -1,10 +1,11 @@
-import { CommonModule } from '@angular/common';
-import {Component, OnInit, inject, signal, computed, HostListener, ViewChild} from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { LoggerService } from '../../core/services/logger.service';
-import { TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams } from '../../core/services/terminology.service';
-import { JsonViewerToolbarComponent } from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import {CommonModule} from '@angular/common';
+import {Component, OnInit, AfterViewInit, OnDestroy, inject, signal, computed, effect, HostListener, ViewChild} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {EditorStateService} from '../../core/services/editor-state.service';
+import {LoggerService} from '../../core/services/logger.service';
+import {TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams} from '../../core/services/terminology.service';
+import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
+import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 
 /**
  * Terminology Tab Component
@@ -25,13 +26,14 @@ type OperationType = 'lookup' | 'expand' | 'validate-code' | 'translate';
   templateUrl: './terminology.component.html',
   styleUrls: ['./terminology.component.scss']
 })
-export class TerminologyComponent implements OnInit {
+export class TerminologyComponent implements OnInit, AfterViewInit, OnDestroy {
 
   // ViewChild reference to Monaco Editor (text modus)
   @ViewChild('component') component?: MonacoEditorComponent;
 
   private terminologyService = inject(TerminologyService);
   private loggerService = inject(LoggerService);
+  private editorStateService = inject(EditorStateService);
   private logger = this.loggerService.component('TerminologyComponent');
 
   // Operation selection
@@ -89,8 +91,40 @@ export class TerminologyComponent implements OnInit {
   translateSource = signal('');
   translateTarget = signal('');
 
+  constructor() {
+    // Register editor when it becomes available (after operation results load)
+    effect(() => {
+      const hasResults = this.result() != null;
+
+      if (hasResults) {
+        setTimeout(() => {
+          if (this.component?.editor) {
+            this.editorStateService.registerEditor(this.component, false, '/app/terminology');
+            this.logger.info('Terminology editor registered as read-only');
+          } else {
+            // Retry after Monaco editor has had time to initialize
+            setTimeout(() => {
+              if (this.component?.editor) {
+                this.editorStateService.registerEditor(this.component, false, '/app/terminology');
+                this.logger.info('Terminology editor registered as read-only');
+              }
+            }, 200);
+          }
+        }, 100);
+      }
+    });
+  }
+
   ngOnInit() {
     this.logger.info('Component initialized');
+  }
+
+  ngAfterViewInit() {
+    // Editor registration happens in ngOnInit effect
+  }
+
+  ngOnDestroy() {
+    this.editorStateService.unregisterEditor('/app/terminology');
   }
 
   /**
@@ -252,8 +286,8 @@ export class TerminologyComponent implements OnInit {
     const level = this.collapsedLevel();
 
     if (level === false) {
-return;
-}
+      return;
+    }
 
     if (level === 1) {
       this.collapsedLevel.set(false);
@@ -293,8 +327,8 @@ return;
   @HostListener('document:mousemove', ['$event'])
   onMouseMove(event: MouseEvent) {
     if (!this.isResizing()) {
-return;
-}
+      return;
+    }
 
     const containerWidth = document.querySelector('.results-panel')?.clientWidth || 1000;
     const deltaX = event.clientX - this.startX;
@@ -321,13 +355,13 @@ return;
    */
   getParameterValue(parameters: any, name: string): any {
     if (!parameters?.parameter) {
-return null;
-}
+      return null;
+    }
     const param = parameters.parameter.find((p: any) => p.name === name);
 
     if (!param) {
-return null;
-}
+      return null;
+    }
 
     // Check for different value types
     return param.valueString || param.valueBoolean || param.valueCode || param.valueInteger || param.part;
@@ -338,8 +372,8 @@ return null;
    */
   getAllParameters(parameters: any, name: string): any[] {
     if (!parameters?.parameter) {
-return [];
-}
+      return [];
+    }
 
     return parameters.parameter.filter((p: any) => p.name === name);
   }

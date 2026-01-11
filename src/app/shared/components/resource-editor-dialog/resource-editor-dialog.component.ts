@@ -281,7 +281,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
   private extractProperties() {
     const sd = this.structureDefinition();
 
-    this.logger.info('Extracting properties from StructureDefinition', {
+    this.logger.debug('Extracting properties from StructureDefinition', {
       hasSD: !!sd,
       hasSnapshot: !!sd?.snapshot,
       hasElements: !!sd?.snapshot?.element,

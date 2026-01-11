@@ -140,6 +140,7 @@ export interface TranslateParams {
   providedIn: 'root'
 })
 export class TerminologyService {
+
   /**
    * Injected logger service instance
    */
@@ -167,17 +168,23 @@ export class TerminologyService {
    * @throws Error if the lookup operation fails
    */
   async lookup(params: LookupParams): Promise<any> {
+
     this.loading.set(true);
     this.error.set(null);
 
     try {
       const result = await (window as any).electronAPI.terminology.lookup(params);
+
       return result;
+
     } catch (err: any) {
+
       const errorMsg = err.message || 'Lookup operation failed';
       this.error.set(errorMsg);
       this.logger.error('Lookup failed:', errorMsg);
+
       throw new Error(errorMsg);
+
     } finally {
       this.loading.set(false);
     }
@@ -196,11 +203,15 @@ export class TerminologyService {
     try {
       const result = await (window as any).electronAPI.terminology.expand(params);
       this.logger.info('Expand result:', result);
+
       return result;
+
     } catch (err: any) {
+
       const errorMsg = err.message || 'Expand operation failed';
       this.error.set(errorMsg);
       this.logger.error('Expand failed:', errorMsg);
+
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);
@@ -218,13 +229,17 @@ export class TerminologyService {
     this.error.set(null);
 
     try {
+
       const result = await (window as any).electronAPI.terminology.validateCode(params);
-      this.logger.info('Validate result:', result);
+      this.logger.debug('Validate result:', result);
+
       return result;
     } catch (err: any) {
+
       const errorMsg = err.message || 'Validate operation failed';
       this.error.set(errorMsg);
       this.logger.error('Validate failed:', errorMsg);
+
       throw new Error(errorMsg);
     } finally {
       this.loading.set(false);
@@ -238,18 +253,24 @@ export class TerminologyService {
    * @throws Error if the translate operation fails
    */
   async translate(params: TranslateParams): Promise<any> {
+
     this.loading.set(true);
     this.error.set(null);
 
     try {
+
       const result = await (window as any).electronAPI.terminology.translate(params);
       this.logger.info('Translate result:', result);
+
       return result;
     } catch (err: any) {
+
       const errorMsg = err.message || 'Translate operation failed';
       this.error.set(errorMsg);
       this.logger.error('Translate failed:', errorMsg);
+
       throw new Error(errorMsg);
+
     } finally {
       this.loading.set(false);
     }
@@ -265,14 +286,16 @@ export class TerminologyService {
     this.error.set(null);
 
     try {
-      const result = await (window as any).electronAPI.terminology.getMetadata();
-      this.logger.info('Metadata:', result);
-      return result;
+      return await (window as any).electronAPI.terminology.getMetadata();
+
     } catch (err: any) {
+
       const errorMsg = err.message || 'Failed to fetch metadata';
       this.error.set(errorMsg);
       this.logger.error('Get metadata failed:', errorMsg);
+
       throw new Error(errorMsg);
+
     } finally {
       this.loading.set(false);
     }

@@ -106,10 +106,10 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   async ngOnInit() {
-    // Configure Monaco to load from CDN
+    // Configure Monaco to load from local assets
     loader.config({
       paths: {
-        vs: 'https://cdn.jsdelivr.net/npm/monaco-editor@0.55.1/min/vs'
+        vs: 'assets/monaco/vs'
       }
     });
 

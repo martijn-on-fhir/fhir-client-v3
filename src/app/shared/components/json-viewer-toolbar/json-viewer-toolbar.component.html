@@ -1,11 +1,11 @@
 <div class="d-flex gap-2 align-items-center">
   <div class="btn-group" role="group" aria-label="Basic example">
-    <button class="btn btn-sm btn-outline-secondary" title="Saves" (click)="save()">
+    <button class="btn btn-sm btn-outline-secondary" title="Save file as..." (click)="save()">
       <i class="fas fa-save"></i>
     </button>
 
     @if (!readOnly) {
-      <button class="btn btn-sm btn-outline-secondary" title="Saves" (click)="load()">
+      <button class="btn btn-sm btn-outline-secondary" title="Open file..." (click)="load()">
         <i class="fas fa-folder-open"></i>
       </button>
     }
