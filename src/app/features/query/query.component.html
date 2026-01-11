@@ -78,14 +78,12 @@
           <!-- Results -->
           @if (result() || loading()) {
             <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
-              <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="fas fa-file-lines me-2"></i>Result</span>
-                <!-- Toolbar -->
-                <app-json-viewer-toolbar
-                  [editor]="this.component?.editor"
-                  [readOnly]="true">
-                </app-json-viewer-toolbar>
-              </div>
+              <app-result-header
+                icon="fa-file-lines"
+                title="Result"
+                [editor]="this.component?.editor"
+                [readOnly]="true">
+              </app-result-header>
 
               @if (loading()) {
                 <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px">
@@ -527,15 +525,12 @@
         <!-- Results Section -->
         @if (result() || loading()) {
           <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
-            <div class="card-header d-flex justify-content-between align-items-center">
-              <span><i class="fas fa-file-lines me-2"></i>Result</span>
-
-              <!-- Toolbar: Search and expand/collapse controls -->
-              <app-json-viewer-toolbar
-                [editor]="this.componentVisual?.editor"
-                [readOnly]="true">
-              </app-json-viewer-toolbar>
-            </div>
+            <app-result-header
+              icon="fa-file-lines"
+              title="Result"
+              [editor]="this.componentVisual?.editor"
+              [readOnly]="true">
+            </app-result-header>
 
             @if (loading()) {
               <div class="card-body d-flex align-items-center justify-content-center" style="min-height: 400px">

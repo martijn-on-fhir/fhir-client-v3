@@ -6,6 +6,7 @@ import {LoggerService} from '../../core/services/logger.service';
 import {TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams} from '../../core/services/terminology.service';
 import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
+import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 /**
  * Terminology Tab Component
@@ -22,7 +23,7 @@ type OperationType = 'lookup' | 'expand' | 'validate-code' | 'translate';
 @Component({
   selector: 'app-terminology',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent],
   templateUrl: './terminology.component.html',
   styleUrls: ['./terminology.component.scss']
 })

@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LoggerService } from '../../core/services/logger.service';
+import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
 
 interface LogEntry {
   source: string;
@@ -26,7 +27,7 @@ interface LogEntry {
 @Component({
   selector: 'app-logs',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ResultHeaderComponent],
   templateUrl: './logs.component.html',
   styleUrl: './logs.component.scss'
 })

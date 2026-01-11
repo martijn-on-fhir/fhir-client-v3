@@ -130,17 +130,18 @@
 
   <!-- Logs Panel -->
   <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
-    <div class="card-header d-flex justify-content-between align-items-center">
-      <span>
-        <i class="fas fa-list me-2"></i>
-        Application Logs
-        @if (watching()) {
-          <span class="badge bg-success ms-2">
-            <i class="fas fa-eye me-1"></i>Live
-          </span>
-        }
-      </span>
-    </div>
+    <app-result-header
+      icon="fa-list"
+      title="Application Logs"
+      [showToolbar]="false">
+
+      <!-- Live badge via content projection -->
+      @if (watching()) {
+        <span slot="title-suffix" class="badge bg-success ms-2">
+          <i class="fas fa-eye me-1"></i>Live
+        </span>
+      }
+    </app-result-header>
 
     <div class="card-body p-0 log-container" style="overflow-y: auto; flex: 1;">
       <!-- Loading State -->

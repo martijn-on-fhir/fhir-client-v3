@@ -21,11 +21,12 @@ import {NavigationService} from '../../core/services/navigation.service';
 import {QueryHistoryService} from '../../core/services/query-history.service';
 import {JsonViewerToolbarComponent} from '../../shared/components/json-viewer-toolbar/json-viewer-toolbar.component';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
+import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 @Component({
   selector: 'app-query',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, JsonViewerToolbarComponent, ResultHeaderComponent],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
 })
