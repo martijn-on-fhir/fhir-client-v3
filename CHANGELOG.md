@@ -1,3 +1,10 @@
+# [1.5.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.4.1...v1.5.0) (2026-01-11)
+
+
+### Features
+
+* implement file open/save functionality with local Monaco loading ([679c84f](https://github.com/martijn-on-fhir/fhir-client-v3/commit/679c84fa948a6c5fe03c2786308de6c27b7d0dc8))
+
 ## [1.4.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.4.0...v1.4.1) (2026-01-10)
 
 # [1.4.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.3.1...v1.4.0) (2026-01-10)
