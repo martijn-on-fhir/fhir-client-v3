@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CertificateService } from '../../../core/services/certificate.service';
 import {
   CertificateEntryUI,
   CertificateMetadata,
   CertificateFormData
 } from '../../../core/models/certificate.model';
+import { CertificateService } from '../../../core/services/certificate.service';
 
 /**
  * Certificate Manager Dialog Component
@@ -81,6 +81,7 @@ export class CertificateManagerDialogComponent implements OnInit {
    */
   async loadCertificates() {
     this.loading.set(true);
+
     try {
       await this.certificateService.loadCertificates();
     } catch (err) {
@@ -177,12 +178,14 @@ export class CertificateManagerDialogComponent implements OnInit {
 
       if (!result.success) {
         this.error.set(result.error || 'Failed to import file');
+
         return;
       }
 
       if (result.needsPassphrase && result.filePath) {
         // PFX needs passphrase - store path and prompt user
         this.pendingPfxPath.set(result.filePath);
+
         return;
       }
 
@@ -200,6 +203,7 @@ export class CertificateManagerDialogComponent implements OnInit {
 
           // Auto-fill name from CN if empty
           const form = this.formData();
+
           if (!form.name && result.data.metadata.commonName) {
             this.formData.set({
               ...form,
@@ -220,7 +224,10 @@ export class CertificateManagerDialogComponent implements OnInit {
    */
   async parsePfxWithPassphrase(passphrase: string) {
     const pfxPath = this.pendingPfxPath();
-    if (!pfxPath) return;
+
+    if (!pfxPath) {
+return;
+}
 
     this.error.set(null);
     this.loading.set(true);
@@ -230,6 +237,7 @@ export class CertificateManagerDialogComponent implements OnInit {
 
       if (!result.success) {
         this.error.set(result.error || 'Failed to parse PFX file');
+
         return;
       }
 
@@ -274,10 +282,13 @@ export class CertificateManagerDialogComponent implements OnInit {
     try {
       const result = await this.certificateService.importFromFile('certificate');
 
-      if (result.canceled) return;
+      if (result.canceled) {
+return;
+}
 
       if (!result.success) {
         this.error.set(result.error || 'Failed to import certificate');
+
         return;
       }
 
@@ -296,6 +307,7 @@ export class CertificateManagerDialogComponent implements OnInit {
           }
 
           const form = this.formData();
+
           if (!form.name && result.data.metadata.commonName) {
             this.formData.set({
               ...form,
@@ -321,10 +333,13 @@ export class CertificateManagerDialogComponent implements OnInit {
     try {
       const result = await this.certificateService.importFromFile('key');
 
-      if (result.canceled) return;
+      if (result.canceled) {
+return;
+}
 
       if (!result.success) {
         this.error.set(result.error || 'Failed to import private key');
+
         return;
       }
 
@@ -353,10 +368,13 @@ export class CertificateManagerDialogComponent implements OnInit {
     try {
       const result = await this.certificateService.importFromFile('certificate');
 
-      if (result.canceled) return;
+      if (result.canceled) {
+return;
+}
 
       if (!result.success) {
         this.error.set(result.error || 'Failed to import CA certificate');
+
         return;
       }
 
@@ -384,6 +402,7 @@ export class CertificateManagerDialogComponent implements OnInit {
 
     if (!cert) {
       this.error.set('No certificate imported');
+
       return;
     }
 
@@ -426,8 +445,10 @@ export class CertificateManagerDialogComponent implements OnInit {
    */
   async testConnectionWithData() {
     const url = this.testUrl();
+
     if (!url) {
       this.error.set('Please enter a test URL');
+
       return;
     }
 
@@ -436,6 +457,7 @@ export class CertificateManagerDialogComponent implements OnInit {
 
     if (!cert || !key) {
       this.error.set('Certificate and private key required for connection test');
+
       return;
     }
 
@@ -469,8 +491,10 @@ export class CertificateManagerDialogComponent implements OnInit {
    */
   async testConnectionWithCertificate(certId: string) {
     const url = this.testUrl();
+
     if (!url) {
       this.error.set('Please enter a test URL');
+
       return;
     }
 
@@ -506,16 +530,19 @@ export class CertificateManagerDialogComponent implements OnInit {
 
     if (!form.name || !form.domain) {
       this.error.set('Name and domain are required');
+
       return;
     }
 
     if (!cert || !key) {
       this.error.set('Certificate and private key are required');
+
       return;
     }
 
     if (validation && !validation.valid) {
       this.error.set('Certificate validation failed');
+
       return;
     }
 
@@ -550,12 +577,16 @@ export class CertificateManagerDialogComponent implements OnInit {
    */
   async updateCertificate() {
     const selected = this.selectedCertificate();
-    if (!selected) return;
+
+    if (!selected) {
+return;
+}
 
     const form = this.formData();
 
     if (!form.name || !form.domain) {
       this.error.set('Name and domain are required');
+
       return;
     }
 
@@ -579,6 +610,7 @@ export class CertificateManagerDialogComponent implements OnInit {
         updates.passphrase = form.passphrase;
 
         const validation = this.validationResult();
+
         if (validation?.metadata) {
           updates.metadata = validation.metadata;
         }
@@ -603,6 +635,7 @@ export class CertificateManagerDialogComponent implements OnInit {
    */
   async toggleEnabled(cert: CertificateEntryUI) {
     this.loading.set(true);
+
     try {
       await this.certificateService.toggleEnabled(cert.id);
     } catch (err) {
@@ -658,7 +691,10 @@ export class CertificateManagerDialogComponent implements OnInit {
    * Format date for display
    */
   formatDate(timestamp: number | undefined): string {
-    if (!timestamp) return 'Unknown';
+    if (!timestamp) {
+return 'Unknown';
+}
+
     return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
@@ -696,6 +732,7 @@ export class CertificateManagerDialogComponent implements OnInit {
     // If new cert data imported, validate it
     if (this.importedCertificate() && this.importedPrivateKey()) {
       const validation = this.validationResult();
+
       return hasRequired && (!validation || validation.valid) && !this.loading();
     }
 

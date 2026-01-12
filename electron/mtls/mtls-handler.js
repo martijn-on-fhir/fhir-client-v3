@@ -19,6 +19,7 @@ try {
  */
 
 function registerMtlsHandlers() {
+
   console.log('[MtlsHandler] Registering mTLS IPC handlers');
 
   if (!certificateStore) {
@@ -30,6 +31,7 @@ function registerMtlsHandlers() {
    * Check if a domain has a configured certificate
    */
   ipcMain.handle('mtls:hasCertificate', async (event, hostname) => {
+
     try {
       const cert = certificateStore.getCertificateForDomain(hostname);
       return { hasCertificate: !!cert, enabled: cert?.enabled ?? false };
@@ -43,6 +45,7 @@ function registerMtlsHandlers() {
    * Make an HTTP request with mTLS client certificate
    */
   ipcMain.handle('mtls:request', async (event, options) => {
+
     const { url, method = 'GET', headers = {}, data, timeout = 30000 } = options;
 
     try {
@@ -151,6 +154,7 @@ function registerMtlsHandlers() {
    * Get certificate info for a domain (for debugging/display)
    */
   ipcMain.handle('mtls:getCertificateInfo', async (event, hostname) => {
+
     try {
       const cert = certificateStore.getCertificateForDomain(hostname);
 

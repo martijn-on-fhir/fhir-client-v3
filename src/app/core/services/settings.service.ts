@@ -13,22 +13,52 @@ import { LoggerService } from './logger.service';
 })
 export class SettingsService {
 
+  /**
+   * LocalStorage key for persisting application settings
+   */
   private readonly STORAGE_KEY = 'fhir_app_settings';
+
+  /**
+   * Logger service instance
+   */
   private loggerService = inject(LoggerService);
+
+  /**
+   * Component-specific logger
+   */
   private logger = this.loggerService.component('SettingsService');
 
-  // Settings state
+  /**
+   * Application settings state signal
+   */
   private settings = signal<AppSettings>(this.loadSettings());
 
-  // Public computed values
+  /**
+   * Computed signal for current theme setting
+   */
   readonly theme = computed(() => this.settings().ui.theme);
+
+  /**
+   * Computed signal for log viewer enabled state
+   */
   readonly logViewerEnabled = computed(() => this.settings().ui.logViewerEnabled);
+
+  /**
+   * Computed signal for sidebar visibility state
+   */
   readonly sidebarVisible = computed(() => this.settings().ui.sidebarVisible);
+
+  /**
+   * Computed signal for sidebar width in pixels
+   */
   readonly sidebarWidth = computed(() => this.settings().ui.sidebarWidth);
+
+  /**
+   * Computed signal for array of enabled tab IDs
+   */
   readonly enabledTabs = computed(() => this.settings().ui.enabledTabs);
 
   constructor() {
-    // Auto-save settings whenever they change
     effect(() => {
       this.saveSettings(this.settings());
     });
@@ -36,6 +66,7 @@ export class SettingsService {
 
   /**
    * Get all settings
+   * @returns Current application settings
    */
   getSettings(): AppSettings {
     return this.settings();
@@ -43,6 +74,7 @@ export class SettingsService {
 
   /**
    * Update UI settings
+   * @param uiSettings Partial UI settings to merge with current settings
    */
   updateUISettings(uiSettings: Partial<UISettings>): void {
     this.settings.update(current => ({
@@ -65,6 +97,7 @@ export class SettingsService {
 
   /**
    * Set theme
+   * @param theme Theme to apply ('light' or 'dark')
    */
   setTheme(theme: 'light' | 'dark'): void {
     this.updateUISettings({ theme });
@@ -100,9 +133,9 @@ export class SettingsService {
 
   /**
    * Set sidebar width
+   * @param width Desired width in pixels (constrained to 150-500px range)
    */
   setSidebarWidth(width: number): void {
-    // Constrain to 150-500px range
     const constrainedWidth = Math.min(Math.max(width, 150), 500);
     this.updateUISettings({ sidebarWidth: constrainedWidth });
   }
@@ -123,6 +156,8 @@ export class SettingsService {
 
   /**
    * Check if a tab is enabled
+   * @param tabId ID of the tab to check
+   * @returns True if the tab is enabled, false otherwise
    */
   isTabEnabled(tabId: string): boolean {
     return this.enabledTabs().includes(tabId);
@@ -130,6 +165,7 @@ export class SettingsService {
 
   /**
    * Toggle tab visibility
+   * @param tabId ID of the tab to toggle
    */
   toggleTab(tabId: string): void {
     const currentTabs = this.enabledTabs();
@@ -141,6 +177,7 @@ export class SettingsService {
 
   /**
    * Enable a tab
+   * @param tabId ID of the tab to enable
    */
   enableTab(tabId: string): void {
     const currentTabs = this.enabledTabs();
@@ -151,6 +188,7 @@ export class SettingsService {
 
   /**
    * Disable a tab
+   * @param tabId ID of the tab to disable
    */
   disableTab(tabId: string): void {
     const currentTabs = this.enabledTabs();
@@ -169,13 +207,13 @@ export class SettingsService {
 
   /**
    * Load settings from localStorage
+   * @returns Loaded settings merged with defaults, or default settings if loading fails
    */
   private loadSettings(): AppSettings {
     try {
       const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Merge with defaults to handle version upgrades
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
@@ -193,6 +231,7 @@ export class SettingsService {
 
   /**
    * Save settings to localStorage
+   * @param settings Settings object to persist
    */
   private saveSettings(settings: AppSettings): void {
     try {

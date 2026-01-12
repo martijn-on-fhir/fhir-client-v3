@@ -291,7 +291,9 @@ export class CertificateService {
    * Format expiry date for display
    */
   formatExpiryDate(timestamp: number | undefined): string {
-    if (!timestamp) return 'Unknown';
+    if (!timestamp) {
+return 'Unknown';
+}
     return new Date(timestamp).toLocaleDateString();
   }
 
