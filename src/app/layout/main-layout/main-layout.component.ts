@@ -6,6 +6,7 @@ import { SettingsService } from '../../core/services/settings.service';
 import { AboutDialogComponent } from '../../shared/components/about-dialog/about-dialog.component';
 import { ServerInfoDialogComponent } from '../../shared/components/server-info-dialog/server-info-dialog.component';
 import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
+import { CertificateManagerDialogComponent } from '../../shared/components/certificate-manager-dialog/certificate-manager-dialog.component';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TabNavComponent } from '../tab-nav/tab-nav.component';
@@ -30,7 +31,8 @@ import { TabNavComponent } from '../tab-nav/tab-nav.component';
     SidebarComponent,
     AboutDialogComponent,
     ServerInfoDialogComponent,
-    SettingsDialogComponent
+    SettingsDialogComponent,
+    CertificateManagerDialogComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
@@ -42,6 +44,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   @ViewChild(AboutDialogComponent) aboutDialog!: AboutDialogComponent;
   @ViewChild(ServerInfoDialogComponent) serverInfoDialog!: ServerInfoDialogComponent;
   @ViewChild(SettingsDialogComponent) settingsDialog!: SettingsDialogComponent;
+  @ViewChild(CertificateManagerDialogComponent) certificateManagerDialog!: CertificateManagerDialogComponent;
 
   // Store callback references for cleanup
   private showAboutCallback = () => {
@@ -57,8 +60,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
   };
 
   private showCertificateManagerCallback = () => {
-    // TODO: Open certificate manager dialog when implemented
-    console.log('Certificate Manager menu item clicked');
+    this.certificateManagerDialog?.open();
   };
 
   private handleFileOpen = async () => {

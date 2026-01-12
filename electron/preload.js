@@ -291,6 +291,115 @@ contextBridge.exposeInMainWorld('electronAPI', {
   onLogsUpdated: (callback) => {
     ipcRenderer.on('logs-updated', callback);
     return () => ipcRenderer.removeListener('logs-updated', callback);
+  },
+
+  // Certificate Management API
+  certificates: {
+    /**
+     * Get all certificates (sanitized, without private keys)
+     * @returns {Promise<{success: boolean, certificates?: Array, error?: string}>}
+     */
+    getAll: () =>
+      ipcRenderer.invoke('certificate:getAll'),
+
+    /**
+     * Save a new certificate
+     * @param {Object} entry - Certificate entry data
+     * @returns {Promise<{success: boolean, certificate?: Object, error?: string}>}
+     */
+    save: (entry) =>
+      ipcRenderer.invoke('certificate:save', entry),
+
+    /**
+     * Update an existing certificate
+     * @param {string} id - Certificate ID
+     * @param {Object} updates - Fields to update
+     * @returns {Promise<{success: boolean, certificate?: Object, error?: string}>}
+     */
+    update: (id, updates) =>
+      ipcRenderer.invoke('certificate:update', id, updates),
+
+    /**
+     * Delete a certificate
+     * @param {string} id - Certificate ID
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    delete: (id) =>
+      ipcRenderer.invoke('certificate:delete', id),
+
+    /**
+     * Import certificate from file (opens file dialog)
+     * @param {string} type - 'pfx', 'certificate', 'key', or 'all'
+     * @returns {Promise<{success: boolean, filePath?: string, data?: Object, needsPassphrase?: boolean, error?: string}>}
+     */
+    import: (type) =>
+      ipcRenderer.invoke('certificate:import', type),
+
+    /**
+     * Parse a PFX file with passphrase
+     * @param {string} filePath - Path to PFX file
+     * @param {string} passphrase - Passphrase for the PFX
+     * @returns {Promise<{success: boolean, data?: Object, error?: string}>}
+     */
+    parsePfx: (filePath, passphrase) =>
+      ipcRenderer.invoke('certificate:parsePfx', filePath, passphrase),
+
+    /**
+     * Validate certificate data without saving
+     * @param {Object} data - Certificate data to validate
+     * @returns {Promise<{success: boolean, valid: boolean, metadata?: Object, error?: string}>}
+     */
+    validate: (data) =>
+      ipcRenderer.invoke('certificate:validate', data),
+
+    /**
+     * Test mTLS connection using a stored certificate
+     * @param {string} id - Certificate ID
+     * @param {string} testUrl - URL to test
+     * @returns {Promise<{success: boolean, status?: number, error?: string}>}
+     */
+    testConnection: (id, testUrl) =>
+      ipcRenderer.invoke('certificate:testConnection', { id, testUrl }),
+
+    /**
+     * Test mTLS connection with certificate data (before saving)
+     * @param {Object} params - Test parameters
+     * @returns {Promise<{success: boolean, status?: number, error?: string}>}
+     */
+    testConnectionWithData: (params) =>
+      ipcRenderer.invoke('certificate:testConnectionWithData', params)
+  },
+
+  // mTLS Request Proxy API
+  mtls: {
+    /**
+     * Check if a domain has a configured certificate
+     * @param {string} hostname - Hostname to check
+     * @returns {Promise<{hasCertificate: boolean, enabled: boolean}>}
+     */
+    hasCertificate: (hostname) =>
+      ipcRenderer.invoke('mtls:hasCertificate', hostname),
+
+    /**
+     * Make an HTTP request with mTLS client certificate
+     * @param {Object} options - Request options
+     * @param {string} options.url - Full URL to request
+     * @param {string} options.method - HTTP method (GET, POST, PUT, DELETE)
+     * @param {Object} options.headers - Request headers
+     * @param {any} options.data - Request body
+     * @param {number} options.timeout - Request timeout in ms
+     * @returns {Promise<{success: boolean, status?: number, data?: any, error?: string}>}
+     */
+    request: (options) =>
+      ipcRenderer.invoke('mtls:request', options),
+
+    /**
+     * Get certificate info for a domain
+     * @param {string} hostname - Hostname to check
+     * @returns {Promise<{found: boolean, certificate?: Object}>}
+     */
+    getCertificateInfo: (hostname) =>
+      ipcRenderer.invoke('mtls:getCertificateInfo', hostname)
   }
 });
 

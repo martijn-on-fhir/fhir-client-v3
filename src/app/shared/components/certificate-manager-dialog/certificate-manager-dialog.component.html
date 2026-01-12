@@ -1,0 +1,422 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-dialog certificate-manager-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          @if (activeView() === 'list') {
+            Certificate Manager
+          } @else if (activeView() === 'add') {
+            Add Certificate
+          } @else {
+            Edit Certificate
+          }
+        </h2>
+        <button class="btn-close" (click)="close()" title="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        @if (error()) {
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ error() }}
+            <button class="btn-dismiss" (click)="error.set(null)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        }
+
+        <!-- List View -->
+        @if (activeView() === 'list') {
+          <div class="certificate-list-view">
+            <div class="list-header">
+              <button class="btn btn-primary" (click)="showAddView()">
+                <i class="fas fa-plus"></i> Add Certificate
+              </button>
+              <span class="certificate-count">
+                {{ certificateCount() }} certificate{{ certificateCount() !== 1 ? 's' : '' }}
+              </span>
+            </div>
+
+            @if (loading()) {
+              <div class="loading-state">
+                <i class="fas fa-spinner fa-spin"></i> Loading certificates...
+              </div>
+            } @else if (certificates().length === 0) {
+              <div class="empty-state">
+                <i class="fas fa-certificate"></i>
+                <p>No certificates configured</p>
+                <p class="hint">Add a certificate to enable mTLS connections</p>
+              </div>
+            } @else {
+              <div class="certificate-list">
+                @for (cert of certificates(); track cert.id) {
+                  <div class="certificate-card" [class.disabled]="!cert.enabled">
+                    <div class="cert-main">
+                      <div class="cert-icon">
+                        @if (cert.enabled) {
+                          <i class="fas fa-certificate"></i>
+                        } @else {
+                          <i class="fas fa-certificate disabled"></i>
+                        }
+                      </div>
+                      <div class="cert-info">
+                        <div class="cert-name">{{ cert.name }}</div>
+                        <div class="cert-domain">{{ cert.domain }}</div>
+                        <div class="cert-meta">
+                          @if (cert.commonName) {
+                            <span class="meta-item">
+                              <i class="fas fa-user"></i> {{ cert.commonName }}
+                            </span>
+                          }
+                          @if (cert.validTo) {
+                            <span class="meta-item" [class]="'status-' + getCertificateStatus(cert).status">
+                              <i class="fas fa-calendar"></i>
+                              Expires: {{ formatExpiryDate(cert.validTo) }}
+                            </span>
+                          }
+                        </div>
+                      </div>
+                      <div class="cert-status">
+                        @switch (getCertificateStatus(cert).status) {
+                          @case ('valid') {
+                            <span class="status-badge valid">
+                              <i class="fas fa-check-circle"></i> Valid
+                            </span>
+                          }
+                          @case ('expired') {
+                            <span class="status-badge expired">
+                              <i class="fas fa-exclamation-triangle"></i> Expired
+                            </span>
+                          }
+                          @case ('expiring') {
+                            <span class="status-badge expiring">
+                              <i class="fas fa-clock"></i> Expiring soon
+                            </span>
+                          }
+                          @case ('disabled') {
+                            <span class="status-badge disabled">
+                              <i class="fas fa-ban"></i> Disabled
+                            </span>
+                          }
+                        }
+                      </div>
+                    </div>
+                    <div class="cert-actions">
+                      <button
+                        class="btn btn-icon"
+                        [title]="cert.enabled ? 'Disable' : 'Enable'"
+                        (click)="toggleEnabled(cert)"
+                      >
+                        <i class="fas" [class.fa-toggle-on]="cert.enabled" [class.fa-toggle-off]="!cert.enabled"></i>
+                      </button>
+                      <button class="btn btn-icon" title="Edit" (click)="showEditView(cert)">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button class="btn btn-icon btn-danger" title="Delete" (click)="deleteCertificate(cert)">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Add/Edit View -->
+        @if (activeView() === 'add' || activeView() === 'edit') {
+          <div class="certificate-form-view">
+            <!-- Basic Info -->
+            <div class="form-section">
+              <h3>Basic Information</h3>
+              <div class="form-group">
+                <label for="cert-name">Name</label>
+                <input
+                  type="text"
+                  id="cert-name"
+                  [ngModel]="formData().name"
+                  (ngModelChange)="updateFormField('name', $event)"
+                  placeholder="e.g., Production API Certificate"
+                />
+              </div>
+              <div class="form-group">
+                <label for="cert-domain">Domain Pattern</label>
+                <input
+                  type="text"
+                  id="cert-domain"
+                  [ngModel]="formData().domain"
+                  (ngModelChange)="updateFormField('domain', $event)"
+                  placeholder="e.g., *.api.example.com"
+                />
+                <span class="form-hint">Supports wildcards: *.example.com matches api.example.com</span>
+              </div>
+            </div>
+
+            <!-- Import Method -->
+            <div class="form-section">
+              <h3>Certificate Import</h3>
+
+              <div class="import-method-selector">
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    name="importMethod"
+                    value="pfx"
+                    [checked]="formData().importMethod === 'pfx'"
+                    (change)="updateFormField('importMethod', 'pfx')"
+                  />
+                  <span class="radio-label">
+                    <i class="fas fa-file-archive"></i>
+                    Combined PFX/P12 file
+                  </span>
+                </label>
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    name="importMethod"
+                    value="separate"
+                    [checked]="formData().importMethod === 'separate'"
+                    (change)="updateFormField('importMethod', 'separate')"
+                  />
+                  <span class="radio-label">
+                    <i class="fas fa-file-code"></i>
+                    Separate certificate and key files
+                  </span>
+                </label>
+              </div>
+
+              @if (formData().importMethod === 'pfx') {
+                <!-- PFX Import -->
+                <div class="import-section">
+                  <button class="btn btn-secondary" (click)="importPfx()" [disabled]="loading()">
+                    <i class="fas fa-upload"></i> Select PFX/P12 File
+                  </button>
+
+                  @if (pendingPfxPath()) {
+                    <div class="passphrase-prompt">
+                      <label>Passphrase required for PFX file:</label>
+                      <div class="passphrase-input">
+                        <input
+                          type="password"
+                          #passphraseInput
+                          placeholder="Enter passphrase"
+                          (keyup.enter)="parsePfxWithPassphrase(passphraseInput.value)"
+                        />
+                        <button
+                          class="btn btn-primary"
+                          (click)="parsePfxWithPassphrase(passphraseInput.value)"
+                          [disabled]="loading()"
+                        >
+                          Unlock
+                        </button>
+                      </div>
+                    </div>
+                  }
+                </div>
+              } @else {
+                <!-- Separate Files Import -->
+                <div class="import-section separate-files">
+                  <div class="import-row">
+                    <button class="btn btn-secondary" (click)="importCertificate()" [disabled]="loading()">
+                      <i class="fas fa-file-alt"></i> Certificate
+                    </button>
+                    @if (importedCertificate()) {
+                      <span class="import-status success">
+                        <i class="fas fa-check"></i> Loaded
+                      </span>
+                    }
+                  </div>
+                  <div class="import-row">
+                    <button class="btn btn-secondary" (click)="importPrivateKey()" [disabled]="loading()">
+                      <i class="fas fa-key"></i> Private Key
+                    </button>
+                    @if (importedPrivateKey()) {
+                      <span class="import-status success">
+                        <i class="fas fa-check"></i> Loaded
+                      </span>
+                    }
+                  </div>
+                  <div class="form-group passphrase-group">
+                    <label for="key-passphrase">Key Passphrase (if encrypted)</label>
+                    <input
+                      type="password"
+                      id="key-passphrase"
+                      [ngModel]="formData().passphrase"
+                      (ngModelChange)="updateFormField('passphrase', $event)"
+                      placeholder="Leave empty if key is not encrypted"
+                    />
+                  </div>
+                </div>
+              }
+
+              <!-- CA Certificate (Optional) -->
+              <div class="import-section ca-section">
+                <label>CA Certificate (optional)</label>
+                <div class="import-row">
+                  <button class="btn btn-secondary btn-sm" (click)="importCaCertificate()" [disabled]="loading()">
+                    <i class="fas fa-shield-alt"></i> Import CA Certificate
+                  </button>
+                  @if (importedCaCertificate()) {
+                    <span class="import-status success">
+                      <i class="fas fa-check"></i> Loaded
+                    </span>
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Validation Result -->
+            @if (validationResult()) {
+              <div class="form-section validation-section">
+                <h3>Certificate Details</h3>
+                @if (validationResult()?.valid) {
+                  <div class="validation-result valid">
+                    <div class="validation-header">
+                      <i class="fas fa-check-circle"></i>
+                      <span>Certificate is valid</span>
+                      @if (validationResult()?.isExpired) {
+                        <span class="warning-badge">
+                          <i class="fas fa-exclamation-triangle"></i> Expired
+                        </span>
+                      }
+                    </div>
+                    @if (validationResult()?.metadata) {
+                      <div class="cert-details">
+                        <div class="detail-row">
+                          <span class="label">Common Name:</span>
+                          <span class="value">{{ validationResult()?.metadata?.commonName || 'N/A' }}</span>
+                        </div>
+                        <div class="detail-row">
+                          <span class="label">Issuer:</span>
+                          <span class="value">{{ validationResult()?.metadata?.issuer || 'N/A' }}</span>
+                        </div>
+                        <div class="detail-row">
+                          <span class="label">Valid From:</span>
+                          <span class="value">{{ formatDate(validationResult()?.metadata?.validFrom) }}</span>
+                        </div>
+                        <div class="detail-row">
+                          <span class="label">Valid To:</span>
+                          <span class="value">{{ formatDate(validationResult()?.metadata?.validTo) }}</span>
+                        </div>
+                        @if (validationResult()?.metadata?.serialNumber) {
+                          <div class="detail-row">
+                            <span class="label">Serial:</span>
+                            <span class="value monospace">{{ validationResult()?.metadata?.serialNumber }}</span>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                } @else {
+                  <div class="validation-result invalid">
+                    <i class="fas fa-times-circle"></i>
+                    <span>{{ validationResult()?.error || 'Validation failed' }}</span>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Validate Button (for separate files) -->
+            @if (formData().importMethod === 'separate' && importedCertificate() && importedPrivateKey() && !validationResult()) {
+              <div class="form-section">
+                <button class="btn btn-secondary" (click)="validateImportedCertificate()" [disabled]="loading()">
+                  <i class="fas fa-check-double"></i> Validate Certificate
+                </button>
+              </div>
+            }
+
+            <!-- Test Connection -->
+            <div class="form-section test-section">
+              <h3>Test Connection</h3>
+              <div class="test-connection-form">
+                <div class="form-group">
+                  <label for="test-url">Test URL</label>
+                  <input
+                    type="url"
+                    id="test-url"
+                    [ngModel]="testUrl()"
+                    (ngModelChange)="testUrl.set($event)"
+                    placeholder="https://api.example.com/metadata"
+                  />
+                </div>
+                <button
+                  class="btn btn-secondary"
+                  (click)="activeView() === 'edit' && selectedCertificate() ? testConnectionWithCertificate(selectedCertificate()!.id) : testConnectionWithData()"
+                  [disabled]="isTesting() || !testUrl() || (activeView() === 'add' && (!importedCertificate() || !importedPrivateKey()))"
+                >
+                  @if (isTesting()) {
+                    <i class="fas fa-spinner fa-spin"></i> Testing...
+                  } @else {
+                    <i class="fas fa-plug"></i> Test Connection
+                  }
+                </button>
+              </div>
+
+              @if (testResult()) {
+                <div class="test-result" [class.success]="testResult()?.success" [class.error]="!testResult()?.success">
+                  @if (testResult()?.success) {
+                    <div class="result-header">
+                      <i class="fas fa-check-circle"></i>
+                      <span>Connection successful</span>
+                    </div>
+                    <div class="result-details">
+                      <span>Status: {{ testResult()?.status }} {{ testResult()?.statusText }}</span>
+                      @if (testResult()?.headers?.server) {
+                        <span>Server: {{ testResult()?.headers?.server }}</span>
+                      }
+                    </div>
+                  } @else {
+                    <div class="result-header">
+                      <i class="fas fa-times-circle"></i>
+                      <span>Connection failed</span>
+                    </div>
+                    <div class="result-details error-message">
+                      {{ testResult()?.error }}
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        @if (activeView() === 'list') {
+          <button class="btn btn-secondary" (click)="close()">Close</button>
+        } @else {
+          <button class="btn btn-secondary" (click)="showListView()">
+            <i class="fas fa-arrow-left"></i> Back
+          </button>
+          <div class="footer-spacer"></div>
+          @if (activeView() === 'add') {
+            <button class="btn btn-primary" (click)="saveCertificate()" [disabled]="!canSave()">
+              @if (loading()) {
+                <i class="fas fa-spinner fa-spin"></i>
+              } @else {
+                <i class="fas fa-save"></i>
+              }
+              Save Certificate
+            </button>
+          } @else {
+            <button class="btn btn-primary" (click)="updateCertificate()" [disabled]="!canUpdate()">
+              @if (loading()) {
+                <i class="fas fa-spinner fa-spin"></i>
+              } @else {
+                <i class="fas fa-save"></i>
+              }
+              Update Certificate
+            </button>
+          }
+        }
+      </div>
+    </div>
+  </div>
+}

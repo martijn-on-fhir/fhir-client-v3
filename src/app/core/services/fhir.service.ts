@@ -1,9 +1,10 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
-import { catchError, map } from 'rxjs/operators';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { getEnvironmentConfig } from '../config/environments';
 import { LoggerService } from './logger.service';
+import { MtlsService } from './mtls.service';
 
 /**
  * FHIR Service - Central service for all FHIR operations
@@ -20,6 +21,7 @@ import { LoggerService } from './logger.service';
 export class FhirService {
   private http = inject(HttpClient);
   private loggerService = inject(LoggerService);
+  private mtlsService = inject(MtlsService);
   private get logger() {
     return this.loggerService.component('FhirService');
   }
@@ -66,6 +68,7 @@ export class FhirService {
 
   /**
    * Execute a FHIR query
+   * Automatically routes through mTLS when a certificate is configured for the domain
    *
    * @example
    * ```typescript
@@ -79,10 +82,52 @@ export class FhirService {
   executeQuery<T = any>(query: string): Observable<T> {
     const url = query.startsWith('http') ? query : `${this.baseUrl}${query}`;
 
-    return this.http.get<T>(url).pipe(
+    // Check if mTLS is needed for this URL
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for request:', url);
+          return this.executeMtlsRequest<T>(url, 'GET');
+        }
+        return this.http.get<T>(url);
+      }),
       catchError(error => {
         this.logger.error('Query failed:', error);
         return throwError(() => new Error(error.message || 'FHIR query failed'));
+      })
+    );
+  }
+
+  /**
+   * Check if mTLS is required for a URL
+   */
+  private async checkMtlsRequired(url: string): Promise<boolean> {
+    try {
+      const hostname = new URL(url).hostname;
+      return await this.mtlsService.hasCertificateForDomain(hostname);
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Execute request through mTLS proxy
+   */
+  private executeMtlsRequest<T>(url: string, method: string, data?: any): Observable<T> {
+    return from(this.mtlsService.request<T>({
+      url,
+      method,
+      data,
+      headers: {
+        'Accept': 'application/fhir+json',
+        'Content-Type': 'application/fhir+json'
+      }
+    })).pipe(
+      switchMap(response => {
+        if (response.success && response.data !== undefined) {
+          return from([response.data]);
+        }
+        return throwError(() => new Error(response.error || 'mTLS request failed'));
       })
     );
   }
@@ -138,26 +183,60 @@ export class FhirService {
 
   /**
    * Create a new resource
+   * Automatically routes through mTLS when a certificate is configured for the domain
    */
   create(resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resource.resourceType}`;
-    return this.http.post(url, resource);
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for create:', url);
+          return this.executeMtlsRequest(url, 'POST', resource);
+        }
+        return this.http.post(url, resource);
+      }),
+      catchError(error => {
+        this.logger.error('Create failed:', error);
+        return throwError(() => new Error(error.message || 'Failed to create resource'));
+      })
+    );
   }
 
   /**
    * Update an existing resource
+   * Automatically routes through mTLS when a certificate is configured for the domain
    */
   update(resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resource.resourceType}/${resource.id}`;
-    return this.http.put(url, resource);
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for update:', url);
+          return this.executeMtlsRequest(url, 'PUT', resource);
+        }
+        return this.http.put(url, resource);
+      }),
+      catchError(error => {
+        this.logger.error('Update failed:', error);
+        return throwError(() => new Error(error.message || 'Failed to update resource'));
+      })
+    );
   }
 
   /**
    * Create a new resource (explicit method for ResourceEditorDialog)
+   * Automatically routes through mTLS when a certificate is configured for the domain
    */
   createResource(resourceType: string, resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}`;
-    return this.http.post(url, resource).pipe(
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for createResource:', url);
+          return this.executeMtlsRequest(url, 'POST', resource);
+        }
+        return this.http.post(url, resource);
+      }),
       catchError(error => {
         this.logger.error('Create failed:', error);
         return throwError(() => new Error(error.message || 'Failed to create resource'));
@@ -167,10 +246,18 @@ export class FhirService {
 
   /**
    * Update an existing resource (explicit method for ResourceEditorDialog)
+   * Automatically routes through mTLS when a certificate is configured for the domain
    */
   updateResource(resourceType: string, id: string, resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}/${id}`;
-    return this.http.put(url, resource).pipe(
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for updateResource:', url);
+          return this.executeMtlsRequest(url, 'PUT', resource);
+        }
+        return this.http.put(url, resource);
+      }),
       catchError(error => {
         this.logger.error('Update failed:', error);
         return throwError(() => new Error(error.message || 'Failed to update resource'));
@@ -180,6 +267,7 @@ export class FhirService {
 
   /**
    * Validate a resource using FHIR $validate operation
+   * Automatically routes through mTLS when a certificate is configured for the domain
    *
    * @example
    * ```typescript
@@ -189,7 +277,14 @@ export class FhirService {
    */
   validateResource(resourceType: string, resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}/$validate`;
-    return this.http.post(url, resource).pipe(
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for validateResource:', url);
+          return this.executeMtlsRequest(url, 'POST', resource);
+        }
+        return this.http.post(url, resource);
+      }),
       catchError(error => {
         this.logger.error('Validation failed:', error);
         // Even if validation fails, the server might return an OperationOutcome

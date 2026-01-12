@@ -69,6 +69,160 @@ declare global {
         expand: (url: string, filter?: string) => Promise<any>;
         validate: (code: string, system: string, valueSetUrl: string) => Promise<any>;
       };
+      certificates?: {
+        getAll: () => Promise<{
+          success: boolean;
+          certificates?: Array<{
+            id: string;
+            name: string;
+            domain: string;
+            enabled: boolean;
+            commonName?: string;
+            issuer?: string;
+            validFrom?: number;
+            validTo?: number;
+            serialNumber?: string;
+            createdAt: number;
+            updatedAt: number;
+            hasPrivateKey: boolean;
+            hasPassphrase: boolean;
+            hasCaCertificate: boolean;
+          }>;
+          error?: string;
+        }>;
+        save: (entry: {
+          name: string;
+          domain: string;
+          clientCertificate: string;
+          privateKey: string;
+          caCertificate?: string;
+          passphrase?: string;
+          metadata?: {
+            commonName?: string;
+            issuer?: string;
+            validFrom?: number;
+            validTo?: number;
+            serialNumber?: string;
+          };
+        }) => Promise<{ success: boolean; certificate?: any; error?: string }>;
+        update: (
+          id: string,
+          updates: {
+            name?: string;
+            domain?: string;
+            enabled?: boolean;
+            clientCertificate?: string;
+            privateKey?: string;
+            caCertificate?: string;
+            passphrase?: string;
+            metadata?: any;
+          }
+        ) => Promise<{ success: boolean; certificate?: any; error?: string }>;
+        delete: (id: string) => Promise<{ success: boolean; error?: string }>;
+        import: (type: 'pfx' | 'certificate' | 'key' | 'all') => Promise<{
+          success: boolean;
+          canceled?: boolean;
+          filePath?: string;
+          fileType?: string;
+          needsPassphrase?: boolean;
+          data?: {
+            type: string;
+            pem?: string;
+            clientCertificate?: string;
+            privateKey?: string;
+            caCertificate?: string;
+            metadata?: any;
+          };
+          error?: string;
+        }>;
+        parsePfx: (
+          filePath: string,
+          passphrase: string
+        ) => Promise<{
+          success: boolean;
+          data?: {
+            type: string;
+            clientCertificate?: string;
+            privateKey?: string;
+            caCertificate?: string;
+            metadata?: any;
+          };
+          error?: string;
+        }>;
+        validate: (data: {
+          clientCertificate: string;
+          privateKey?: string;
+          passphrase?: string;
+        }) => Promise<{
+          success: boolean;
+          valid: boolean;
+          metadata?: any;
+          isExpired?: boolean;
+          isNotYetValid?: boolean;
+          warnings?: string[];
+          error?: string;
+        }>;
+        testConnection: (
+          id: string,
+          testUrl: string
+        ) => Promise<{
+          success: boolean;
+          status?: number;
+          statusText?: string;
+          headers?: { server?: string; contentType?: string };
+          error?: string;
+          code?: string;
+        }>;
+        testConnectionWithData: (params: {
+          testUrl: string;
+          clientCertificate: string;
+          privateKey: string;
+          caCertificate?: string;
+          passphrase?: string;
+        }) => Promise<{
+          success: boolean;
+          status?: number;
+          statusText?: string;
+          headers?: { server?: string; contentType?: string };
+          error?: string;
+          code?: string;
+        }>;
+      };
+      mtls?: {
+        hasCertificate: (hostname: string) => Promise<{
+          hasCertificate: boolean;
+          enabled: boolean;
+        }>;
+        request: (options: {
+          url: string;
+          method?: string;
+          headers?: Record<string, string>;
+          data?: any;
+          timeout?: number;
+        }) => Promise<{
+          success: boolean;
+          status?: number;
+          statusText?: string;
+          headers?: Record<string, any>;
+          data?: any;
+          error?: string;
+          code?: string;
+        }>;
+        getCertificateInfo: (hostname: string) => Promise<{
+          found: boolean;
+          certificate?: {
+            id: string;
+            name: string;
+            domain: string;
+            enabled: boolean;
+            commonName?: string;
+            issuer?: string;
+            validFrom?: number;
+            validTo?: number;
+          };
+          error?: string;
+        }>;
+      };
       onShowAbout?: (callback: () => void) => () => void;
       onOpenSettings?: (callback: () => void) => () => void;
       onToggleSidebar?: (callback: () => void) => () => void;

@@ -6,6 +6,8 @@ const { registerTerminologyHandlers } = require('./terminology/terminology-handl
 const { registerFileHandlers } = require('./file/file-handler');
 const { registerProfileHandlers } = require('./profile/profile-handler');
 const { registerLogHandlers } = require('./logs/log-handler');
+const { registerCertificateHandlers } = require('./certificates/certificate-handler');
+const { registerMtlsHandlers } = require('./mtls/mtls-handler');
 const { createApplicationMenu } = require('./menu/menu-handler');
 
 // Initialize electron-log for IPC communication
@@ -185,6 +187,8 @@ app.whenReady().then(() => {
   registerTerminologyHandlers();
   registerFileHandlers();
   registerProfileHandlers();
+  registerCertificateHandlers();
+  registerMtlsHandlers();
 
   // Create application menu
   createApplicationMenu();
