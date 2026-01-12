@@ -1,3 +1,10 @@
+# [1.9.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.8.0...v1.9.0) (2026-01-12)
+
+
+### Features
+
+* add Certificate Manager with mTLS support ([cd67237](https://github.com/martijn-on-fhir/fhir-client-v3/commit/cd67237b6d05c6a54b8b5e11cdc561a53e35c34c))
+
 # [1.8.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.7.0...v1.8.0) (2026-01-11)
 
 
