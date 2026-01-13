@@ -318,8 +318,7 @@
               [class.btn-secondary]="!canSave()"
               [class.btn-success]="canSave()"
               (click)="saveCertificate()"
-              [disabled]="!canSave()"
-            >
+              [disabled]="!canSave()">
               @if (loading()) {
                 <i class="fas fa-spinner fa-spin"></i>
               } @else {
@@ -333,8 +332,7 @@
               [class.btn-secondary]="!canUpdate()"
               [class.btn-success]="canUpdate()"
               (click)="updateCertificate()"
-              [disabled]="!canUpdate()"
-            >
+              [disabled]="!canUpdate()">
               @if (loading()) {
                 <i class="fas fa-spinner fa-spin"></i>
               } @else {

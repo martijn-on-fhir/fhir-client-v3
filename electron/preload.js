@@ -408,6 +408,31 @@ contextBridge.exposeInMainWorld('electronAPI', {
      */
     getCertificateInfo: (hostname) =>
       ipcRenderer.invoke('mtls:getCertificateInfo', hostname)
+  },
+
+  // Configuration API
+  config: {
+    /**
+     * Get all environment configurations
+     * @returns {Promise<{success: boolean, environments?: Object, error?: string}>}
+     */
+    getEnvironments: () =>
+      ipcRenderer.invoke('config:getEnvironments'),
+
+    /**
+     * Get list of available environment names
+     * @returns {Promise<{success: boolean, environments?: string[], error?: string}>}
+     */
+    getAvailableEnvironments: () =>
+      ipcRenderer.invoke('config:getAvailableEnvironments'),
+
+    /**
+     * Get specific environment configuration
+     * @param {string} envName - Environment name
+     * @returns {Promise<{success: boolean, environment?: Object, error?: string}>}
+     */
+    getEnvironment: (envName) =>
+      ipcRenderer.invoke('config:getEnvironment', envName)
   }
 });
 

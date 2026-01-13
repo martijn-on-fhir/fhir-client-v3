@@ -1,0 +1,50 @@
+{
+  "terminology": {
+    "baseUrl": "https://terminology.example.com",
+    "authUrl": "https://terminology.example.com/auth/realms/your-realm/protocol/openid-connect/token",
+    "user": "your-username@example.com",
+    "password": "your-password",
+    "clientId": "cli_client",
+    "grantType": "password"
+  },
+  "development": {
+    "name": "development",
+    "displayName": "Development",
+    "fhirServer": "https://fhir.dev.example.com",
+    "authServer": "https://auth.dev.example.com",
+    "tokenEndpoint": "https://auth.dev.example.com/realms/your-realm/protocol/openid-connect/token",
+    "realm": "your-realm",
+    "grantType": "client_credentials",
+    "scope": "user/*.cruds"
+  },
+  "local": {
+    "name": "local",
+    "displayName": "Local",
+    "fhirServer": "http://localhost:8080/fhir",
+    "authServer": "http://localhost:8081",
+    "tokenEndpoint": "http://localhost:8081/realms/your-realm/protocol/openid-connect/token",
+    "realm": "your-realm",
+    "grantType": "client_credentials",
+    "scope": "user/*.cruds"
+  },
+  "acceptance": {
+    "name": "acceptance",
+    "displayName": "Acceptance",
+    "fhirServer": "https://fhir.acc.example.com/fhir",
+    "authServer": "https://auth.acc.example.com",
+    "tokenEndpoint": "https://auth.acc.example.com/realms/your-realm/protocol/openid-connect/token",
+    "realm": "your-realm",
+    "grantType": "client_credentials",
+    "scope": "user/*.cruds"
+  },
+  "production": {
+    "name": "production",
+    "displayName": "Production",
+    "fhirServer": "https://fhir.example.com/fhir",
+    "authServer": "https://auth.example.com",
+    "tokenEndpoint": "https://auth.example.com/realms/your-realm/protocol/openid-connect/token",
+    "realm": "your-realm",
+    "grantType": "client_credentials",
+    "scope": "user/*.cruds"
+  }
+}

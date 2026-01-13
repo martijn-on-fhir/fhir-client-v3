@@ -41,3 +41,6 @@ testem.log
 .DS_Store
 Thumbs.db
 public/assets/monaco/
+
+# Configuration files (contain sensitive URLs)
+electron/config/environments.json

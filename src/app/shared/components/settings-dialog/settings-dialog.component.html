@@ -79,15 +79,16 @@
                         </div>
                         <div class="account-details">
                           <span><i class="fas fa-id-card"></i> {{ account.clientId }}</span>
+
                           <span><i class="fas fa-clock"></i> {{ formatLastUsed(account.lastUsed) }}</span>
                         </div>
                       </div>
                       <div class="account-actions">
-                        <button type="button" class="btn btn-sm btn-outline-primary" (click)="startEditAccount(account)">
-                          <i class="fas fa-edit"></i> Edit
+                        <button type="button" class="btn btn-sm btn-icon btn-outline-primary" (click)="startEditAccount(account)">
+                          <i class="fas fa-edit"></i>
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger" (click)="deleteAccount(account.id)">
-                          <i class="fas fa-trash"></i> Delete
+                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" (click)="deleteAccount(account.id)">
+                          <i class="fas fa-trash"></i>
                         </button>
                       </div>
                     </div>
@@ -136,6 +137,19 @@
                     [(ngModel)]="accountForm().clientId"
                     placeholder="Enter client ID"
                   />
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-link"></i> FHIR URL
+                  </label>
+                  <input
+                    type="url"
+                    class="form-control"
+                    [(ngModel)]="accountForm().fhirUrl"
+                    placeholder="https://fhir.example.com/fhir"
+                  />
+                  <small class="form-text text-muted">Optional: Custom FHIR server URL</small>
                 </div>
 
                 <div class="form-actions">

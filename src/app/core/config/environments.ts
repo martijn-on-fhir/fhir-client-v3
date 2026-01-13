@@ -5,6 +5,7 @@
  * Based on Keycloak realms for different environments
  *
  * NOTE: This application runs exclusively in Electron
+ * Configuration is loaded from electron/config/environments.json
  */
 
 export type Environment = 'development' | 'local' | 'acceptance' | 'production';
@@ -20,58 +21,74 @@ export interface EnvironmentConfig {
   scope: string;
 }
 
-export const ENVIRONMENTS: Record<Environment, EnvironmentConfig> = {
-  development: {
-    name: 'development',
-    displayName: 'Development',
-    fhirServer: 'https://fhir-adapcare.dev.carebeat-connector.nl',
-    authServer: 'https://keycloak.dev.carebeat-connector.nl',
-    tokenEndpoint: 'https://keycloak.dev.carebeat-connector.nl/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
-  },
+// Cache for loaded environments
+let _environments: Record<string, EnvironmentConfig> | null = null;
+let _loadPromise: Promise<void> | null = null;
 
-  local: {
-    name: 'local',
-    displayName: 'Local',
-    fhirServer: 'http://localhost:8080/fhir',
-    authServer: 'http://localhost:8081',
-    tokenEndpoint: 'http://localhost:8081/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
-  },
-
-  acceptance: {
-    name: 'acceptance',
-    displayName: 'Acceptance',
-    fhirServer: 'https://fhir.acc.carebeat-connector.nl/fhir',
-    authServer: 'https://keycloak.acc.carebeat-connector.nl',
-    tokenEndpoint: 'https://keycloak.acc.carebeat-connector.nl/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
-  },
-
-  production: {
-    name: 'production',
-    displayName: 'Production',
-    fhirServer: 'https://fhir.carebeat-connector.nl/fhir',
-    authServer: 'https://keycloak.carebeat-connector.nl',
-    tokenEndpoint: 'https://keycloak.carebeat-connector.nl/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
+/**
+ * Load environments from Electron IPC
+ * Called once at app startup
+ */
+export async function loadEnvironments(): Promise<void> {
+  if (_environments) {
+    return; // Already loaded
   }
-};
+
+  if (_loadPromise) {
+    return _loadPromise; // Loading in progress
+  }
+
+  _loadPromise = (async () => {
+    if (!window.electronAPI?.config) {
+      console.error('[Environments] Electron config API not available');
+      return;
+    }
+
+    try {
+      const result = await window.electronAPI.config.getEnvironments();
+
+      if (result.success && result.environments) {
+        _environments = result.environments as Record<string, EnvironmentConfig>;
+        console.log('[Environments] Loaded environments from Electron:', Object.keys(_environments));
+      } else {
+        console.error('[Environments] Failed to load:', result.error);
+      }
+    } catch (error) {
+      console.error('[Environments] Error loading environments:', error);
+    }
+  })();
+
+  return _loadPromise;
+}
 
 /**
  * Get environment configuration
+ * Returns undefined if environment not found or not loaded
  */
-export const getEnvironmentConfig = (env: Environment): EnvironmentConfig =>ENVIRONMENTS[env]
+export function getEnvironmentConfig(env: Environment): EnvironmentConfig | undefined {
+  if (!_environments) {
+    console.warn('[Environments] Config not loaded yet. Call loadEnvironments() first.');
+    return undefined;
+  }
+
+  return _environments[env];
+}
 
 /**
  * Get all available environments
  */
-export const getAvailableEnvironments = (): Environment[] => Object.keys(ENVIRONMENTS) as Environment[]
+export function getAvailableEnvironments(): Environment[] {
+  if (!_environments) {
+    console.warn('[Environments] Config not loaded yet. Call loadEnvironments() first.');
+    return [];
+  }
+
+  return Object.keys(_environments) as Environment[];
+}
+
+/**
+ * Check if environments are loaded
+ */
+export function isEnvironmentsLoaded(): boolean {
+  return _environments !== null;
+}

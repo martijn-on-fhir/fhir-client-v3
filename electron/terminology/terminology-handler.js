@@ -1,5 +1,7 @@
 const { ipcMain } = require('electron');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 
 /**
  * Terminology Service IPC Handler
@@ -8,15 +10,37 @@ const axios = require('axios');
  * Implements OAuth2 password grant authentication with automatic token management
  */
 
-// Configuration
-const TERMINOLOGY_CONFIG = {
-  baseUrl: 'https://terminologieserver.nl',
-  authUrl: 'https://terminologieserver.nl/authorisation/auth/realms/nictiz/protocol/openid-connect/token',
-  user: 'm.schimmel@adapcare.nl',
-  password: 'JoopEnKaas2016',
-  clientId: 'cli_client',
-  grantType: 'password'
-};
+/**
+ * Load terminology configuration from external JSON file
+ * This keeps sensitive credentials out of the source code
+ */
+function loadTerminologyConfig() {
+  const configPath = path.join(__dirname, '..', 'config', 'environments.json');
+
+  if (!fs.existsSync(configPath)) {
+    console.error('[TerminologyHandler] ERROR: environments.json not found!');
+    return null;
+  }
+
+  try {
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const config = JSON.parse(configContent);
+
+    if (!config.terminology) {
+      console.error('[TerminologyHandler] ERROR: terminology section not found in config');
+      return null;
+    }
+
+    console.log('[TerminologyHandler] Terminology config loaded successfully');
+    return config.terminology;
+  } catch (error) {
+    console.error('[TerminologyHandler] ERROR: Failed to parse config:', error.message);
+    return null;
+  }
+}
+
+// Load configuration from external file
+const TERMINOLOGY_CONFIG = loadTerminologyConfig();
 
 // Token management
 let accessToken = null;
@@ -26,6 +50,10 @@ let tokenExpiry = 0;
  * Acquire OAuth2 token using Resource Owner Password Credentials
  */
 async function acquireToken() {
+  if (!TERMINOLOGY_CONFIG) {
+    throw new Error('Terminology configuration not loaded. Please check environments.json');
+  }
+
   console.log('[TerminologyHandler] Acquiring OAuth2 token...');
 
   const params = new URLSearchParams({

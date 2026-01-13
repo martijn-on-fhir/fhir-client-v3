@@ -48,6 +48,7 @@ export interface SavedAccount {
   clientId: string;
   clientSecret?: string; // Encrypted in electron-store
   environment: Environment;
+  fhirUrl?: string; // Custom FHIR server URL
   lastUsed: number;
   autoLogin?: boolean; // Auto-login on app start
 }

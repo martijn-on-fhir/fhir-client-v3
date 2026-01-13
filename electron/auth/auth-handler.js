@@ -1,5 +1,7 @@
 const { ipcMain } = require('electron');
 const axios = require('axios');
+const path = require('path');
+const fs = require('fs');
 const tokenStore = require('./token-store');
 
 /**
@@ -9,49 +11,36 @@ const tokenStore = require('./token-store');
  * Manages tokens, 2FA, and saved accounts via IPC
  */
 
-// Environment configurations
-const ENVIRONMENTS = {
-  development: {
-    name: 'development',
-    displayName: 'Development',
-    fhirServer: 'https://fhir-adapcare.dev.carebeat-connector.nl',
-    authServer: 'https://keycloak.dev.carebeat-connector.nl',
-    tokenEndpoint: 'https://keycloak.dev.carebeat-connector.nl/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
-  },
-  local: {
-    name: 'local',
-    displayName: 'Local',
-    fhirServer: 'http://localhost:8080/fhir',
-    authServer: 'http://localhost:8081',
-    tokenEndpoint: 'http://localhost:8081/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
-  },
-  acceptance: {
-    name: 'acceptance',
-    displayName: 'Acceptance',
-    fhirServer: 'https://fhir.acc.carebeat-connector.nl/fhir',
-    authServer: 'https://keycloak.acc.carebeat-connector.nl',
-    tokenEndpoint: 'https://keycloak.acc.carebeat-connector.nl/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
-  },
-  production: {
-    name: 'production',
-    displayName: 'Production',
-    fhirServer: 'https://fhir.carebeat-connector.nl/fhir',
-    authServer: 'https://keycloak.carebeat-connector.nl',
-    tokenEndpoint: 'https://keycloak.carebeat-connector.nl/realms/adapcare-careconnector/protocol/openid-connect/token',
-    realm: 'adapcare-careconnector',
-    grantType: 'client_credentials',
-    scope: 'user/*.cruds'
+/**
+ * Load environment configurations from external JSON file
+ * This keeps sensitive URLs out of the source code
+ */
+function loadEnvironments() {
+  const configPath = path.join(__dirname, '..', 'config', 'environments.json');
+  const examplePath = path.join(__dirname, '..', 'config', 'environments.example.json');
+
+  if (!fs.existsSync(configPath)) {
+    console.error('[AuthHandler] ERROR: environments.json not found!');
+    console.error(`[AuthHandler] Please create ${configPath}`);
+    console.error(`[AuthHandler] You can copy from ${examplePath} and fill in your values`);
+
+    // Return empty object - app will show errors when trying to authenticate
+    return {};
   }
-};
+
+  try {
+    const configContent = fs.readFileSync(configPath, 'utf8');
+    const environments = JSON.parse(configContent);
+    console.log(`[AuthHandler] Loaded ${Object.keys(environments).length} environment(s) from config`);
+    return environments;
+  } catch (error) {
+    console.error('[AuthHandler] ERROR: Failed to parse environments.json:', error.message);
+    return {};
+  }
+}
+
+// Load environment configurations from external file
+const ENVIRONMENTS = loadEnvironments();
 
 /**
  * Register all authentication IPC handlers

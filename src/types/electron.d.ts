@@ -234,6 +234,41 @@ declare global {
           error?: string;
         }>;
       };
+      config?: {
+        getEnvironments: () => Promise<{
+          success: boolean;
+          environments?: Record<string, {
+            name: string;
+            displayName: string;
+            fhirServer: string;
+            authServer: string;
+            tokenEndpoint: string;
+            realm: string;
+            grantType: string;
+            scope: string;
+          }>;
+          error?: string;
+        }>;
+        getAvailableEnvironments: () => Promise<{
+          success: boolean;
+          environments?: string[];
+          error?: string;
+        }>;
+        getEnvironment: (envName: string) => Promise<{
+          success: boolean;
+          environment?: {
+            name: string;
+            displayName: string;
+            fhirServer: string;
+            authServer: string;
+            tokenEndpoint: string;
+            realm: string;
+            grantType: string;
+            scope: string;
+          };
+          error?: string;
+        }>;
+      };
       onShowAbout?: (callback: () => void) => () => void;
       onOpenSettings?: (callback: () => void) => () => void;
       onToggleSidebar?: (callback: () => void) => () => void;

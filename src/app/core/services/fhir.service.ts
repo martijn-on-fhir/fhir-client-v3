@@ -41,7 +41,9 @@ export class FhirService {
         }
         if (storedToken.environment) {
           const config = getEnvironmentConfig(storedToken.environment);
-          return config.fhirServer;
+          if (config) {
+            return config.fhirServer;
+          }
         }
       } catch (error) {
         this.logger.error('Failed to parse stored token:', error);

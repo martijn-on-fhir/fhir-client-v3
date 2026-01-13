@@ -128,6 +128,7 @@ export class CertificateManagerDialogComponent implements OnInit {
       this.importedCertificate.set('EXISTING_CERTIFICATE');
       this.importedPrivateKey.set('EXISTING_KEY');
     }
+
     if (cert.hasCaCertificate) {
       this.importedCaCertificate.set('EXISTING_CA');
     }

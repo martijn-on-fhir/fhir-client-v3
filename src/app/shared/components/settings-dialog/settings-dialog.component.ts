@@ -43,7 +43,8 @@ export class SettingsDialogComponent implements OnInit {
   accountForm = signal({
     name: '',
     clientId: '',
-    environment: 'development' as Environment
+    environment: 'development' as Environment,
+    fhirUrl: ''
   });
 
   // 2FA
@@ -124,7 +125,8 @@ export class SettingsDialogComponent implements OnInit {
     this.accountForm.set({
       name: '',
       clientId: '',
-      environment: 'development'
+      environment: 'development',
+      fhirUrl: ''
     });
   }
 
@@ -137,7 +139,8 @@ export class SettingsDialogComponent implements OnInit {
     this.accountForm.set({
       name: account.name,
       clientId: account.clientId,
-      environment: account.environment
+      environment: account.environment,
+      fhirUrl: account.fhirUrl || ''
     });
   }
 
@@ -161,6 +164,7 @@ export class SettingsDialogComponent implements OnInit {
           name: form.name,
           clientId: form.clientId,
           environment: form.environment,
+          fhirUrl: form.fhirUrl || undefined,
           lastUsed: Date.now()
         };
 
@@ -169,14 +173,16 @@ export class SettingsDialogComponent implements OnInit {
         await this.authService.saveAccount({
           name: updated.name,
           clientId: updated.clientId,
-          environment: updated.environment
+          environment: updated.environment,
+          fhirUrl: updated.fhirUrl
         });
       } else {
         // Add new account
         await this.authService.saveAccount({
           name: form.name,
           clientId: form.clientId,
-          environment: form.environment
+          environment: form.environment,
+          fhirUrl: form.fhirUrl || undefined
         });
       }
 
@@ -218,7 +224,8 @@ export class SettingsDialogComponent implements OnInit {
     this.accountForm.set({
       name: '',
       clientId: '',
-      environment: 'development'
+      environment: 'development',
+      fhirUrl: ''
     });
   }
 
