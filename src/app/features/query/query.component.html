@@ -487,25 +487,23 @@
               <i class="fas fa-search me-2"></i>Generated Query
             </h6>
 
-            <div class="p-2 bg-light border rounded font-monospace small" style="word-break: break-all; min-height: 2.5rem">
+            <div class="d-flex gap-2 align-items-center">
+              <div class="pt-1 ps-2 bg-light border rounded font-monospace small flex-grow-1" style="word-break: break-all; min-height: 2.0rem">
+                @if (generatedQuery()) {
+                  {{ generatedQuery() }}
+                } @else {
+                  <span class="text-muted">Select a resource type to begin building a query...</span>
+                }
+              </div>
               @if (generatedQuery()) {
-                {{ generatedQuery() }}
-              } @else {
-                <span class="text-muted">Select a resource type to begin building a query...</span>
+                <button class="btn btn-primary btn-sm" (click)="executeQuery()" title="Execute Query">
+                  <i class="fas fa-bolt me-1"></i> Execute
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" (click)="copyQuery()" title="Copy Query">
+                  <i class="fas fa-copy"></i>
+                </button>
               }
             </div>
-
-            @if (generatedQuery()) {
-              <div class="d-flex gap-2 mt-2">
-                <button class="btn btn-primary btn-sm flex-grow-1" (click)="executeQuery()">
-                  <i class="fas fa-bolt me-2"></i>
-                  Execute Query
-                </button>
-                <button class="btn btn-outline-secondary btn-sm" (click)="copyQuery()">
-                  <i class="fas fa-copy me-2"></i>Copy
-                </button>
-              </div>
-            }
           </div>
         </div>
 
