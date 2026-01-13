@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.12.0...v1.12.1) (2026-01-13)
+
+
+### Bug Fixes
+
+* move execute and copy buttons inline with query preview ([3707b88](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3707b88029ab5c0bf9015479851534f27dd1fff2))
+
 # [1.12.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.11.0...v1.12.0) (2026-01-13)
 
 
