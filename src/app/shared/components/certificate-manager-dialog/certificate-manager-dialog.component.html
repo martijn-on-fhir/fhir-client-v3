@@ -4,8 +4,9 @@
   <div class="modal-dialog certificate-manager-dialog">
     <div class="modal-content">
       <!-- Header -->
-      <div class="modal-header">
+      <div class="modal-header p-2">
         <h2 class="modal-title">
+          <i class="fas fa-shield-halved"></i>
           @if (activeView() === 'list') {
             Certificate Manager
           } @else if (activeView() === 'add') {
@@ -20,7 +21,7 @@
       </div>
 
       <!-- Body -->
-      <div class="modal-body">
+      <div class="modal-body pt-1">
         @if (error()) {
           <div class="alert alert-error">
             <i class="fas fa-exclamation-circle"></i>
@@ -134,7 +135,6 @@
           <div class="certificate-form-view">
             <!-- Basic Info -->
             <div class="form-section">
-              <h3>Basic Information</h3>
               <div class="form-group">
                 <label for="cert-name">Name</label>
                 <input
@@ -154,14 +154,12 @@
                   (ngModelChange)="updateFormField('domain', $event)"
                   placeholder="e.g., *.api.example.com"
                 />
-                <span class="form-hint">Supports wildcards: *.example.com matches api.example.com</span>
+
               </div>
             </div>
 
             <!-- Import Method -->
             <div class="form-section">
-              <h3>Certificate Import</h3>
-
               <div class="import-method-selector">
                 <label class="radio-option">
                   <input
@@ -259,7 +257,7 @@
               <div class="import-section ca-section">
                 <label>CA Certificate (optional)</label>
                 <div class="import-row">
-                  <button class="btn btn-secondary btn-sm" (click)="importCaCertificate()" [disabled]="loading()">
+                  <button class="btn btn-secondary" (click)="importCaCertificate()" [disabled]="loading()">
                     <i class="fas fa-shield-alt"></i> Import CA Certificate
                   </button>
                   @if (importedCaCertificate()) {
@@ -333,7 +331,6 @@
 
             <!-- Test Connection -->
             <div class="form-section test-section">
-              <h3>Test Connection</h3>
               <div class="test-connection-form">
                 <div class="form-group">
                   <label for="test-url">Test URL</label>
