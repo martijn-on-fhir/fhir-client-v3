@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, inject, signal, computed, effect, HostListener, ViewChild } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, signal, computed, effect, untracked, HostListener, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FhirSubscription, SubscriptionStatus } from '../../core/models/subscription.model';
 import { EditorStateService } from '../../core/services/editor-state.service';
@@ -121,6 +121,17 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
   error = computed(() => this.subscriptionService.error());
 
   constructor() {
+    // Auto-select first subscription when loaded
+    effect(() => {
+      const subs = this.subscriptionService.subscriptions();
+      const selected = untracked(() => this.selectedSubscription());
+
+      if (subs.length > 0 && !selected) {
+        this.selectedSubscription.set(subs[0]);
+      }
+    });
+
+    // Register editor when subscription is selected
     effect(() => {
       const sub = this.selectedSubscription();
 

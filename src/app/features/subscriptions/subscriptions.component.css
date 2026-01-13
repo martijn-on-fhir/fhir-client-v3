@@ -103,7 +103,7 @@
 }
 
 .subscription-card {
-  border: 2px solid var(--bs-border-color);
+  border: 1px solid var(--bs-border-color);
   border-radius: 8px;
   padding: 0.75rem;
   cursor: pointer;
@@ -112,10 +112,16 @@
 }
 .subscription-card:hover {
   border-color: var(--bs-primary);
+  background: var(--bs-light);
+}
+:host-context([data-bs-theme=dark]) .subscription-card:hover {
   background: var(--bs-primary-bg-subtle);
 }
 .subscription-card.selected {
   border-color: var(--bs-primary);
+  background: var(--bs-light);
+}
+:host-context([data-bs-theme=dark]) .subscription-card.selected {
   background: var(--bs-primary-bg-subtle);
 }
 .subscription-card .sub-header {
