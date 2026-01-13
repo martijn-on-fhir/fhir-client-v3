@@ -1,3 +1,15 @@
+# [1.13.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.12.1...v1.13.0) (2026-01-13)
+
+
+### Bug Fixes
+
+* auto-select first subscription and dark/light mode styling ([2811390](https://github.com/martijn-on-fhir/fhir-client-v3/commit/2811390791983b1e5d8c4c8d37fb0b590cb601fd))
+
+
+### Features
+
+* add FHIR STU3 subscription management feature ([c3686a5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/c3686a509f1a52afd3a491904a842a9166359f00))
+
 ## [1.12.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.12.0...v1.12.1) (2026-01-13)
 
 
