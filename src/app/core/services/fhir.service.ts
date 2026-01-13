@@ -199,7 +199,8 @@ export class FhirService {
       }),
       catchError(error => {
         this.logger.error('Create failed:', error);
-        return throwError(() => new Error(error.message || 'Failed to create resource'));
+        const errorMessage = this.extractFhirErrorMessage(error);
+        return throwError(() => new Error(errorMessage));
       })
     );
   }
@@ -220,7 +221,8 @@ export class FhirService {
       }),
       catchError(error => {
         this.logger.error('Update failed:', error);
-        return throwError(() => new Error(error.message || 'Failed to update resource'));
+        const errorMessage = this.extractFhirErrorMessage(error);
+        return throwError(() => new Error(errorMessage));
       })
     );
   }
@@ -268,6 +270,27 @@ export class FhirService {
   }
 
   /**
+   * Delete a resource
+   * Automatically routes through mTLS when a certificate is configured for the domain
+   */
+  delete(resourceType: string, id: string): Observable<any> {
+    const url = `${this.baseUrl}/${resourceType}/${id}`;
+    return from(this.checkMtlsRequired(url)).pipe(
+      switchMap(useMtls => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for delete:', url);
+          return this.executeMtlsRequest(url, 'DELETE');
+        }
+        return this.http.delete(url);
+      }),
+      catchError(error => {
+        this.logger.error('Delete failed:', error);
+        return throwError(() => new Error(error.message || 'Failed to delete resource'));
+      })
+    );
+  }
+
+  /**
    * Validate a resource using FHIR $validate operation
    * Automatically routes through mTLS when a certificate is configured for the domain
    *
@@ -297,5 +320,37 @@ export class FhirService {
         return throwError(() => new Error(error.message || 'Validation failed'));
       })
     );
+  }
+
+  /**
+   * Extract a meaningful error message from FHIR server responses
+   * Handles OperationOutcome resources and HTTP error responses
+   */
+  private extractFhirErrorMessage(error: any): string {
+    // Check for OperationOutcome in error.error (Angular HttpClient format)
+    if (error.error?.resourceType === 'OperationOutcome') {
+      const outcome = error.error;
+      const issues = outcome.issue || [];
+      if (issues.length > 0) {
+        // Get the first error/fatal issue, or first issue
+        const errorIssue = issues.find((i: any) => i.severity === 'error' || i.severity === 'fatal') || issues[0];
+        const diagnostics = errorIssue.diagnostics || errorIssue.details?.text || '';
+        const location = errorIssue.location?.join(', ') || '';
+        return diagnostics + (location ? ` (at ${location})` : '') || `Server rejected request: ${errorIssue.code || 'validation error'}`;
+      }
+    }
+
+    // Check for error message in response body
+    if (error.error?.message) {
+      return error.error.message;
+    }
+
+    // Check for status text
+    if (error.status && error.statusText) {
+      return `Server error ${error.status}: ${error.statusText}`;
+    }
+
+    // Fallback to generic message
+    return error.message || 'Failed to complete request';
   }
 }

@@ -50,7 +50,7 @@ export const loadEnvironments = async (): Promise<void> => {
       if (result.success && result.environments) {
         _environments = result.environments as Record<string, EnvironmentConfig>;
       } else {
-        console.error('[Environments] Failed to load:', result.error);k
+        console.error('[Environments] Failed to load:', result.error);
       }
     } catch (error) {
       console.error('[Environments] Error loading environments:', error);

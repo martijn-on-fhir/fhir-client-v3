@@ -1,0 +1,144 @@
+@if (isOpen) {
+  <div class="modal-backdrop" (click)="handleClose()"></div>
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title text-primary">
+          <i class="fas fa-bell me-2"></i>
+          {{ isEditing ? 'Edit Subscription' : 'Create Subscription' }}
+        </h5>
+        <button class="btn-close" (click)="handleClose()" title="Close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        <!-- Reason -->
+        <div class="form-group">
+          <label for="reason">
+            Reason <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="reason"
+            [ngModel]="formData().reason"
+            (ngModelChange)="updateField('reason', $event)"
+            placeholder="Description of why this subscription was created" />
+          <span class="form-hint">A human-readable description of the subscription purpose</span>
+        </div>
+
+        <!-- Criteria -->
+        <div class="form-group">
+          <label for="criteria">
+            Criteria <span class="text-danger">*</span>
+          </label>
+          <input
+            type="text"
+            id="criteria"
+            [ngModel]="formData().criteria"
+            (ngModelChange)="updateField('criteria', $event)"
+            placeholder="Observation?code=http://loinc.org|1234-5" />
+          <span class="form-hint">FHIR search criteria that triggers notifications (e.g., Observation?patient=Patient/123)</span>
+        </div>
+
+        <!-- Channel Section -->
+        <div class="form-section">
+          <div class="form-row">
+            <!-- Channel Type -->
+            <div class="form-group flex-1">
+              <label for="channelType">
+                Channel Type <span class="text-danger">*</span>
+              </label>
+              <select
+                id="channelType"
+                [ngModel]="formData().channelType"
+                (ngModelChange)="updateField('channelType', $event)">
+                @for (type of channelTypes; track type) {
+                  <option [value]="type">{{ type }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- Endpoint -->
+            <div class="form-group flex-2">
+              <label for="endpoint">
+                Endpoint
+                @if (formData().channelType === 'rest-hook') {
+                  <span class="text-danger">*</span>
+                }
+              </label>
+              <input
+                type="url"
+                id="endpoint"
+                [ngModel]="formData().endpoint"
+                (ngModelChange)="updateField('endpoint', $event)"
+                placeholder="https://example.com/webhook"
+                [disabled]="formData().channelType === 'websocket'" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <!-- Payload -->
+            <div class="form-group flex-1">
+              <label for="payload">Payload Format</label>
+              <select
+                id="payload"
+                [ngModel]="formData().payload"
+                (ngModelChange)="updateField('payload', $event)">
+                @for (option of payloadOptions; track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </div>
+
+            <!-- End Date -->
+            <div class="form-group flex-1">
+              <label for="endDate">Expiration Date</label>
+              <input
+                type="date"
+                id="endDate"
+                [ngModel]="formData().endDate"
+                (ngModelChange)="updateField('endDate', $event)" />
+            </div>
+          </div>
+
+          <!-- Headers -->
+          <div class="form-group">
+            <label for="headers">Headers</label>
+            <textarea
+              id="headers"
+              rows="3"
+              [ngModel]="formData().headers"
+              (ngModelChange)="updateField('headers', $event)"
+              placeholder="Authorization: Bearer token&#10;X-Custom-Header: value"></textarea>
+            <span class="form-hint">One header per line (for rest-hook channel)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <div class="footer-spacer"></div>
+        <button class="btn btn-sm btn-danger" (click)="handleClose()">
+          <i class="fas fa-times me-1"></i>
+          Cancel
+        </button>
+        <button
+          class="btn btn-sm btn-success"
+          (click)="handleSave()"
+          [disabled]="!isValid() || saving()">
+          @if (saving()) {
+            <i class="fas fa-spinner fa-spin me-1"></i>
+            Saving...
+          } @else {
+            <i class="fas fa-save me-1"></i>
+            {{ isEditing ? 'Update' : 'Create' }}
+          }
+        </button>
+      </div>
+    </div>
+  </div>
+}

@@ -10,6 +10,7 @@ import { PredefinedComponent } from './features/predefined/predefined.component'
 import { ProfilesComponent } from './features/profiles/profiles.component';
 import { QueryComponent } from './features/query/query.component';
 import { ResourceInfoComponent } from './features/resource-info/resource-info.component';
+import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
 import { TerminologyComponent } from './features/terminology/terminology.component';
 import { ValidatorComponent } from './features/validator/validator.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
@@ -111,6 +112,12 @@ export const routes: Routes = [
       {
         path: 'resource-info',
         component: ResourceInfoComponent
+      },
+
+      // Subscriptions Tab (DONE ✅)
+      {
+        path: 'subscriptions',
+        component: SubscriptionsComponent
       }
     ]
   },

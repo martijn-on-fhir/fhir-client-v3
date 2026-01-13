@@ -88,5 +88,12 @@ export const APP_TABS: Tab[] = [
     icon: 'list',
     route: '/app/logs',
     active: true
+  },
+  {
+    id: 'subscriptions',
+    label: 'Subscriptions',
+    icon: 'bell',
+    route: '/app/subscriptions',
+    active: true
   }
 ];
