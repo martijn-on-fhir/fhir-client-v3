@@ -1,3 +1,10 @@
+# [1.11.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.10.0...v1.11.0) (2026-01-13)
+
+
+### Features
+
+* add global toast notification service ([dcbf289](https://github.com/martijn-on-fhir/fhir-client-v3/commit/dcbf2895c7037af5c4473c5a4d4221a054683c1d))
+
 # [1.10.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.9.0...v1.10.0) (2026-01-13)
 
 
