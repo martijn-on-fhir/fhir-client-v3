@@ -1,3 +1,10 @@
+# [1.10.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.9.0...v1.10.0) (2026-01-13)
+
+
+### Features
+
+* change default import method to separate files ([107547d](https://github.com/martijn-on-fhir/fhir-client-v3/commit/107547d5d2e8c1e0059a72afe7ef026fc5ab86b6))
+
 # [1.9.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.8.0...v1.9.0) (2026-01-12)
 
 
