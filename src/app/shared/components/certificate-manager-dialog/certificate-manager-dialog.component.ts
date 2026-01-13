@@ -37,7 +37,7 @@ export class CertificateManagerDialogComponent implements OnInit {
   formData = signal<CertificateFormData>({
     name: '',
     domain: '',
-    importMethod: 'pfx'
+    importMethod: 'separate'
   });
 
   // Import state
@@ -125,7 +125,7 @@ export class CertificateManagerDialogComponent implements OnInit {
     this.formData.set({
       name: cert.name,
       domain: cert.domain,
-      importMethod: 'pfx'
+      importMethod: 'separate'
     });
     this.activeView.set('edit');
   }
@@ -145,7 +145,7 @@ export class CertificateManagerDialogComponent implements OnInit {
     this.formData.set({
       name: '',
       domain: '',
-      importMethod: 'pfx'
+      importMethod: 'separate'
     });
     this.importedCertificate.set(null);
     this.importedPrivateKey.set(null);
