@@ -162,6 +162,17 @@ declare global {
           warnings?: string[];
           error?: string;
         }>;
+        validateStored: (
+          id: string
+        ) => Promise<{
+          success: boolean;
+          valid: boolean;
+          metadata?: any;
+          isExpired?: boolean;
+          isNotYetValid?: boolean;
+          warnings?: string[];
+          error?: string;
+        }>;
         testConnection: (
           id: string,
           testUrl: string

@@ -242,6 +242,71 @@ function registerCertificateHandlers() {
     }
   });
 
+  /**
+   * Validate a stored certificate by ID
+   */
+  ipcMain.handle('certificate:validateStored', async (event, id) => {
+    try {
+      // Get the full certificate (including private key)
+      const cert = certificateStore.getCertificate(id);
+
+      if (!cert) {
+        return { success: false, valid: false, error: 'Certificate not found' };
+      }
+
+      // Validate the certificate itself
+      const certValidation = certificateUtils.validateCertificate(cert.clientCertificate);
+
+      if (!certValidation.valid && certValidation.errors.length > 0) {
+        // Certificate structure is invalid
+        if (!certValidation.metadata) {
+          return {
+            success: false,
+            valid: false,
+            error: certValidation.errors[0]
+          };
+        }
+      }
+
+      // Validate cert/key pair
+      try {
+        const pairValid = certificateUtils.validateCertificateKeyPair(
+          cert.clientCertificate,
+          cert.privateKey,
+          cert.passphrase
+        );
+
+        if (!pairValid) {
+          return {
+            success: true,
+            valid: false,
+            error: 'Certificate and private key do not match',
+            metadata: certValidation.metadata
+          };
+        }
+      } catch (keyError) {
+        return {
+          success: true,
+          valid: false,
+          error: keyError.message,
+          metadata: certValidation.metadata
+        };
+      }
+
+      return {
+        success: true,
+        valid: true,
+        metadata: certValidation.metadata,
+        isExpired: certValidation.isExpired,
+        isNotYetValid: certValidation.isNotYetValid,
+        warnings: certValidation.errors // Expiry warnings
+      };
+    } catch (error) {
+      console.error('[CertificateHandler] Error validating stored certificate:', error);
+      return { success: false, valid: false, error: error.message };
+    }
+  });
+
   // ==========================================================================
   // Connection Testing
   // ==========================================================================

@@ -353,6 +353,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('certificate:validate', data),
 
     /**
+     * Validate a stored certificate by ID
+     * @param {string} id - Certificate ID
+     * @returns {Promise<{success: boolean, valid: boolean, metadata?: Object, error?: string}>}
+     */
+    validateStored: (id) =>
+      ipcRenderer.invoke('certificate:validateStored', id),
+
+    /**
      * Test mTLS connection using a stored certificate
      * @param {string} id - Certificate ID
      * @param {string} testUrl - URL to test

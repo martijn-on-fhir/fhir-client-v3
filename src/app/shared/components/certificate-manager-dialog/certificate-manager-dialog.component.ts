@@ -105,8 +105,11 @@ export class CertificateManagerDialogComponent implements OnInit {
    * Navigate to add certificate view
    */
   showAddView() {
+    // Preserve test URL across view changes
+    const currentTestUrl = this.testUrl();
     this.activeView.set('add');
     this.resetForm();
+    this.testUrl.set(currentTestUrl);
   }
 
   /**
@@ -119,6 +122,16 @@ export class CertificateManagerDialogComponent implements OnInit {
       domain: cert.domain,
       importMethod: 'separate'
     });
+
+    // Set placeholder values to indicate existing certificates (for button colors)
+    if (cert.hasPrivateKey) {
+      this.importedCertificate.set('EXISTING_CERTIFICATE');
+      this.importedPrivateKey.set('EXISTING_KEY');
+    }
+    if (cert.hasCaCertificate) {
+      this.importedCaCertificate.set('EXISTING_CA');
+    }
+
     this.activeView.set('edit');
   }
 
@@ -126,8 +139,11 @@ export class CertificateManagerDialogComponent implements OnInit {
    * Navigate back to list view
    */
   showListView() {
+    // Preserve test URL across view changes
+    const currentTestUrl = this.testUrl();
     this.activeView.set('list');
     this.resetForm();
+    this.testUrl.set(currentTestUrl);
   }
 
   /**
@@ -402,7 +418,53 @@ return;
     const cert = this.importedCertificate();
     const key = this.importedPrivateKey();
     const form = this.formData();
+    const isEditMode = this.activeView() === 'edit';
+    const selectedCert = this.selectedCertificate();
 
+    // If editing and no new data imported, validate the stored certificate
+    if (isEditMode && selectedCert && !this.hasActualCertificateData()) {
+      this.loading.set(true);
+      this.error.set(null);
+
+      try {
+        const result = await this.certificateService.validateStoredCertificate(selectedCert.id);
+
+        if (result.success && result.valid) {
+          this.validationResult.set({
+            valid: result.valid,
+            metadata: result.metadata,
+            error: result.error,
+            isExpired: result.isExpired
+          });
+
+          // Show success toast with certificate details
+          const metadata = result.metadata;
+          const message = metadata
+            ? `CN: ${metadata.commonName || 'N/A'} | Expires: ${this.formatExpiryDate(metadata.validTo)}`
+            : 'Certificate and key pair validated successfully';
+
+          if (result.isExpired) {
+            this.toastService.warning(message, 'Certificate is expired');
+          } else {
+            this.toastService.success(message, 'Certificate is valid');
+          }
+        } else {
+          this.validationResult.set({
+            valid: false,
+            error: result.error
+          });
+          this.toastService.error(result.error || 'Validation failed', 'Certificate validation failed');
+        }
+      } catch (err) {
+        this.toastService.error(String(err), 'Validation error');
+      } finally {
+        this.loading.set(false);
+      }
+
+      return;
+    }
+
+    // Validate newly imported certificate data
     if (!cert) {
       this.toastService.warning('No certificate imported');
 
@@ -767,5 +829,18 @@ return 'Unknown';
 
     // Just updating name/domain
     return hasRequired && !this.loading();
+  }
+
+  /**
+   * Check if we have actual imported certificates (not just placeholders)
+   */
+  hasActualCertificateData(): boolean {
+    const cert = this.importedCertificate();
+    const key = this.importedPrivateKey();
+
+    // Check if these are placeholder values or actual PEM data
+    return !!(cert && key &&
+              cert !== 'EXISTING_CERTIFICATE' &&
+              key !== 'EXISTING_KEY');
   }
 }

@@ -1,12 +1,16 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { ThemeService } from './core/services/theme.service';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet],
-  template: '<router-outlet></router-outlet>',
+  imports: [RouterOutlet, ToastContainerComponent],
+  template: `
+    <router-outlet></router-outlet>
+    <app-toast-container />
+  `,
   styles: []
 })
 export class AppComponent implements OnInit {

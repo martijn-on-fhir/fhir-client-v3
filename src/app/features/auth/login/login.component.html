@@ -32,13 +32,6 @@
             />
           </div>
 
-          @if (error()) {
-            <div class="alert alert-danger">
-              <i class="fas fa-exclamation-circle"></i>
-              {{ error() }}
-            </div>
-          }
-
           <div class="button-group">
             <button type="button" class="btn btn-secondary" (click)="cancel2FA()" [disabled]="loading()">
               <i class="fas fa-arrow-left"></i> Back
@@ -156,14 +149,6 @@
                 placeholder="Bijv. Development Account"
                 required
               />
-            </div>
-          }
-
-          <!-- Error Message -->
-          @if (error()) {
-            <div class="alert alert-danger">
-              <i class="fas fa-exclamation-circle"></i>
-              {{ error() }}
             </div>
           }
 

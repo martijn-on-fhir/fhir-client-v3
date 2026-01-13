@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { Environment, getAvailableEnvironments } from '../../../core/config/environments';
 import { SavedAccount } from '../../../core/models/auth.model';
 import { AuthService } from '../../../core/services/auth.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 /**
  * Login Component
@@ -32,6 +33,9 @@ export class LoginComponent implements OnInit {
   /** Service for authentication operations */
   private authService = inject(AuthService);
 
+  /** Toast notification service */
+  private toastService = inject(ToastService);
+
   /** Angular router for navigation */
   private router = inject(Router);
 
@@ -58,9 +62,6 @@ export class LoginComponent implements OnInit {
 
   /** Loading state during authentication */
   loading = signal(false);
-
-  /** Error message from authentication failures */
-  error = signal<string | null>(null);
 
   /** Whether to show client secret in plain text */
   showPassword = signal(false);
@@ -121,7 +122,6 @@ export class LoginComponent implements OnInit {
     this.selectedEnvironment.set(account.environment);
     this.accountName.set(account.name);
     this.autoLogin.set(account.autoLogin || false);
-    this.error.set(null);
   }
 
   /**
@@ -166,10 +166,8 @@ export class LoginComponent implements OnInit {
    * @returns Promise that resolves when login process completes
    */
   async onLogin() {
-    this.error.set(null);
-
     if (!this.clientId() || !this.clientSecret()) {
-      this.error.set('Please enter both Client ID and Client Secret');
+      this.toastService.warning('Please enter both Client ID and Client Secret');
 
       return;
     }
@@ -195,12 +193,10 @@ export class LoginComponent implements OnInit {
    * @returns Promise that resolves when verification completes
    */
   async onVerify2FA() {
-    this.error.set(null);
-
     const isValid = await this.authService.verifyTwoFactorCode(this.twoFactorCode());
 
     if (!isValid) {
-      this.error.set('Invalid verification code');
+      this.toastService.error('Invalid verification code');
 
       return;
     }
@@ -226,7 +222,6 @@ export class LoginComponent implements OnInit {
   private async performAutoLogin() {
 
     this.loading.set(true);
-    this.error.set(null);
 
     try {
       const success = await this.authService.login({
@@ -240,7 +235,7 @@ export class LoginComponent implements OnInit {
         this.router.navigate([returnUrl]);
       }
     } catch (error: any) {
-      this.error.set(error.message || 'Auto-login failed');
+      this.toastService.error(error.message || 'Auto-login failed', 'Authentication failed');
       this.clientSecret.set('');
     } finally {
       this.loading.set(false);
@@ -264,7 +259,6 @@ export class LoginComponent implements OnInit {
   private async performLogin() {
 
     this.loading.set(true);
-    this.error.set(null);
 
     try {
       const success = await this.authService.login({
@@ -288,7 +282,7 @@ export class LoginComponent implements OnInit {
         this.router.navigate([returnUrl]);
       }
     } catch (error: any) {
-      this.error.set(error.message || 'Authentication failed');
+      this.toastService.error(error.message || 'Authentication failed', 'Login failed');
       this.show2FAVerification.set(false);
       this.twoFactorCode.set('');
     } finally {
@@ -306,7 +300,6 @@ export class LoginComponent implements OnInit {
   cancel2FA() {
     this.show2FAVerification.set(false);
     this.twoFactorCode.set('');
-    this.error.set(null);
   }
 
   /**

@@ -234,6 +234,22 @@ export class CertificateService {
   }
 
   /**
+   * Validate a stored certificate by ID
+   */
+  async validateStoredCertificate(id: string): Promise<CertificateValidationResult> {
+    if (!this.isAvailable()) {
+      return { success: false, valid: false, error: 'Certificate API not available' };
+    }
+
+    try {
+      return await window.electronAPI!.certificates!.validateStored(id);
+    } catch (error) {
+      console.error('[CertificateService] Error validating stored certificate:', error);
+      return { success: false, valid: false, error: String(error) };
+    }
+  }
+
+  /**
    * Test mTLS connection using a stored certificate
    */
   async testConnection(id: string, testUrl: string): Promise<ConnectionTestResult> {
