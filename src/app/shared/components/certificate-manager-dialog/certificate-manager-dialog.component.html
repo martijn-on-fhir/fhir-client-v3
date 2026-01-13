@@ -229,7 +229,8 @@
                       (click)="importCertificate()"
                       [disabled]="loading()"
                     >
-                      <i class="fas" [class.fa-file-alt]="!importedCertificate()" [class.fa-check]="importedCertificate()"></i> Certificate
+                      <i class="fas" [class.fa-file-alt]="!importedCertificate()" [class.fa-check]="importedCertificate()"></i>
+                      Certificate
                     </button>
                     <button
                       class="btn"
@@ -238,7 +239,8 @@
                       (click)="importPrivateKey()"
                       [disabled]="loading()"
                     >
-                      <i class="fas" [class.fa-key]="!importedPrivateKey()" [class.fa-check]="importedPrivateKey()"></i> Private Key
+                      <i class="fas" [class.fa-key]="!importedPrivateKey()" [class.fa-check]="importedPrivateKey()"></i> Private
+                      Key
                     </button>
                   </div>
                   <div class="form-group passphrase-group">
@@ -270,57 +272,6 @@
               </div>
             </div>
 
-            <!-- Validation Result -->
-            @if (validationResult()) {
-              <div class="form-section validation-section">
-                <h3>Certificate Details</h3>
-                @if (validationResult()?.valid) {
-                  <div class="validation-result valid">
-                    <div class="validation-header">
-                      <i class="fas fa-check-circle"></i>
-                      <span>Certificate is valid</span>
-                      @if (validationResult()?.isExpired) {
-                        <span class="warning-badge">
-                          <i class="fas fa-exclamation-triangle"></i> Expired
-                        </span>
-                      }
-                    </div>
-                    @if (validationResult()?.metadata) {
-                      <div class="cert-details">
-                        <div class="detail-row">
-                          <span class="label">Common Name:</span>
-                          <span class="value">{{ validationResult()?.metadata?.commonName || 'N/A' }}</span>
-                        </div>
-                        <div class="detail-row">
-                          <span class="label">Issuer:</span>
-                          <span class="value">{{ validationResult()?.metadata?.issuer || 'N/A' }}</span>
-                        </div>
-                        <div class="detail-row">
-                          <span class="label">Valid From:</span>
-                          <span class="value">{{ formatDate(validationResult()?.metadata?.validFrom) }}</span>
-                        </div>
-                        <div class="detail-row">
-                          <span class="label">Valid To:</span>
-                          <span class="value">{{ formatDate(validationResult()?.metadata?.validTo) }}</span>
-                        </div>
-                        @if (validationResult()?.metadata?.serialNumber) {
-                          <div class="detail-row">
-                            <span class="label">Serial:</span>
-                            <span class="value monospace">{{ validationResult()?.metadata?.serialNumber }}</span>
-                          </div>
-                        }
-                      </div>
-                    }
-                  </div>
-                } @else {
-                  <div class="validation-result invalid">
-                    <i class="fas fa-times-circle"></i>
-                    <span>{{ validationResult()?.error || 'Validation failed' }}</span>
-                  </div>
-                }
-              </div>
-            }
-
             <!-- Validate Button (for separate files) -->
             @if (formData().importMethod === 'separate' && importedCertificate() && importedPrivateKey() && !validationResult()) {
               <div class="form-section">
@@ -343,11 +294,9 @@
                     placeholder="https://api.example.com/metadata"
                   />
                 </div>
-                <button
-                  class="btn btn-secondary"
+                <button class="btn btn-primary"
                   (click)="activeView() === 'edit' && selectedCertificate() ? testConnectionWithCertificate(selectedCertificate()!.id) : testConnectionWithData()"
-                  [disabled]="isTesting() || !testUrl() || (activeView() === 'add' && (!importedCertificate() || !importedPrivateKey()))"
-                >
+                  [disabled]="isTesting() || !testUrl() || (activeView() === 'add' && (!importedCertificate() || !importedPrivateKey()))">
                   @if (isTesting()) {
                     <i class="fas fa-spinner fa-spin"></i> Testing...
                   } @else {
@@ -355,31 +304,6 @@
                   }
                 </button>
               </div>
-
-              @if (testResult()) {
-                <div class="test-result" [class.success]="testResult()?.success" [class.error]="!testResult()?.success">
-                  @if (testResult()?.success) {
-                    <div class="result-header">
-                      <i class="fas fa-check-circle"></i>
-                      <span>Connection successful</span>
-                    </div>
-                    <div class="result-details">
-                      <span>Status: {{ testResult()?.status }} {{ testResult()?.statusText }}</span>
-                      @if (testResult()?.headers?.server) {
-                        <span>Server: {{ testResult()?.headers?.server }}</span>
-                      }
-                    </div>
-                  } @else {
-                    <div class="result-header">
-                      <i class="fas fa-times-circle"></i>
-                      <span>Connection failed</span>
-                    </div>
-                    <div class="result-details error-message">
-                      {{ testResult()?.error }}
-                    </div>
-                  }
-                </div>
-              }
             </div>
           </div>
         }
@@ -390,12 +314,18 @@
         @if (activeView() === 'list') {
           <button class="btn btn-secondary" (click)="close()">Close</button>
         } @else {
-          <button class="btn btn-secondary" (click)="showListView()">
+          <button class="btn btn-primary" (click)="showListView()">
             <i class="fas fa-arrow-left"></i> Back
           </button>
           <div class="footer-spacer"></div>
           @if (activeView() === 'add') {
-            <button class="btn btn-primary" (click)="saveCertificate()" [disabled]="!canSave()">
+            <button
+              class="btn"
+              [class.btn-secondary]="!canSave()"
+              [class.btn-success]="canSave()"
+              (click)="saveCertificate()"
+              [disabled]="!canSave()"
+            >
               @if (loading()) {
                 <i class="fas fa-spinner fa-spin"></i>
               } @else {
@@ -404,7 +334,13 @@
               Save Certificate
             </button>
           } @else {
-            <button class="btn btn-primary" (click)="updateCertificate()" [disabled]="!canUpdate()">
+            <button
+              class="btn"
+              [class.btn-secondary]="!canUpdate()"
+              [class.btn-success]="canUpdate()"
+              (click)="updateCertificate()"
+              [disabled]="!canUpdate()"
+            >
               @if (loading()) {
                 <i class="fas fa-spinner fa-spin"></i>
               } @else {

@@ -7,6 +7,7 @@ import {
   CertificateFormData
 } from '../../../core/models/certificate.model';
 import { CertificateService } from '../../../core/services/certificate.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 /**
  * Certificate Manager Dialog Component
@@ -23,6 +24,7 @@ import { CertificateService } from '../../../core/services/certificate.service';
 })
 export class CertificateManagerDialogComponent implements OnInit {
   private certificateService = inject(CertificateService);
+  private toastService = inject(ToastService);
 
   // Dialog state
   isOpen = signal(false);
@@ -56,16 +58,6 @@ export class CertificateManagerDialogComponent implements OnInit {
 
   // Test connection state
   testUrl = signal('');
-  testResult = signal<{
-    success: boolean;
-    status?: number;
-    statusText?: string;
-    error?: string;
-    headers?: {
-      server?: string;
-      contentType?: string;
-    };
-  } | null>(null);
   isTesting = signal(false);
 
   // Loading/error state
@@ -152,7 +144,6 @@ export class CertificateManagerDialogComponent implements OnInit {
     this.importedCaCertificate.set(null);
     this.pendingPfxPath.set(null);
     this.validationResult.set(null);
-    this.testResult.set(null);
     this.testUrl.set('');
     this.error.set(null);
     this.selectedCertificate.set(null);
@@ -200,6 +191,10 @@ export class CertificateManagerDialogComponent implements OnInit {
             valid: true,
             metadata: result.data.metadata
           });
+
+          // Show success toast
+          const message = `CN: ${result.data.metadata.commonName || 'N/A'} | Expires: ${this.formatExpiryDate(result.data.metadata.validTo)}`;
+          this.toastService.success(message, 'PFX file imported successfully');
 
           // Auto-fill name from CN if empty
           const form = this.formData();
@@ -257,6 +252,10 @@ return;
             metadata: result.data.metadata
           });
 
+          // Show success toast
+          const message = `CN: ${result.data.metadata.commonName || 'N/A'} | Expires: ${this.formatExpiryDate(result.data.metadata.validTo)}`;
+          this.toastService.success(message, 'PFX file unlocked successfully');
+
           if (!form.name && result.data.metadata.commonName) {
             this.formData.set({
               ...this.formData(),
@@ -304,6 +303,7 @@ return;
               valid: true,
               metadata: result.data.metadata
             });
+            this.toastService.success('Certificate imported successfully');
           }
 
           const form = this.formData();
@@ -349,6 +349,8 @@ return;
         // Validate cert/key pair if certificate already imported
         if (this.importedCertificate()) {
           await this.validateImportedCertificate();
+        } else {
+          this.toastService.success('Private key imported successfully');
         }
       }
     } catch (err) {
@@ -380,6 +382,7 @@ return;
 
       if (result.data?.pem) {
         this.importedCaCertificate.set(result.data.pem);
+        this.toastService.success('CA certificate imported successfully');
       }
     } catch (err) {
       this.error.set(String(err));
@@ -401,7 +404,7 @@ return;
     const form = this.formData();
 
     if (!cert) {
-      this.error.set('No certificate imported');
+      this.toastService.warning('No certificate imported');
 
       return;
     }
@@ -416,21 +419,34 @@ return;
         passphrase: form.passphrase
       });
 
-      if (result.success) {
+      if (result.success && result.valid) {
         this.validationResult.set({
           valid: result.valid,
           metadata: result.metadata,
           error: result.error,
           isExpired: result.isExpired
         });
+
+        // Show success toast with certificate details
+        const metadata = result.metadata;
+        const message = metadata
+          ? `CN: ${metadata.commonName || 'N/A'} | Expires: ${this.formatExpiryDate(metadata.validTo)}`
+          : 'Certificate and key pair validated successfully';
+
+        if (result.isExpired) {
+          this.toastService.warning(message, 'Certificate is expired');
+        } else {
+          this.toastService.success(message, 'Certificate is valid');
+        }
       } else {
         this.validationResult.set({
           valid: false,
           error: result.error
         });
+        this.toastService.error(result.error || 'Validation failed', 'Certificate validation failed');
       }
     } catch (err) {
-      this.error.set(String(err));
+      this.toastService.error(String(err), 'Validation error');
     } finally {
       this.loading.set(false);
     }
@@ -447,7 +463,7 @@ return;
     const url = this.testUrl();
 
     if (!url) {
-      this.error.set('Please enter a test URL');
+      this.toastService.warning('Please enter a test URL');
 
       return;
     }
@@ -456,13 +472,12 @@ return;
     const key = this.importedPrivateKey();
 
     if (!cert || !key) {
-      this.error.set('Certificate and private key required for connection test');
+      this.toastService.warning('Certificate and private key required for connection test');
 
       return;
     }
 
     this.isTesting.set(true);
-    this.testResult.set(null);
     this.error.set(null);
 
     try {
@@ -475,12 +490,19 @@ return;
         passphrase: form.passphrase
       });
 
-      this.testResult.set(result);
+      if (result.success) {
+        this.toastService.success(
+          `Status: ${result.status} ${result.statusText}${result.headers?.server ? ` | Server: ${result.headers.server}` : ''}`,
+          'Connection successful'
+        );
+      } else {
+        this.toastService.error(
+          result.error || 'Unknown error',
+          'Connection failed'
+        );
+      }
     } catch (err) {
-      this.testResult.set({
-        success: false,
-        error: String(err)
-      });
+      this.toastService.error(String(err), 'Connection failed');
     } finally {
       this.isTesting.set(false);
     }
@@ -493,23 +515,30 @@ return;
     const url = this.testUrl();
 
     if (!url) {
-      this.error.set('Please enter a test URL');
+      this.toastService.warning('Please enter a test URL');
 
       return;
     }
 
     this.isTesting.set(true);
-    this.testResult.set(null);
     this.error.set(null);
 
     try {
       const result = await this.certificateService.testConnection(certId, url);
-      this.testResult.set(result);
+
+      if (result.success) {
+        this.toastService.success(
+          `Status: ${result.status} ${result.statusText}${result.headers?.server ? ` | Server: ${result.headers.server}` : ''}`,
+          'Connection successful'
+        );
+      } else {
+        this.toastService.error(
+          result.error || 'Unknown error',
+          'Connection failed'
+        );
+      }
     } catch (err) {
-      this.testResult.set({
-        success: false,
-        error: String(err)
-      });
+      this.toastService.error(String(err), 'Connection failed');
     } finally {
       this.isTesting.set(false);
     }

@@ -1,0 +1,131 @@
+.toast-container {
+  position: fixed;
+  top: 80px; // Below header (60px) + margin
+  right: 20px;
+  width: 360px;
+  max-width: calc(100vw - 40px);
+  z-index: 1100; // Above modals (1040-1055)
+  display: flex;
+  flex-direction: column-reverse; // Newest at bottom
+  gap: 12px;
+  pointer-events: none; // Allow clicks through gaps
+}
+
+.toast {
+  pointer-events: all; // Re-enable for toasts
+  background: var(--bs-body-bg);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-left: 4px solid;
+  animation: slideInRight 0.3s ease;
+
+  // Type-specific border colors using Bootstrap variables
+  &.toast-success {
+    border-left-color: var(--bs-success);
+  }
+
+  &.toast-error {
+    border-left-color: var(--bs-danger);
+  }
+
+  &.toast-warning {
+    border-left-color: var(--bs-warning);
+  }
+
+  &.toast-info {
+    border-left-color: var(--bs-info);
+  }
+}
+
+.toast-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px;
+}
+
+.toast-icon {
+  font-size: 20px;
+  flex-shrink: 0;
+  margin-top: 2px; // Align with text
+
+  // Type-specific icon colors
+  .toast-success & {
+    color: var(--bs-success);
+  }
+
+  .toast-error & {
+    color: var(--bs-danger);
+  }
+
+  .toast-warning & {
+    color: var(--bs-warning);
+  }
+
+  .toast-info & {
+    color: var(--bs-info);
+  }
+}
+
+.toast-content {
+  flex: 1;
+  min-width: 0; // Allow text truncation
+}
+
+.toast-title {
+  display: block;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--bs-body-color);
+  margin-bottom: 4px;
+}
+
+.toast-message {
+  font-size: 0.875rem;
+  color: var(--bs-secondary-color);
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.toast-close {
+  background: none;
+  border: none;
+  color: var(--bs-secondary-color);
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.2s;
+
+  &:hover {
+    color: var(--bs-body-color);
+  }
+}
+
+// Animations
+@keyframes slideInRight {
+  from {
+    transform: translateX(calc(100% + 20px));
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+// Responsive: Full-width on mobile
+@media (max-width: 576px) {
+  .toast-container {
+    top: 70px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-width: none;
+  }
+}

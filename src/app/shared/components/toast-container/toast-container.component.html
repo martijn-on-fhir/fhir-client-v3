@@ -1,0 +1,25 @@
+<div class="toast-container">
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast toast-{{ toast.type }} show">
+      <div class="toast-header">
+        <i [class]="getIconClass(toast.type)" class="toast-icon"></i>
+        <div class="toast-content">
+          @if (toast.title) {
+            <strong class="toast-title">{{ toast.title }}</strong>
+          }
+          <div class="toast-message">{{ toast.message }}</div>
+        </div>
+        @if (toast.dismissible) {
+          <button
+            type="button"
+            class="toast-close"
+            (click)="dismiss(toast.id)"
+            aria-label="Close"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

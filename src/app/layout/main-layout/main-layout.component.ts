@@ -7,6 +7,7 @@ import { AboutDialogComponent } from '../../shared/components/about-dialog/about
 import { CertificateManagerDialogComponent } from '../../shared/components/certificate-manager-dialog/certificate-manager-dialog.component';
 import { ServerInfoDialogComponent } from '../../shared/components/server-info-dialog/server-info-dialog.component';
 import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
+import { ToastContainerComponent } from '../../shared/components/toast-container/toast-container.component';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
 import { TabNavComponent } from '../tab-nav/tab-nav.component';
@@ -32,7 +33,8 @@ import { TabNavComponent } from '../tab-nav/tab-nav.component';
     AboutDialogComponent,
     ServerInfoDialogComponent,
     SettingsDialogComponent,
-    CertificateManagerDialogComponent
+    CertificateManagerDialogComponent,
+    ToastContainerComponent
   ],
   templateUrl: './main-layout.component.html',
   styleUrls: ['./main-layout.component.scss']
