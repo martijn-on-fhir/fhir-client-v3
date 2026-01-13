@@ -1,3 +1,11 @@
+# [1.12.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.11.0...v1.12.0) (2026-01-13)
+
+
+### Features
+
+* add toast notifications and enhance certificate manager UX ([b159bec](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b159bec5aca27e4297701081dd67acbbe55810d3))
+* externalize environment config and add FHIR URL to accounts ([bfdb187](https://github.com/martijn-on-fhir/fhir-client-v3/commit/bfdb187ffbe14191811b57e95da895ec3773c1ff))
+
 # [1.11.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.10.0...v1.11.0) (2026-01-13)
 
 
