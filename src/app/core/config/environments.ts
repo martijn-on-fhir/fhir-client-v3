@@ -29,7 +29,7 @@ let _loadPromise: Promise<void> | null = null;
  * Load environments from Electron IPC
  * Called once at app startup
  */
-export async function loadEnvironments(): Promise<void> {
+export const loadEnvironments = async (): Promise<void> => {
   if (_environments) {
     return; // Already loaded
   }
@@ -49,9 +49,8 @@ export async function loadEnvironments(): Promise<void> {
 
       if (result.success && result.environments) {
         _environments = result.environments as Record<string, EnvironmentConfig>;
-        console.log('[Environments] Loaded environments from Electron:', Object.keys(_environments));
       } else {
-        console.error('[Environments] Failed to load:', result.error);
+        console.error('[Environments] Failed to load:', result.error);k
       }
     } catch (error) {
       console.error('[Environments] Error loading environments:', error);
@@ -65,7 +64,7 @@ export async function loadEnvironments(): Promise<void> {
  * Get environment configuration
  * Returns undefined if environment not found or not loaded
  */
-export function getEnvironmentConfig(env: Environment): EnvironmentConfig | undefined {
+export const getEnvironmentConfig = (env: Environment): EnvironmentConfig | undefined => {
   if (!_environments) {
     console.warn('[Environments] Config not loaded yet. Call loadEnvironments() first.');
     return undefined;
@@ -77,7 +76,7 @@ export function getEnvironmentConfig(env: Environment): EnvironmentConfig | unde
 /**
  * Get all available environments
  */
-export function getAvailableEnvironments(): Environment[] {
+export const getAvailableEnvironments = (): Environment[] => {
   if (!_environments) {
     console.warn('[Environments] Config not loaded yet. Call loadEnvironments() first.');
     return [];
@@ -89,6 +88,4 @@ export function getAvailableEnvironments(): Environment[] {
 /**
  * Check if environments are loaded
  */
-export function isEnvironmentsLoaded(): boolean {
-  return _environments !== null;
-}
+export const isEnvironmentsLoaded = (): boolean => _environments !== null
