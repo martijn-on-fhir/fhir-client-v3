@@ -165,19 +165,6 @@
                   <input
                     type="radio"
                     name="importMethod"
-                    value="pfx"
-                    [checked]="formData().importMethod === 'pfx'"
-                    (change)="updateFormField('importMethod', 'pfx')"
-                  />
-                  <span class="radio-label">
-                    <i class="fas fa-file-archive"></i>
-                    Combined PFX/P12 file
-                  </span>
-                </label>
-                <label class="radio-option">
-                  <input
-                    type="radio"
-                    name="importMethod"
                     value="separate"
                     [checked]="formData().importMethod === 'separate'"
                     (change)="updateFormField('importMethod', 'separate')"
@@ -187,6 +174,20 @@
                     Separate certificate and key files
                   </span>
                 </label>
+                <label class="radio-option">
+                  <input
+                    type="radio"
+                    name="importMethod"
+                    value="pfx"
+                    [checked]="formData().importMethod === 'pfx'"
+                    (change)="updateFormField('importMethod', 'pfx')"
+                  />
+                  <span class="radio-label">
+                    <i class="fas fa-file-archive"></i>
+                    Combined PFX/P12 file
+                  </span>
+                </label>
+
               </div>
 
               @if (formData().importMethod === 'pfx') {
@@ -220,25 +221,25 @@
               } @else {
                 <!-- Separate Files Import -->
                 <div class="import-section separate-files">
-                  <div class="import-row">
-                    <button class="btn btn-secondary" (click)="importCertificate()" [disabled]="loading()">
-                      <i class="fas fa-file-alt"></i> Certificate
+                  <div class="import-buttons-row">
+                    <button
+                      class="btn"
+                      [class.btn-secondary]="!importedCertificate()"
+                      [class.btn-success]="importedCertificate()"
+                      (click)="importCertificate()"
+                      [disabled]="loading()"
+                    >
+                      <i class="fas" [class.fa-file-alt]="!importedCertificate()" [class.fa-check]="importedCertificate()"></i> Certificate
                     </button>
-                    @if (importedCertificate()) {
-                      <span class="import-status success">
-                        <i class="fas fa-check"></i> Loaded
-                      </span>
-                    }
-                  </div>
-                  <div class="import-row">
-                    <button class="btn btn-secondary" (click)="importPrivateKey()" [disabled]="loading()">
-                      <i class="fas fa-key"></i> Private Key
+                    <button
+                      class="btn"
+                      [class.btn-secondary]="!importedPrivateKey()"
+                      [class.btn-success]="importedPrivateKey()"
+                      (click)="importPrivateKey()"
+                      [disabled]="loading()"
+                    >
+                      <i class="fas" [class.fa-key]="!importedPrivateKey()" [class.fa-check]="importedPrivateKey()"></i> Private Key
                     </button>
-                    @if (importedPrivateKey()) {
-                      <span class="import-status success">
-                        <i class="fas fa-check"></i> Loaded
-                      </span>
-                    }
                   </div>
                   <div class="form-group passphrase-group">
                     <label for="key-passphrase">Key Passphrase (if encrypted)</label>

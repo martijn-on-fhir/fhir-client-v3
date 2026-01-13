@@ -375,6 +375,13 @@
     gap: 0.75rem;
   }
 
+  .import-buttons-row {
+    display: flex;
+    flex-direction: row;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
   &.ca-section {
     margin-top: 1.5rem;
     padding-top: 1rem;
