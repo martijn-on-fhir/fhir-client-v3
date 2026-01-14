@@ -20,6 +20,7 @@ import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
 import {QueryHistoryService} from '../../core/services/query-history.service';
 import {QueryAutocompleteService, Suggestion} from '../../core/services/query-autocomplete.service';
+import {ToastService} from '../../core/services/toast.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
@@ -60,6 +61,11 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Injected autocomplete service for query suggestions
    */
   private autocompleteService = inject(QueryAutocompleteService);
+
+  /**
+   * Injected toast service for notifications
+   */
+  private toastService = inject(ToastService);
 
   /**
    * Logger instance for this component
@@ -673,10 +679,8 @@ export class QueryComponent implements OnInit, OnDestroy {
 
       this.queryHistoryService.addQuery(query, this.queryMode());
     } catch (err: any) {
-
       this.logger.error('Query execution failed:', err);
-      this.error.set(err.message || 'Query execution failed');
-
+      this.toastService.error(err.message || 'Query execution failed', 'Query Error');
     } finally {
       this.loading.set(false);
     }
