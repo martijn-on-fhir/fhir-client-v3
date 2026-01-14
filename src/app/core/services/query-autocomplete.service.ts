@@ -238,8 +238,12 @@ export class QueryAutocompleteService {
     return suggestions.sort((a, b) => {
       const aExact = a.label.toLowerCase() === prefix.toLowerCase();
       const bExact = b.label.toLowerCase() === prefix.toLowerCase();
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
+      if (aExact && !bExact) {
+return -1;
+}
+      if (!aExact && bExact) {
+return 1;
+}
       return a.label.localeCompare(b.label);
     });
   }
@@ -252,7 +256,9 @@ export class QueryAutocompleteService {
     paramName: string | undefined,
     prefix: string
   ): Suggestion[] {
-    if (!paramName) return [];
+    if (!paramName) {
+return [];
+}
 
     const paramType = this.getParamType(resourceType, paramName);
     const modifiers = this.r3Types.getModifiers(paramType || 'string');
@@ -341,7 +347,9 @@ export class QueryAutocompleteService {
    * Get resource metadata from cached CapabilityStatement
    */
   private getResourceMetadata(resourceType: string): any {
-    if (!this.metadata?.rest?.[0]?.resource) return null;
+    if (!this.metadata?.rest?.[0]?.resource) {
+return null;
+}
     return this.metadata.rest[0].resource.find(
       (r: any) => r.type === resourceType
     );
@@ -351,17 +359,23 @@ export class QueryAutocompleteService {
    * Get parameter type from metadata
    */
   private getParamType(resourceType: string | undefined, paramName: string | undefined): string | undefined {
-    if (!paramName) return undefined;
+    if (!paramName) {
+return undefined;
+}
 
     // Check global parameters first
     const globalParam = this.r3Types.getGlobalParameters().find(p => p.name === paramName);
-    if (globalParam) return globalParam.type;
+    if (globalParam) {
+return globalParam.type;
+}
 
     // Check resource-specific parameters
     if (resourceType) {
       const resourceMeta = this.getResourceMetadata(resourceType);
       const param = resourceMeta?.searchParam?.find((p: any) => p.name === paramName);
-      if (param) return param.type;
+      if (param) {
+return param.type;
+}
     }
 
     return undefined;
