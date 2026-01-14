@@ -1,0 +1,156 @@
+<div class="features-container">
+  <!-- Header -->
+  <div class="px-3 py-2 border-bottom" style="flex-shrink: 0">
+    <h5 class="mb-0">
+      <i class="fas fa-flask me-2"></i>Features Lab
+    </h5>
+    <small class="text-muted">Proof of concept playground for new features</small>
+  </div>
+
+  <!-- Content -->
+  <div class="p-3 flex-grow-1 overflow-auto">
+    <!-- Error Alert -->
+    @if (error()) {
+      <div class="alert alert-warning mb-3">
+        <i class="fas fa-exclamation-triangle me-2"></i>{{ error() }}
+      </div>
+    }
+
+    <!-- POC: Autocomplete -->
+    <div class="card mb-3">
+      <div class="card-header d-flex align-items-center">
+        <i class="fas fa-keyboard me-2"></i>POC: FHIR Query Autocomplete
+        @if (metadataLoading()) {
+          <span class="spinner-border spinner-border-sm ms-2" role="status"></span>
+        }
+      </div>
+      <div class="card-body">
+        <p class="text-muted small mb-3">
+          Type a FHIR query to see intelligent suggestions. Use <kbd>Tab</kbd> or <kbd>Enter</kbd> to select,
+          <kbd>&#x2191;</kbd><kbd>&#x2193;</kbd> to navigate, <kbd>Esc</kbd> to dismiss.
+        </p>
+
+        <!-- Query Input with Autocomplete -->
+        <div class="position-relative">
+          <label for="queryInput" class="form-label small">FHIR Query</label>
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-search"></i>
+            </span>
+            <input
+              #queryInput
+              id="queryInput"
+              type="text"
+              class="form-control font-monospace"
+              [ngModel]="query()"
+              (ngModelChange)="onQueryChange($event)"
+              (keydown)="onKeyDown($event)"
+              (input)="onInput()"
+              (click)="onClick()"
+              (focus)="onFocus()"
+              (blur)="onBlur()"
+              placeholder="/Patient?name=John"
+              autocomplete="off"
+              spellcheck="false">
+          </div>
+
+          <!-- Suggestions Dropdown -->
+          @if (showSuggestions() && suggestions().length > 0) {
+            <div class="suggestions-dropdown">
+              @for (suggestion of suggestions(); track suggestion.label; let i = $index) {
+                <div
+                  class="suggestion-item d-flex align-items-center"
+                  [class.selected]="selectedIndex() === i"
+                  (mousedown)="selectSuggestion(suggestion)">
+                  <i class="fas {{ getCategoryIcon(suggestion.category) }} {{ getCategoryClass(suggestion.category) }} me-2" style="width: 16px"></i>
+                  <span class="suggestion-label flex-grow-1">{{ suggestion.label }}</span>
+                  @if (suggestion.paramType) {
+                    <span class="badge bg-secondary ms-2" style="font-size: 0.7rem">{{ suggestion.paramType }}</span>
+                  }
+                  @if (suggestion.description && !suggestion.paramType) {
+                    <small class="text-muted ms-2 suggestion-description">{{ suggestion.description }}</small>
+                  }
+                </div>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Debug Info -->
+        <div class="mt-3 p-2 rounded small font-monospace debug-panel">
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>Debug Info</strong>
+            <span class="badge" [class.bg-success]="!metadataLoading()" [class.bg-warning]="metadataLoading()">
+              {{ metadataLoading() ? 'Loading metadata...' : 'Metadata loaded' }}
+            </span>
+          </div>
+          <table class="table table-sm table-borderless mb-0" style="font-size: 0.8rem">
+            <tr>
+              <td class="text-muted" style="width: 120px">Context:</td>
+              <td>
+                <span class="badge bg-primary">{{ parsedQuery()?.context || 'unknown' }}</span>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Resource Type:</td>
+              <td>{{ parsedQuery()?.resourceType || '(none)' }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Current Param:</td>
+              <td>{{ parsedQuery()?.currentParam || '(none)' }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Param Type:</td>
+              <td>{{ parsedQuery()?.currentParamType || '(none)' }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Prefix:</td>
+              <td>"{{ parsedQuery()?.prefix }}"</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Used Params:</td>
+              <td>{{ parsedQuery()?.usedParams?.join(', ') || '(none)' }}</td>
+            </tr>
+            <tr>
+              <td class="text-muted">Suggestions:</td>
+              <td>{{ suggestions().length }}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- Example Queries -->
+        <div class="mt-3">
+          <small class="text-muted d-block mb-2">Try these examples:</small>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-sm btn-outline-secondary" (click)="onQueryChange('/Pat')">
+              /Pat<span class="text-muted">...</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="onQueryChange('/Patient?')">
+              /Patient?<span class="text-muted">param</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="onQueryChange('/Patient?gender=')">
+              /Patient?gender=<span class="text-muted">value</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="onQueryChange('/Patient?name:')">
+              /Patient?name:<span class="text-muted">modifier</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="onQueryChange('/Patient?birthdate=')">
+              /Patient?birthdate=<span class="text-muted">operator</span>
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" (click)="onQueryChange('/Observation?_')">
+              /Observation?_<span class="text-muted">global</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Future POCs can be added here -->
+    <div class="card border-dashed">
+      <div class="card-body text-center text-muted">
+        <i class="fas fa-plus-circle fa-2x mb-2" style="opacity: 0.3"></i>
+        <p class="mb-0">More POCs coming soon...</p>
+      </div>
+    </div>
+  </div>
+</div>
