@@ -7,7 +7,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild} from '@angular/core';
+import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {firstValueFrom} from 'rxjs';
 import {
@@ -19,6 +19,7 @@ import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
 import {QueryHistoryService} from '../../core/services/query-history.service';
+import {QueryAutocompleteService, Suggestion} from '../../core/services/query-autocomplete.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
@@ -56,6 +57,11 @@ export class QueryComponent implements OnInit, OnDestroy {
   private editorStateService = inject(EditorStateService);
 
   /**
+   * Injected autocomplete service for query suggestions
+   */
+  private autocompleteService = inject(QueryAutocompleteService);
+
+  /**
    * Logger instance for this component
    */
   private get logger() {
@@ -71,6 +77,26 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Reference to Monaco Editor component in visual builder mode
    */
   @ViewChild('componentVisual') componentVisual?: MonacoEditorComponent;
+
+  /**
+   * Reference to text query input element
+   */
+  @ViewChild('textQueryInput') textQueryInput?: ElementRef<HTMLInputElement>;
+
+  /**
+   * Autocomplete suggestions for text mode
+   */
+  autocompleteSuggestions = signal<Suggestion[]>([]);
+
+  /**
+   * Whether to show autocomplete dropdown
+   */
+  showAutocomplete = signal(false);
+
+  /**
+   * Currently selected autocomplete suggestion index
+   */
+  autocompleteSelectedIndex = signal(-1);
 
   /**
    * Indicates whether navigation back in query history is possible
@@ -491,7 +517,8 @@ export class QueryComponent implements OnInit, OnDestroy {
 
       if (storedMetadata) {
         this.metadata.set(storedMetadata);
-
+        // Set metadata for autocomplete service
+        this.autocompleteService.setMetadata(storedMetadata);
       } else {
         this.metadataError.set('Metadata not available');
       }
@@ -994,5 +1021,159 @@ export class QueryComponent implements OnInit, OnDestroy {
     }
 
     return stored ? parseInt(stored, 10) : 4;
+  }
+
+  // ========================================
+  // Autocomplete Methods
+  // ========================================
+
+  /**
+   * Updates autocomplete suggestions based on current query and cursor position
+   */
+  updateAutocompleteSuggestions(): void {
+    const input = this.textQueryInput?.nativeElement;
+    const cursorPosition = input?.selectionStart ?? this.textQuery().length;
+
+    const parsed = this.autocompleteService.parseQuery(this.textQuery(), cursorPosition);
+    const suggestions = this.autocompleteService.getSuggestions(parsed);
+
+    this.autocompleteSuggestions.set(suggestions.slice(0, 12));
+    this.autocompleteSelectedIndex.set(-1);
+    this.showAutocomplete.set(suggestions.length > 0);
+  }
+
+  /**
+   * Handles text query input changes
+   */
+  onTextQueryInput(): void {
+    this.updateAutocompleteSuggestions();
+  }
+
+  /**
+   * Handles click in text query input (cursor position may change)
+   */
+  onTextQueryClick(): void {
+    this.updateAutocompleteSuggestions();
+  }
+
+  /**
+   * Handles focus on text query input
+   */
+  onTextQueryFocus(): void {
+    this.updateAutocompleteSuggestions();
+  }
+
+  /**
+   * Handles blur from text query input
+   */
+  onTextQueryBlur(): void {
+    // Delay to allow click on suggestion
+    setTimeout(() => {
+      this.showAutocomplete.set(false);
+    }, 150);
+  }
+
+  /**
+   * Handles keyboard events for autocomplete navigation
+   */
+  onTextQueryKeyDown(event: KeyboardEvent): void {
+    const suggestions = this.autocompleteSuggestions();
+    const currentIndex = this.autocompleteSelectedIndex();
+
+    if (!this.showAutocomplete() || suggestions.length === 0) {
+      return;
+    }
+
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        this.autocompleteSelectedIndex.set(
+          Math.min(currentIndex + 1, suggestions.length - 1)
+        );
+        break;
+
+      case 'ArrowUp':
+        event.preventDefault();
+        this.autocompleteSelectedIndex.set(Math.max(currentIndex - 1, -1));
+        break;
+
+      case 'Tab':
+        if (suggestions.length > 0) {
+          event.preventDefault();
+          const idx = currentIndex >= 0 ? currentIndex : 0;
+          this.selectAutocompleteSuggestion(suggestions[idx]);
+        }
+        break;
+
+      case 'Enter':
+        if (currentIndex >= 0 && currentIndex < suggestions.length) {
+          event.preventDefault();
+          event.stopPropagation();
+          this.selectAutocompleteSuggestion(suggestions[currentIndex]);
+        }
+        break;
+
+      case 'Escape':
+        this.showAutocomplete.set(false);
+        this.autocompleteSelectedIndex.set(-1);
+        break;
+    }
+  }
+
+  /**
+   * Selects an autocomplete suggestion
+   */
+  selectAutocompleteSuggestion(suggestion: Suggestion): void {
+    const input = this.textQueryInput?.nativeElement;
+    const cursorPosition = input?.selectionStart ?? this.textQuery().length;
+
+    const result = this.autocompleteService.applySuggestion(
+      this.textQuery(),
+      cursorPosition,
+      suggestion
+    );
+
+    this.textQuery.set(result.newQuery);
+    this.showAutocomplete.set(false);
+    this.autocompleteSelectedIndex.set(-1);
+
+    // Set cursor position and trigger new suggestions
+    setTimeout(() => {
+      if (input) {
+        input.focus();
+        input.setSelectionRange(result.newCursorPosition, result.newCursorPosition);
+        this.updateAutocompleteSuggestions();
+      }
+    }, 0);
+  }
+
+  /**
+   * Gets icon class for autocomplete suggestion category
+   */
+  getAutocompleteCategoryIcon(category: string): string {
+    switch (category) {
+      case 'resource': return 'fa-cube';
+      case 'parameter': return 'fa-filter';
+      case 'global': return 'fa-globe';
+      case 'modifier': return 'fa-at';
+      case 'operator': return 'fa-equals';
+      case 'value': return 'fa-tag';
+      default: return 'fa-circle';
+    }
+  }
+
+  /**
+   * Gets color class for autocomplete suggestion category
+   */
+  getAutocompleteCategoryClass(category: string): string {
+    switch (category) {
+      case 'resource': return 'text-primary';
+      case 'parameter': return 'text-success';
+      case 'global': return 'text-info';
+      case 'modifier': return 'text-warning';
+      case 'operator': return 'text-danger';
+      case 'value': return 'text-secondary';
+      default: return 'text-muted';
+    }
   }
 }

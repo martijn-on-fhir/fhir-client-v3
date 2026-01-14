@@ -40,17 +40,43 @@
               <i class="fas fa-chevron-right"></i>
             </button>
 
-            <!-- Query Input -->
-            <input
-              id="textQuery"
-              type="text"
-              class="form-control"
-              style="flex: 1"
-              [ngModel]="textQuery()"
-              (ngModelChange)="textQuery.set($event)"
-              (keydown.enter)="executeTextQuery()"
-              placeholder="/Patient?name=John"
-              spellCheck="false">
+            <!-- Query Input with Autocomplete -->
+            <div class="position-relative" style="flex: 1">
+              <input
+                #textQueryInput
+                id="textQuery"
+                type="text"
+                class="form-control"
+                [ngModel]="textQuery()"
+                (ngModelChange)="textQuery.set($event)"
+                (input)="onTextQueryInput()"
+                (click)="onTextQueryClick()"
+                (focus)="onTextQueryFocus()"
+                (blur)="onTextQueryBlur()"
+                (keydown)="onTextQueryKeyDown($event)"
+                (keydown.enter)="!showAutocomplete() && executeTextQuery()"
+                placeholder="/Patient?name=John"
+                autocomplete="off"
+                spellCheck="false">
+
+              <!-- Autocomplete Dropdown -->
+              @if (showAutocomplete() && autocompleteSuggestions().length > 0) {
+                <div class="autocomplete-dropdown">
+                  @for (suggestion of autocompleteSuggestions(); track suggestion.label; let i = $index) {
+                    <div
+                      class="autocomplete-item"
+                      [class.selected]="autocompleteSelectedIndex() === i"
+                      (mousedown)="selectAutocompleteSuggestion(suggestion)">
+                      <i class="fas {{ getAutocompleteCategoryIcon(suggestion.category) }} {{ getAutocompleteCategoryClass(suggestion.category) }} me-2"></i>
+                      <span class="autocomplete-label">{{ suggestion.label }}</span>
+                      @if (suggestion.paramType) {
+                        <span class="badge bg-secondary ms-auto">{{ suggestion.paramType }}</span>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
 
             <!-- Execute Button -->
             <button
