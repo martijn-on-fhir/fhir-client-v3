@@ -1,0 +1,62 @@
+<div class="server-selector">
+  <button
+    class="selector-button"
+    (click)="toggleDropdown($event)"
+    [disabled]="!initialized()"
+    title="Server selecteren">
+    <span class="status-dot" [style.background-color]="displayColor()"></span>
+    <span class="server-name">{{ displayName() }}</span>
+    <i class="fas fa-chevron-down chevron" [class.open]="isOpen()"></i>
+  </button>
+
+  @if (isOpen()) {
+    <div class="dropdown-menu">
+      @if (hasProfiles()) {
+        <div class="dropdown-section">
+          @for (profile of profiles(); track profile.id) {
+            <button
+              class="dropdown-item"
+              [class.active]="profile.id === activeProfileId()"
+              [class.switching]="switching() === profile.id"
+              (click)="selectProfile(profile, $event)"
+              [disabled]="switching() !== null">
+              <span
+                class="status-dot"
+                [style.background-color]="profile.color"
+                [class.has-session]="hasValidSession(profile.id)">
+              </span>
+              <div class="profile-info">
+                <span class="profile-name">{{ profile.name }}</span>
+                <span class="profile-meta">{{ getAuthTypeLabel(profile.authType) }}</span>
+              </div>
+              @if (profile.id === activeProfileId()) {
+                <i class="fas fa-check check-icon"></i>
+              }
+              @if (switching() === profile.id) {
+                <i class="fas fa-spinner fa-spin spinner-icon"></i>
+              }
+            </button>
+          }
+        </div>
+      } @else {
+        <div class="dropdown-empty">
+          <i class="fas fa-server"></i>
+          <span>Geen servers geconfigureerd</span>
+        </div>
+      }
+
+      <div class="dropdown-divider"></div>
+
+      <div class="dropdown-actions">
+        <button class="dropdown-item action-item" (click)="onAddProfile($event)">
+          <i class="fas fa-plus"></i>
+          <span>Server toevoegen</span>
+        </button>
+        <button class="dropdown-item action-item" (click)="onManageProfiles($event)">
+          <i class="fas fa-cog"></i>
+          <span>Servers beheren</span>
+        </button>
+      </div>
+    </div>
+  }
+</div>

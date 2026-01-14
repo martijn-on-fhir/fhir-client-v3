@@ -18,6 +18,18 @@ const accountsStore = new Store({
   encryptionKey: 'fhir-client-v3-accounts-key-change-in-production'
 });
 
+// Store for server profiles (encrypted - contains credentials)
+const profileStore = new Store({
+  name: 'fhir-profiles',
+  encryptionKey: 'fhir-client-v3-profiles-key-change-in-production'
+});
+
+// Store for profile sessions (encrypted - contains tokens)
+const sessionStore = new Store({
+  name: 'fhir-sessions',
+  encryptionKey: 'fhir-client-v3-sessions-key-change-in-production'
+});
+
 /**
  * Save OAuth2 token with metadata
  * @param {Object} tokenResponse - Token response from OAuth server
@@ -162,15 +174,144 @@ function clearSavedAccounts() {
   console.log('[TokenStore] Saved accounts cleared');
 }
 
+// =============================================================================
+// Server Profiles Management
+// =============================================================================
+
+/**
+ * Get all server profiles
+ * @returns {Array} Array of server profile objects
+ */
+function getProfiles() {
+  return profileStore.get('profiles', []);
+}
+
+/**
+ * Save all server profiles
+ * @param {Array} profiles - Array of server profile objects
+ */
+function setProfiles(profiles) {
+  profileStore.set('profiles', profiles);
+  console.log(`[TokenStore] Saved ${profiles.length} server profiles`);
+}
+
+/**
+ * Get active profile ID
+ * @returns {string|null} Active profile ID or null
+ */
+function getActiveProfileId() {
+  return profileStore.get('activeProfileId', null);
+}
+
+/**
+ * Set active profile ID
+ * @param {string|null} id - Profile ID to set as active
+ */
+function setActiveProfileId(id) {
+  if (id) {
+    profileStore.set('activeProfileId', id);
+  } else {
+    profileStore.delete('activeProfileId');
+  }
+  console.log(`[TokenStore] Active profile set to: ${id || 'none'}`);
+}
+
+/**
+ * Clear all profiles
+ */
+function clearProfiles() {
+  profileStore.delete('profiles');
+  profileStore.delete('activeProfileId');
+  console.log('[TokenStore] Server profiles cleared');
+}
+
+// =============================================================================
+// Profile Sessions Management
+// =============================================================================
+
+/**
+ * Get session for a profile
+ * @param {string} profileId - Profile ID
+ * @returns {Object|null} Session object or null
+ */
+function getSession(profileId) {
+  const sessions = sessionStore.get('sessions', {});
+  return sessions[profileId] || null;
+}
+
+/**
+ * Set session for a profile
+ * @param {string} profileId - Profile ID
+ * @param {Object} session - Session object
+ */
+function setSession(profileId, session) {
+  const sessions = sessionStore.get('sessions', {});
+  sessions[profileId] = session;
+  sessionStore.set('sessions', sessions);
+  console.log(`[TokenStore] Session saved for profile: ${profileId}`);
+}
+
+/**
+ * Clear session for a profile
+ * @param {string} profileId - Profile ID
+ */
+function clearSession(profileId) {
+  const sessions = sessionStore.get('sessions', {});
+  delete sessions[profileId];
+  sessionStore.set('sessions', sessions);
+  console.log(`[TokenStore] Session cleared for profile: ${profileId}`);
+}
+
+/**
+ * Get all sessions
+ * @returns {Object} Map of profileId -> session
+ */
+function getAllSessions() {
+  return sessionStore.get('sessions', {});
+}
+
+/**
+ * Save all sessions
+ * @param {Object} sessions - Map of profileId -> session
+ */
+function setAllSessions(sessions) {
+  sessionStore.set('sessions', sessions);
+  console.log(`[TokenStore] Saved ${Object.keys(sessions).length} sessions`);
+}
+
+/**
+ * Clear all sessions
+ */
+function clearAllSessions() {
+  sessionStore.delete('sessions');
+  console.log('[TokenStore] All sessions cleared');
+}
+
 module.exports = {
+  // Token management
   saveToken,
   getToken,
   hasValidToken,
   clearToken,
+  // 2FA management
   setTwoFactorSecret,
   getTwoFactorSecret,
   removeTwoFactorSecret,
+  // Saved accounts (legacy)
   setSavedAccounts,
   getSavedAccounts,
-  clearSavedAccounts
+  clearSavedAccounts,
+  // Server profiles
+  getProfiles,
+  setProfiles,
+  getActiveProfileId,
+  setActiveProfileId,
+  clearProfiles,
+  // Profile sessions
+  getSession,
+  setSession,
+  clearSession,
+  getAllSessions,
+  setAllSessions,
+  clearAllSessions
 };

@@ -112,7 +112,107 @@ contextBridge.exposeInMainWorld('electronAPI', {
      * @returns {Promise<{success: boolean}>}
      */
     clearSavedAccounts: () =>
-      ipcRenderer.invoke('auth:clearSavedAccounts')
+      ipcRenderer.invoke('auth:clearSavedAccounts'),
+
+    /**
+     * OAuth2 login with custom token endpoint (for server profiles)
+     * @param {string} tokenEndpoint - Token endpoint URL
+     * @param {string} clientId - Client ID
+     * @param {string} clientSecret - Client secret
+     * @returns {Promise<Object>} Token response
+     */
+    oauth2Login: (tokenEndpoint, clientId, clientSecret) =>
+      ipcRenderer.invoke('auth:oauth2Login', tokenEndpoint, clientId, clientSecret)
+  },
+
+  // Server Profiles API
+  profiles: {
+    /**
+     * Get all server profiles
+     * @returns {Promise<Array>}
+     */
+    getAll: () =>
+      ipcRenderer.invoke('profiles:getAll'),
+
+    /**
+     * Save all server profiles
+     * @param {Array} profiles - Array of profile objects
+     * @returns {Promise<{success: boolean}>}
+     */
+    save: (profiles) =>
+      ipcRenderer.invoke('profiles:save', profiles),
+
+    /**
+     * Get active profile ID
+     * @returns {Promise<string|null>}
+     */
+    getActive: () =>
+      ipcRenderer.invoke('profiles:getActive'),
+
+    /**
+     * Set active profile ID
+     * @param {string|null} id - Profile ID
+     * @returns {Promise<{success: boolean}>}
+     */
+    setActive: (id) =>
+      ipcRenderer.invoke('profiles:setActive', id),
+
+    /**
+     * Clear all profiles
+     * @returns {Promise<{success: boolean}>}
+     */
+    clear: () =>
+      ipcRenderer.invoke('profiles:clear')
+  },
+
+  // Profile Sessions API
+  sessions: {
+    /**
+     * Get session for a profile
+     * @param {string} profileId - Profile ID
+     * @returns {Promise<Object|null>}
+     */
+    get: (profileId) =>
+      ipcRenderer.invoke('sessions:get', profileId),
+
+    /**
+     * Set session for a profile
+     * @param {string} profileId - Profile ID
+     * @param {Object} session - Session object
+     * @returns {Promise<{success: boolean}>}
+     */
+    set: (profileId, session) =>
+      ipcRenderer.invoke('sessions:set', profileId, session),
+
+    /**
+     * Clear session for a profile
+     * @param {string} profileId - Profile ID
+     * @returns {Promise<{success: boolean}>}
+     */
+    clear: (profileId) =>
+      ipcRenderer.invoke('sessions:clear', profileId),
+
+    /**
+     * Get all sessions
+     * @returns {Promise<Object>}
+     */
+    getAll: () =>
+      ipcRenderer.invoke('sessions:getAll'),
+
+    /**
+     * Save all sessions
+     * @param {Object} sessions - Sessions object
+     * @returns {Promise<{success: boolean}>}
+     */
+    saveAll: (sessions) =>
+      ipcRenderer.invoke('sessions:saveAll', sessions),
+
+    /**
+     * Clear all sessions
+     * @returns {Promise<{success: boolean}>}
+     */
+    clearAll: () =>
+      ipcRenderer.invoke('sessions:clearAll')
   },
 
   // File API

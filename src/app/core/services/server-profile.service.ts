@@ -1,0 +1,549 @@
+import {Injectable, signal, computed, inject} from '@angular/core';
+import {
+  ServerProfile,
+  ServerSession,
+  AuthType,
+  DEFAULT_PROFILE
+} from '../models/server-profile.model';
+import {LoggerService} from './logger.service';
+
+/**
+ * Server Profile Service
+ *
+ * Manages FHIR server profiles and sessions
+ * Handles different authentication types (none, basic, bearer, oauth2, mtls)
+ * Persists profiles via Electron IPC (encrypted storage)
+ */
+@Injectable({
+  providedIn: 'root'
+})
+export class ServerProfileService {
+  private loggerService = inject(LoggerService);
+  private logger = this.loggerService.component('ServerProfileService');
+
+  // State signals
+  private _profiles = signal<ServerProfile[]>([]);
+  private _activeProfileId = signal<string | null>(null);
+  private _sessions = signal<Map<string, ServerSession>>(new Map());
+  private _initialized = signal<boolean>(false);
+
+  // Public readonly signals
+  readonly profiles = this._profiles.asReadonly();
+  readonly activeProfileId = this._activeProfileId.asReadonly();
+  readonly initialized = this._initialized.asReadonly();
+
+  // Computed signals
+  readonly activeProfile = computed(() => {
+    const id = this._activeProfileId();
+    return id ? this._profiles().find(p => p.id === id) ?? null : null;
+  });
+
+  readonly hasActiveSession = computed(() => {
+    const id = this._activeProfileId();
+    if (!id) return false;
+    const session = this._sessions().get(id);
+    return session?.isActive ?? false;
+  });
+
+  readonly sortedProfiles = computed(() => {
+    return [...this._profiles()].sort((a, b) => {
+      // Default profile first
+      if (a.isDefault && !b.isDefault) return -1;
+      if (!a.isDefault && b.isDefault) return 1;
+      // Then by lastUsed
+      return (b.lastUsed ?? 0) - (a.lastUsed ?? 0);
+    });
+  });
+
+  constructor() {
+    this.initialize();
+  }
+
+  /**
+   * Initialize service - load profiles from storage
+   */
+  private async initialize(): Promise<void> {
+    try {
+      await this.loadProfiles();
+      await this.loadSessions();
+      await this.loadActiveProfileId();
+      this._initialized.set(true);
+      this.logger.debug('ServerProfileService initialized', {
+        profileCount: this._profiles().length,
+        activeProfileId: this._activeProfileId()
+      });
+    } catch (error) {
+      this.logger.error('Failed to initialize ServerProfileService:', error);
+      this._initialized.set(true); // Still mark as initialized to prevent blocking
+    }
+  }
+
+  // ==================== Profile CRUD ====================
+
+  /**
+   * Load all profiles from storage
+   */
+  async loadProfiles(): Promise<void> {
+    try {
+      if ((window as any).electronAPI?.profiles?.getAll) {
+        const profiles = await (window as any).electronAPI.profiles.getAll();
+        this._profiles.set(profiles || []);
+      } else {
+        // Fallback to localStorage for development/web
+        const stored = localStorage.getItem('fhir_server_profiles');
+        this._profiles.set(stored ? JSON.parse(stored) : []);
+      }
+    } catch (error) {
+      this.logger.error('Failed to load profiles:', error);
+      this._profiles.set([]);
+    }
+  }
+
+  /**
+   * Save all profiles to storage
+   */
+  private async saveProfiles(): Promise<void> {
+    try {
+      const profiles = this._profiles();
+      if ((window as any).electronAPI?.profiles?.save) {
+        await (window as any).electronAPI.profiles.save(profiles);
+      } else {
+        // Fallback to localStorage
+        localStorage.setItem('fhir_server_profiles', JSON.stringify(profiles));
+      }
+    } catch (error) {
+      this.logger.error('Failed to save profiles:', error);
+    }
+  }
+
+  /**
+   * Add a new profile
+   */
+  async addProfile(profile: Omit<ServerProfile, 'id'>): Promise<ServerProfile> {
+    const newProfile: ServerProfile = {
+      ...DEFAULT_PROFILE,
+      ...profile,
+      id: crypto.randomUUID(),
+      lastUsed: Date.now()
+    };
+
+    this._profiles.update(profiles => [...profiles, newProfile]);
+    await this.saveProfiles();
+
+    this.logger.info('Profile added:', {id: newProfile.id, name: newProfile.name});
+    return newProfile;
+  }
+
+  /**
+   * Update an existing profile
+   */
+  async updateProfile(id: string, updates: Partial<ServerProfile>): Promise<void> {
+    this._profiles.update(profiles =>
+      profiles.map(p => p.id === id ? {...p, ...updates} : p)
+    );
+    await this.saveProfiles();
+    this.logger.info('Profile updated:', {id});
+  }
+
+  /**
+   * Delete a profile and its session
+   */
+  async deleteProfile(id: string): Promise<void> {
+    this._profiles.update(profiles => profiles.filter(p => p.id !== id));
+    await this.clearSession(id);
+    await this.saveProfiles();
+
+    // If deleted profile was active, clear active
+    if (this._activeProfileId() === id) {
+      await this.setActiveProfileId(null);
+    }
+
+    this.logger.info('Profile deleted:', {id});
+  }
+
+  /**
+   * Get a profile by ID
+   */
+  getProfile(id: string): ServerProfile | undefined {
+    return this._profiles().find(p => p.id === id);
+  }
+
+  // ==================== Session Management ====================
+
+  /**
+   * Load sessions from storage
+   */
+  private async loadSessions(): Promise<void> {
+    try {
+      if ((window as any).electronAPI?.sessions?.getAll) {
+        const sessions = await (window as any).electronAPI.sessions.getAll();
+        this._sessions.set(new Map(Object.entries(sessions || {})));
+      } else {
+        const stored = localStorage.getItem('fhir_server_sessions');
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          this._sessions.set(new Map(Object.entries(parsed)));
+        }
+      }
+    } catch (error) {
+      this.logger.error('Failed to load sessions:', error);
+    }
+  }
+
+  /**
+   * Save sessions to storage
+   */
+  private async saveSessions(): Promise<void> {
+    try {
+      const sessions = Object.fromEntries(this._sessions());
+      if ((window as any).electronAPI?.sessions?.saveAll) {
+        await (window as any).electronAPI.sessions.saveAll(sessions);
+      } else {
+        localStorage.setItem('fhir_server_sessions', JSON.stringify(sessions));
+      }
+    } catch (error) {
+      this.logger.error('Failed to save sessions:', error);
+    }
+  }
+
+  /**
+   * Get session for a profile
+   */
+  getSession(profileId: string): ServerSession | undefined {
+    return this._sessions().get(profileId);
+  }
+
+  /**
+   * Set session for a profile
+   */
+  async setSession(profileId: string, session: ServerSession): Promise<void> {
+    this._sessions.update(sessions => {
+      const newSessions = new Map(sessions);
+      newSessions.set(profileId, session);
+      return newSessions;
+    });
+    await this.saveSessions();
+  }
+
+  /**
+   * Clear session for a profile
+   */
+  async clearSession(profileId: string): Promise<void> {
+    this._sessions.update(sessions => {
+      const newSessions = new Map(sessions);
+      newSessions.delete(profileId);
+      return newSessions;
+    });
+    await this.saveSessions();
+  }
+
+  /**
+   * Check if a profile has a valid (non-expired) session
+   */
+  hasValidSession(profileId: string): boolean {
+    const session = this._sessions().get(profileId);
+    if (!session?.isActive) return false;
+
+    // For profiles that don't need tokens (none, basic with stored creds)
+    const profile = this.getProfile(profileId);
+    if (profile?.authType === 'none') return true;
+    if (profile?.authType === 'basic') return true;
+    if (profile?.authType === 'bearer') return !!profile.authConfig?.bearerToken;
+
+    // For oauth2, check token expiry
+    if (!session.expiresAt) return false;
+    return session.expiresAt > Date.now();
+  }
+
+  // ==================== Active Profile ====================
+
+  /**
+   * Load active profile ID from storage
+   */
+  private async loadActiveProfileId(): Promise<void> {
+    try {
+      if ((window as any).electronAPI?.profiles?.getActive) {
+        const id = await (window as any).electronAPI.profiles.getActive();
+        this._activeProfileId.set(id);
+      } else {
+        const stored = localStorage.getItem('fhir_active_profile_id');
+        this._activeProfileId.set(stored || null);
+      }
+    } catch (error) {
+      this.logger.error('Failed to load active profile ID:', error);
+    }
+  }
+
+  /**
+   * Set active profile ID
+   */
+  async setActiveProfileId(id: string | null): Promise<void> {
+    this._activeProfileId.set(id);
+    try {
+      if ((window as any).electronAPI?.profiles?.setActive) {
+        await (window as any).electronAPI.profiles.setActive(id);
+      } else {
+        if (id) {
+          localStorage.setItem('fhir_active_profile_id', id);
+        } else {
+          localStorage.removeItem('fhir_active_profile_id');
+        }
+      }
+    } catch (error) {
+      this.logger.error('Failed to save active profile ID:', error);
+    }
+  }
+
+  /**
+   * Switch to a different profile
+   * Handles authentication if needed
+   */
+  async switchToProfile(profileId: string): Promise<boolean> {
+    const profile = this.getProfile(profileId);
+    if (!profile) {
+      this.logger.error('Profile not found:', {profileId});
+      return false;
+    }
+
+    // Update lastUsed
+    await this.updateProfile(profileId, {lastUsed: Date.now()});
+
+    // Check if we have a valid session
+    if (this.hasValidSession(profileId)) {
+      await this.setActiveProfileId(profileId);
+      this.logger.info('Switched to profile (existing session):', {id: profileId, name: profile.name});
+      return true;
+    }
+
+    // Need to authenticate
+    const authenticated = await this.authenticateProfile(profile);
+    if (authenticated) {
+      await this.setActiveProfileId(profileId);
+      this.logger.info('Switched to profile (new session):', {id: profileId, name: profile.name});
+      return true;
+    }
+
+    this.logger.warn('Failed to switch to profile:', {id: profileId});
+    return false;
+  }
+
+  // ==================== Authentication ====================
+
+  /**
+   * Authenticate a profile based on its auth type
+   */
+  async authenticateProfile(profile: ServerProfile): Promise<boolean> {
+    switch (profile.authType) {
+      case 'none':
+        // No authentication needed
+        await this.setSession(profile.id, {
+          profileId: profile.id,
+          isActive: true
+        });
+        return true;
+
+      case 'basic':
+        // Basic auth - credentials are sent with each request
+        if (profile.authConfig?.username && profile.authConfig?.password) {
+          await this.setSession(profile.id, {
+            profileId: profile.id,
+            isActive: true
+          });
+          return true;
+        }
+        return false;
+
+      case 'bearer':
+        // Static bearer token
+        if (profile.authConfig?.bearerToken) {
+          await this.setSession(profile.id, {
+            profileId: profile.id,
+            accessToken: profile.authConfig.bearerToken,
+            isActive: true
+          });
+          return true;
+        }
+        return false;
+
+      case 'oauth2':
+        return this.authenticateOAuth2(profile);
+
+      case 'mtls':
+        // mTLS is handled at transport level
+        if (profile.mtlsCertificateId) {
+          await this.setSession(profile.id, {
+            profileId: profile.id,
+            isActive: true
+          });
+          return true;
+        }
+        return false;
+
+      default:
+        return false;
+    }
+  }
+
+  /**
+   * Authenticate using OAuth2 client credentials
+   */
+  private async authenticateOAuth2(profile: ServerProfile): Promise<boolean> {
+    const {clientId, clientSecret, tokenEndpoint} = profile.authConfig || {};
+
+    if (!clientId || !clientSecret || !tokenEndpoint) {
+      this.logger.error('OAuth2 config incomplete:', {profileId: profile.id});
+      return false;
+    }
+
+    try {
+      // Use Electron IPC for OAuth2 to bypass CORS
+      if ((window as any).electronAPI?.auth?.oauth2Login) {
+        const result = await (window as any).electronAPI.auth.oauth2Login(
+          tokenEndpoint,
+          clientId,
+          clientSecret
+        );
+
+        if (result?.access_token) {
+          await this.setSession(profile.id, {
+            profileId: profile.id,
+            accessToken: result.access_token,
+            expiresAt: Date.now() + (result.expires_in * 1000),
+            isActive: true
+          });
+          return true;
+        }
+      } else {
+        // Fallback: direct fetch (may fail due to CORS)
+        const response = await fetch(tokenEndpoint, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: new URLSearchParams({
+            grant_type: 'client_credentials',
+            client_id: clientId,
+            client_secret: clientSecret
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          await this.setSession(profile.id, {
+            profileId: profile.id,
+            accessToken: data.access_token,
+            expiresAt: Date.now() + (data.expires_in * 1000),
+            isActive: true
+          });
+          return true;
+        }
+      }
+    } catch (error) {
+      this.logger.error('OAuth2 authentication failed:', error);
+    }
+
+    return false;
+  }
+
+  /**
+   * Refresh OAuth2 token for a profile
+   */
+  async refreshOAuth2Token(profileId: string): Promise<boolean> {
+    const profile = this.getProfile(profileId);
+    if (!profile || profile.authType !== 'oauth2') return false;
+
+    return this.authenticateOAuth2(profile);
+  }
+
+  // ==================== Auth Headers ====================
+
+  /**
+   * Get authorization headers for a profile
+   */
+  async getAuthHeadersForProfile(profileId: string): Promise<Record<string, string>> {
+    const profile = this.getProfile(profileId);
+    if (!profile) return {};
+
+    switch (profile.authType) {
+      case 'none':
+        return {};
+
+      case 'basic': {
+        const {username, password} = profile.authConfig || {};
+        if (username && password) {
+          const credentials = btoa(`${username}:${password}`);
+          return {'Authorization': `Basic ${credentials}`};
+        }
+        return {};
+      }
+
+      case 'bearer': {
+        const token = profile.authConfig?.bearerToken;
+        return token ? {'Authorization': `Bearer ${token}`} : {};
+      }
+
+      case 'oauth2': {
+        const session = this.getSession(profileId);
+
+        // Check if token needs refresh
+        if (session?.expiresAt && session.expiresAt < Date.now() + 60000) {
+          await this.refreshOAuth2Token(profileId);
+        }
+
+        const updatedSession = this.getSession(profileId);
+        return updatedSession?.accessToken
+          ? {'Authorization': `Bearer ${updatedSession.accessToken}`}
+          : {};
+      }
+
+      case 'mtls':
+        // mTLS is handled at transport level, no auth header needed
+        return {};
+
+      default:
+        return {};
+    }
+  }
+
+  /**
+   * Get auth headers for the active profile
+   */
+  async getActiveAuthHeaders(): Promise<Record<string, string>> {
+    const activeId = this._activeProfileId();
+    return activeId ? this.getAuthHeadersForProfile(activeId) : {};
+  }
+
+  // ==================== Utilities ====================
+
+  /**
+   * Get the default profile (if any)
+   */
+  getDefaultProfile(): ServerProfile | undefined {
+    return this._profiles().find(p => p.isDefault);
+  }
+
+  /**
+   * Set a profile as default (clears default from others)
+   */
+  async setDefaultProfile(profileId: string): Promise<void> {
+    this._profiles.update(profiles =>
+      profiles.map(p => ({
+        ...p,
+        isDefault: p.id === profileId
+      }))
+    );
+    await this.saveProfiles();
+  }
+
+  /**
+   * Clear all profiles and sessions (for logout/reset)
+   */
+  async clearAll(): Promise<void> {
+    this._profiles.set([]);
+    this._sessions.set(new Map());
+    this._activeProfileId.set(null);
+    await this.saveProfiles();
+    await this.saveSessions();
+    localStorage.removeItem('fhir_active_profile_id');
+  }
+}
