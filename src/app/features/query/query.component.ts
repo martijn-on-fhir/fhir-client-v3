@@ -1041,7 +1041,7 @@ export class QueryComponent implements OnInit, OnDestroy {
     const parsed = this.autocompleteService.parseQuery(this.textQuery(), cursorPosition);
     const suggestions = this.autocompleteService.getSuggestions(parsed);
 
-    this.autocompleteSuggestions.set(suggestions.slice(0, 12));
+    this.autocompleteSuggestions.set(suggestions);
     this.autocompleteSelectedIndex.set(-1);
     this.showAutocomplete.set(suggestions.length > 0);
   }

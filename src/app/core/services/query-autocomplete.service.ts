@@ -9,6 +9,8 @@ export type QueryContext =
   | 'parameter_name'     // After ? or & - expecting parameter name
   | 'modifier'           // After : - expecting modifier
   | 'parameter_value'    // After = - expecting value
+  | 'include_value'      // After _include= - expecting include path
+  | 'revinclude_value'   // After _revinclude= - expecting revinclude path
   | 'unknown';
 
 /**
@@ -31,6 +33,10 @@ export interface ParsedQuery {
   prefix: string;
   /** Already used parameters in query */
   usedParams: string[];
+  /** Already used _include values in current parameter */
+  usedIncludeValues: string[];
+  /** Already used _revinclude values in current parameter */
+  usedRevIncludeValues: string[];
 }
 
 /**
@@ -42,7 +48,7 @@ export interface Suggestion {
   /** Text to insert */
   insertText: string;
   /** Category/type of suggestion */
-  category: 'resource' | 'parameter' | 'modifier' | 'operator' | 'value' | 'global';
+  category: 'resource' | 'parameter' | 'modifier' | 'operator' | 'value' | 'global' | 'include';
   /** Optional description */
   description?: string;
   /** Parameter type (for parameters) */
@@ -59,6 +65,7 @@ export interface Suggestion {
   providedIn: 'root'
 })
 export class QueryAutocompleteService {
+
   private r3Types = inject(R3TypesService);
 
   /** Cached metadata from CapabilityStatement */
@@ -80,7 +87,9 @@ export class QueryAutocompleteService {
       cursorPosition,
       context: 'unknown',
       prefix: '',
-      usedParams: []
+      usedParams: [],
+      usedIncludeValues: [],
+      usedRevIncludeValues: []
     };
 
     if (!query) {
@@ -99,6 +108,20 @@ export class QueryAutocompleteService {
     const paramMatches = query.matchAll(/[?&]([a-zA-Z_][a-zA-Z0-9_.-]*)(?::[a-zA-Z]+)?=/g);
     for (const match of paramMatches) {
       result.usedParams.push(match[1]);
+    }
+
+    // Extract used _include values from query
+    const includeMatches = query.matchAll(/[?&]_include=([^&]*)/g);
+    for (const match of includeMatches) {
+      const values = match[1].split(',').map(v => v.trim()).filter(v => v);
+      result.usedIncludeValues.push(...values);
+    }
+
+    // Extract used _revinclude values from query
+    const revincludeMatches = query.matchAll(/[?&]_revinclude=([^&]*)/g);
+    for (const match of revincludeMatches) {
+      const values = match[1].split(',').map(v => v.trim()).filter(v => v);
+      result.usedRevIncludeValues.push(...values);
     }
 
     // Determine context based on cursor position
@@ -123,9 +146,37 @@ export class QueryAutocompleteService {
     // Check if we're typing a parameter value (after =)
     const valueMatch = textBeforeCursor.match(/[?&]([a-zA-Z_][a-zA-Z0-9_.-]*)(?::([a-zA-Z]+))?=([^&]*)$/);
     if (valueMatch) {
+      const paramName = valueMatch[1];
+      const valueText = valueMatch[3];
+
+      // Check for _include parameter - handle comma-separated values
+      if (paramName === '_include') {
+        result.context = 'include_value';
+        result.currentParam = paramName;
+        // Get prefix after last comma (for multiple values)
+        const lastCommaIndex = valueText.lastIndexOf(',');
+        result.prefix = lastCommaIndex >= 0
+          ? valueText.substring(lastCommaIndex + 1).trim()
+          : valueText;
+        return result;
+      }
+
+      // Check for _revinclude parameter - handle comma-separated values
+      if (paramName === '_revinclude') {
+        result.context = 'revinclude_value';
+        result.currentParam = paramName;
+        // Get prefix after last comma (for multiple values)
+        const lastCommaIndex = valueText.lastIndexOf(',');
+        result.prefix = lastCommaIndex >= 0
+          ? valueText.substring(lastCommaIndex + 1).trim()
+          : valueText;
+        return result;
+      }
+
+      // Regular parameter value
       result.context = 'parameter_value';
-      result.currentParam = valueMatch[1];
-      result.prefix = valueMatch[3];
+      result.currentParam = paramName;
+      result.prefix = valueText;
       // Get param type from metadata
       result.currentParamType = this.getParamType(result.resourceType, result.currentParam);
       return result;
@@ -170,6 +221,20 @@ export class QueryAutocompleteService {
           parsedQuery.currentParam,
           parsedQuery.currentParamType,
           parsedQuery.prefix
+        );
+
+      case 'include_value':
+        return this.getIncludeSuggestions(
+          parsedQuery.resourceType,
+          parsedQuery.prefix,
+          parsedQuery.usedIncludeValues
+        );
+
+      case 'revinclude_value':
+        return this.getRevIncludeSuggestions(
+          parsedQuery.resourceType,
+          parsedQuery.prefix,
+          parsedQuery.usedRevIncludeValues
         );
 
       default:
@@ -328,6 +393,60 @@ return [];
   }
 
   /**
+   * Get _include suggestions from metadata
+   */
+  private getIncludeSuggestions(
+    resourceType: string | undefined,
+    prefix: string,
+    usedValues: string[]
+  ): Suggestion[] {
+    if (!resourceType || !this.metadata) {
+      return [];
+    }
+
+    const resourceMeta = this.getResourceMetadata(resourceType);
+    const includeValues: string[] = resourceMeta?.searchInclude || [];
+
+    const lowerPrefix = prefix.toLowerCase();
+    return includeValues
+      .filter(value => !usedValues.includes(value) && value.toLowerCase().startsWith(lowerPrefix))
+      .sort()
+      .map(value => ({
+        label: value,
+        insertText: value,
+        category: 'include' as const,
+        description: `Include ${value.split(':')[1] || value} reference`
+      }));
+  }
+
+  /**
+   * Get _revinclude suggestions from metadata
+   */
+  private getRevIncludeSuggestions(
+    resourceType: string | undefined,
+    prefix: string,
+    usedValues: string[]
+  ): Suggestion[] {
+    if (!resourceType || !this.metadata) {
+      return [];
+    }
+
+    const resourceMeta = this.getResourceMetadata(resourceType);
+    const revincludeValues: string[] = resourceMeta?.searchRevInclude || [];
+
+    const lowerPrefix = prefix.toLowerCase();
+    return revincludeValues
+      .filter(value => !usedValues.includes(value) && value.toLowerCase().startsWith(lowerPrefix))
+      .sort()
+      .map(value => ({
+        label: value,
+        insertText: value,
+        category: 'include' as const,
+        description: `Reverse include from ${value.split(':')[0] || value}`
+      }));
+  }
+
+  /**
    * Get resource metadata from cached CapabilityStatement
    */
   private getResourceMetadata(resourceType: string): any {
@@ -409,6 +528,27 @@ return param.type;
         const beforeValue = textBeforeCursor.substring(0, equalPos + 1);
         newQuery = beforeValue + suggestion.insertText + textAfterCursor;
         newCursorPosition = beforeValue.length + suggestion.insertText.length;
+        break;
+      }
+
+      case 'include_value':
+      case 'revinclude_value': {
+        // Handle comma-separated values for _include and _revinclude
+        const eqPos = textBeforeCursor.lastIndexOf('=');
+        const valueText = textBeforeCursor.substring(eqPos + 1);
+        const lastCommaIndex = valueText.lastIndexOf(',');
+
+        if (lastCommaIndex >= 0) {
+          // There are existing values, replace after the last comma
+          const beforeComma = textBeforeCursor.substring(0, eqPos + 1 + lastCommaIndex + 1);
+          newQuery = beforeComma + suggestion.insertText + textAfterCursor;
+          newCursorPosition = beforeComma.length + suggestion.insertText.length;
+        } else {
+          // First value, replace from = to cursor
+          const beforeVal = textBeforeCursor.substring(0, eqPos + 1);
+          newQuery = beforeVal + suggestion.insertText + textAfterCursor;
+          newCursorPosition = beforeVal.length + suggestion.insertText.length;
+        }
         break;
       }
 
