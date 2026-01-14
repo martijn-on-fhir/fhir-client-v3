@@ -324,22 +324,6 @@ return [];
       }
     }
 
-    // For _summary parameter
-    if (paramName === '_summary') {
-      const summaryValues = this.r3Types.getEnumValues('_summary') || [];
-      const lowerPrefix = prefix.toLowerCase();
-      for (const value of summaryValues) {
-        if (value.toLowerCase().startsWith(lowerPrefix)) {
-          suggestions.push({
-            label: value,
-            insertText: value,
-            category: 'value',
-            description: `Summary mode: ${value}`
-          });
-        }
-      }
-    }
-
     return suggestions;
   }
 
