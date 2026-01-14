@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.16.0...v1.16.1) (2026-01-14)
+
+
+### Bug Fixes
+
+* remove duplicate _summary values in autocomplete dropdown ([3e497ad](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3e497adaaa71020f65e7443c05392e904f18002b))
+
 # [1.16.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.15.0...v1.16.0) (2026-01-14)
 
 
