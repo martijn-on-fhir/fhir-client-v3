@@ -86,6 +86,7 @@ export class R3TypesService {
     {name: '_type', type: 'token', description: 'Resource type (for system-level searches)'},
     {name: '_count', type: 'number', description: 'Number of results per page'},
     {name: '_sort', type: 'string', description: 'Sort order for results'},
+    {name: '_skip', type: 'number', description: 'Number of records to skip'},
     {name: '_include', type: 'string', description: 'Include referenced resources'},
     {name: '_revinclude', type: 'string', description: 'Include resources that reference this'},
     {name: '_summary', type: 'token', description: 'Return summary of results'},

@@ -1,5 +1,5 @@
-import { Injectable, inject } from '@angular/core';
-import { R3TypesService } from './r3-types.service';
+import {Injectable, inject} from '@angular/core';
+import {R3TypesService} from './r3-types.service';
 
 /**
  * Query context - where in the query the cursor is
@@ -145,6 +145,7 @@ export class QueryAutocompleteService {
 
     // Check if we're typing a parameter value (after =)
     const valueMatch = textBeforeCursor.match(/[?&]([a-zA-Z_][a-zA-Z0-9_.-]*)(?::([a-zA-Z]+))?=([^&]*)$/);
+
     if (valueMatch) {
       const paramName = valueMatch[1];
       const valueText = valueMatch[3];
@@ -156,8 +157,8 @@ export class QueryAutocompleteService {
         // Get prefix after last comma (for multiple values)
         const lastCommaIndex = valueText.lastIndexOf(',');
         result.prefix = lastCommaIndex >= 0
-          ? valueText.substring(lastCommaIndex + 1).trim()
-          : valueText;
+                        ? valueText.substring(lastCommaIndex + 1).trim()
+                        : valueText;
         return result;
       }
 
@@ -168,8 +169,8 @@ export class QueryAutocompleteService {
         // Get prefix after last comma (for multiple values)
         const lastCommaIndex = valueText.lastIndexOf(',');
         result.prefix = lastCommaIndex >= 0
-          ? valueText.substring(lastCommaIndex + 1).trim()
-          : valueText;
+                        ? valueText.substring(lastCommaIndex + 1).trim()
+                        : valueText;
         return result;
       }
 
@@ -197,6 +198,7 @@ export class QueryAutocompleteService {
    * Get suggestions based on parsed query
    */
   getSuggestions(parsedQuery: ParsedQuery): Suggestion[] {
+
     switch (parsedQuery.context) {
       case 'resource_type':
         return this.getResourceSuggestions(parsedQuery.prefix);
@@ -246,7 +248,9 @@ export class QueryAutocompleteService {
    * Get resource type suggestions
    */
   private getResourceSuggestions(prefix: string): Suggestion[] {
+
     const types = this.r3Types.searchResourceTypes(prefix);
+
     return types.map(type => ({
       label: type,
       insertText: type,
@@ -258,11 +262,7 @@ export class QueryAutocompleteService {
   /**
    * Get search parameter suggestions
    */
-  private getParameterSuggestions(
-    resourceType: string | undefined,
-    prefix: string,
-    usedParams: string[]
-  ): Suggestion[] {
+  private getParameterSuggestions(resourceType: string | undefined, prefix: string, usedParams: string[]): Suggestion[] {
     const suggestions: Suggestion[] = [];
 
     // Add global parameters
@@ -281,12 +281,16 @@ export class QueryAutocompleteService {
 
     // Add resource-specific parameters from metadata
     if (resourceType && this.metadata) {
+
       const resourceMeta = this.getResourceMetadata(resourceType);
       if (resourceMeta?.searchParam) {
+
         const lowerPrefix = prefix.toLowerCase();
+
         for (const param of resourceMeta.searchParam) {
+
           if (!usedParams.includes(param.name) &&
-              param.name.toLowerCase().startsWith(lowerPrefix)) {
+            param.name.toLowerCase().startsWith(lowerPrefix)) {
             suggestions.push({
               label: param.name,
               insertText: param.name + '=',
@@ -301,14 +305,17 @@ export class QueryAutocompleteService {
 
     // Sort: exact matches first, then alphabetically
     return suggestions.sort((a, b) => {
+
       const aExact = a.label.toLowerCase() === prefix.toLowerCase();
       const bExact = b.label.toLowerCase() === prefix.toLowerCase();
+
       if (aExact && !bExact) {
-return -1;
-}
+        return -1;
+      }
+
       if (!aExact && bExact) {
-return 1;
-}
+        return 1;
+      }
       return a.label.localeCompare(b.label);
     });
   }
@@ -316,27 +323,23 @@ return 1;
   /**
    * Get modifier suggestions
    */
-  private getModifierSuggestions(
-    resourceType: string | undefined,
-    paramName: string | undefined,
-    prefix: string
-  ): Suggestion[] {
+  private getModifierSuggestions(  resourceType: string | undefined, paramName: string | undefined, prefix: string ): Suggestion[] {
+
     if (!paramName) {
-return [];
-}
+      return [];
+    }
 
     const paramType = this.getParamType(resourceType, paramName);
     const modifiers = this.r3Types.getModifiers(paramType || 'string');
 
     const lowerPrefix = prefix.toLowerCase();
-    return modifiers
-      .filter(mod => mod.toLowerCase().startsWith(lowerPrefix))
-      .map(mod => ({
-        label: mod,
-        insertText: mod,
-        category: 'modifier' as const,
-        description: `${paramType} modifier`
-      }));
+
+    return modifiers.filter(mod => mod.toLowerCase().startsWith(lowerPrefix)).map(mod => ({
+      label: mod,
+      insertText: mod,
+      category: 'modifier' as const,
+      description: `${paramType} modifier`
+    }));
   }
 
   /**
@@ -408,15 +411,12 @@ return [];
     const includeValues: string[] = resourceMeta?.searchInclude || [];
 
     const lowerPrefix = prefix.toLowerCase();
-    return includeValues
-      .filter(value => !usedValues.includes(value) && value.toLowerCase().startsWith(lowerPrefix))
-      .sort()
-      .map(value => ({
-        label: value,
-        insertText: value,
-        category: 'include' as const,
-        description: `Include ${value.split(':')[1] || value} reference`
-      }));
+    return includeValues.filter(value => !usedValues.includes(value) && value.toLowerCase().startsWith(lowerPrefix)).sort().map(value => ({
+      label: value,
+      insertText: value,
+      category: 'include' as const,
+      description: `Include ${value.split(':')[1] || value} reference`
+    }));
   }
 
   /**
@@ -435,15 +435,12 @@ return [];
     const revincludeValues: string[] = resourceMeta?.searchRevInclude || [];
 
     const lowerPrefix = prefix.toLowerCase();
-    return revincludeValues
-      .filter(value => !usedValues.includes(value) && value.toLowerCase().startsWith(lowerPrefix))
-      .sort()
-      .map(value => ({
-        label: value,
-        insertText: value,
-        category: 'include' as const,
-        description: `Reverse include from ${value.split(':')[0] || value}`
-      }));
+    return revincludeValues.filter(value => !usedValues.includes(value) && value.toLowerCase().startsWith(lowerPrefix)).sort().map(value => ({
+      label: value,
+      insertText: value,
+      category: 'include' as const,
+      description: `Reverse include from ${value.split(':')[0] || value}`
+    }));
   }
 
   /**
@@ -451,8 +448,8 @@ return [];
    */
   private getResourceMetadata(resourceType: string): any {
     if (!this.metadata?.rest?.[0]?.resource) {
-return null;
-}
+      return null;
+    }
     return this.metadata.rest[0].resource.find(
       (r: any) => r.type === resourceType
     );
@@ -463,22 +460,22 @@ return null;
    */
   private getParamType(resourceType: string | undefined, paramName: string | undefined): string | undefined {
     if (!paramName) {
-return undefined;
-}
+      return undefined;
+    }
 
     // Check global parameters first
     const globalParam = this.r3Types.getGlobalParameters().find(p => p.name === paramName);
     if (globalParam) {
-return globalParam.type;
-}
+      return globalParam.type;
+    }
 
     // Check resource-specific parameters
     if (resourceType) {
       const resourceMeta = this.getResourceMetadata(resourceType);
       const param = resourceMeta?.searchParam?.find((p: any) => p.name === paramName);
       if (param) {
-return param.type;
-}
+        return param.type;
+      }
     }
 
     return undefined;
@@ -557,6 +554,6 @@ return param.type;
         newCursorPosition = cursorPosition;
     }
 
-    return { newQuery, newCursorPosition };
+    return {newQuery, newCursorPosition};
   }
 }
