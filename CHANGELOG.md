@@ -1,3 +1,10 @@
+# [1.16.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.15.0...v1.16.0) (2026-01-14)
+
+
+### Features
+
+* add /review custom command for code reviews ([495b381](https://github.com/martijn-on-fhir/fhir-client-v3/commit/495b3815a6863f48739b01c4b625e939ef8125e5))
+
 # [1.15.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.14.0...v1.15.0) (2026-01-14)
 
 
