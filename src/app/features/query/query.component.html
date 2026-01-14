@@ -54,7 +54,6 @@
                 (focus)="onTextQueryFocus()"
                 (blur)="onTextQueryBlur()"
                 (keydown)="onTextQueryKeyDown($event)"
-                (keydown.enter)="!showAutocomplete() && executeTextQuery()"
                 placeholder="/Patient?name=John"
                 autocomplete="off"
                 spellCheck="false">

@@ -1079,26 +1079,27 @@ export class QueryComponent implements OnInit, OnDestroy {
   onTextQueryKeyDown(event: KeyboardEvent): void {
     const suggestions = this.autocompleteSuggestions();
     const currentIndex = this.autocompleteSelectedIndex();
-
-    if (!this.showAutocomplete() || suggestions.length === 0) {
-      return;
-    }
+    const hasVisibleSuggestions = this.showAutocomplete() && suggestions.length > 0;
 
     switch (event.key) {
       case 'ArrowDown':
-        event.preventDefault();
-        this.autocompleteSelectedIndex.set(
-          Math.min(currentIndex + 1, suggestions.length - 1)
-        );
+        if (hasVisibleSuggestions) {
+          event.preventDefault();
+          this.autocompleteSelectedIndex.set(
+            Math.min(currentIndex + 1, suggestions.length - 1)
+          );
+        }
         break;
 
       case 'ArrowUp':
-        event.preventDefault();
-        this.autocompleteSelectedIndex.set(Math.max(currentIndex - 1, -1));
+        if (hasVisibleSuggestions) {
+          event.preventDefault();
+          this.autocompleteSelectedIndex.set(Math.max(currentIndex - 1, -1));
+        }
         break;
 
       case 'Tab':
-        if (suggestions.length > 0) {
+        if (hasVisibleSuggestions) {
           event.preventDefault();
           const idx = currentIndex >= 0 ? currentIndex : 0;
           this.selectAutocompleteSuggestion(suggestions[idx]);
@@ -1106,16 +1107,22 @@ export class QueryComponent implements OnInit, OnDestroy {
         break;
 
       case 'Enter':
-        if (currentIndex >= 0 && currentIndex < suggestions.length) {
+        // If a suggestion is selected, use it; otherwise execute the query
+        if (hasVisibleSuggestions && currentIndex >= 0) {
           event.preventDefault();
-          event.stopPropagation();
           this.selectAutocompleteSuggestion(suggestions[currentIndex]);
+        } else {
+          // Execute the query
+          this.showAutocomplete.set(false);
+          this.executeTextQuery();
         }
         break;
 
       case 'Escape':
-        this.showAutocomplete.set(false);
-        this.autocompleteSelectedIndex.set(-1);
+        if (hasVisibleSuggestions) {
+          this.showAutocomplete.set(false);
+          this.autocompleteSelectedIndex.set(-1);
+        }
         break;
     }
   }
