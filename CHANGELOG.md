@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.16.1...v1.17.0) (2026-01-14)
+
+
+### Features
+
+* add autocomplete for _include and _revinclude parameters ([3bb7f57](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3bb7f5703fcda38cecd3213ba3438580bf8dd79e))
+
 ## [1.16.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.16.0...v1.16.1) (2026-01-14)
 
 
