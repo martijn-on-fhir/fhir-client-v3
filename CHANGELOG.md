@@ -1,3 +1,17 @@
+# [1.14.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.13.0...v1.14.0) (2026-01-14)
+
+
+### Bug Fixes
+
+* Enter key executes query in FHIR Query text mode ([cccb2e4](https://github.com/martijn-on-fhir/fhir-client-v3/commit/cccb2e4954d3ddd6e3d490ea30ac4267d20d1ba8))
+
+
+### Features
+
+* add FHIR query autocomplete POC in Features tab ([f31b728](https://github.com/martijn-on-fhir/fhir-client-v3/commit/f31b7289211d3e2b06fd8a19ff76c433a208649b))
+* integrate autocomplete into FHIR Query text mode ([b9dccc9](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b9dccc9187504b0125428d9391860b4a1289a4b8))
+* show query errors as toast notifications ([3d23b34](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3d23b34094ca68af44896ab9273d6332ad8056a8))
+
 # [1.13.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.12.1...v1.13.0) (2026-01-13)
 
 
