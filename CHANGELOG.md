@@ -1,3 +1,10 @@
+# [1.15.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.14.0...v1.15.0) (2026-01-14)
+
+
+### Features
+
+* add Claude hook to run lint before git push ([8f2de5f](https://github.com/martijn-on-fhir/fhir-client-v3/commit/8f2de5f03cba5995bd1cbf39b0ace1814e3c811c))
+
 # [1.14.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.13.0...v1.14.0) (2026-01-14)
 
 
