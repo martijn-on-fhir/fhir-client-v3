@@ -4,8 +4,11 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { ServerProfileService } from '../../core/services/server-profile.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { ServerProfileDialogComponent } from '../../shared/components/server-profile-dialog/server-profile-dialog.component';
+import { ServerSelectorComponent } from '../../shared/components/server-selector/server-selector.component';
 import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
 
 /**
@@ -21,7 +24,7 @@ import { SettingsDialogComponent } from '../../shared/components/settings-dialog
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [CommonModule, SettingsDialogComponent],
+  imports: [CommonModule, SettingsDialogComponent, ServerSelectorComponent, ServerProfileDialogComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss']
 })
@@ -33,8 +36,10 @@ export class HeaderComponent {
   private router = inject(Router);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('HeaderComponent');
+  private profileService = inject(ServerProfileService);
 
   @ViewChild(SettingsDialogComponent) settingsDialog!: SettingsDialogComponent;
+  @ViewChild(ServerProfileDialogComponent) profileDialog!: ServerProfileDialogComponent;
 
   // Expose theme for template
   get currentTheme() {
@@ -66,6 +71,22 @@ export class HeaderComponent {
    * Open settings dialog
    */
   openSettings(): void {
+    this.settingsDialog.open();
+  }
+
+  /**
+   * Open profile dialog for adding a new server
+   */
+  openAddProfile(): void {
+    this.profileDialog.openAdd();
+  }
+
+  /**
+   * Open profile dialog for managing servers
+   * TODO: In the future, this could open a dedicated management view
+   */
+  openManageProfiles(): void {
+    // For now, just open the settings dialog
     this.settingsDialog.open();
   }
 

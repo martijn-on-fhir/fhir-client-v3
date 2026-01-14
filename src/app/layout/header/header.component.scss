@@ -137,3 +137,23 @@
     font-size: 1.125rem;
   }
 }
+
+// Server selector styling in header context
+:host ::ng-deep app-server-selector {
+  margin-left: 0.5rem;
+
+  .selector-button {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    color: white;
+
+    &:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .chevron {
+      color: rgba(255, 255, 255, 0.7);
+    }
+  }
+}

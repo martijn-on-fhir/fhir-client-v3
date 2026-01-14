@@ -1,10 +1,11 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, from, throwError } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
 import { getEnvironmentConfig } from '../config/environments';
 import { LoggerService } from './logger.service';
 import { MtlsService } from './mtls.service';
+import { ServerProfileService } from './server-profile.service';
 
 /**
  * FHIR Service - Central service for all FHIR operations
@@ -22,16 +23,23 @@ export class FhirService {
   private http = inject(HttpClient);
   private loggerService = inject(LoggerService);
   private mtlsService = inject(MtlsService);
+  private profileService = inject(ServerProfileService);
   private get logger() {
     return this.loggerService.component('FhirService');
   }
 
   /**
-   * Get the FHIR server base URL from the current environment
-   * This will be set automatically after login
+   * Get the FHIR server base URL from the active server profile
+   * Falls back to legacy token storage for backwards compatibility
    */
   private getFhirServerUrl(): string {
-    // Check if we have stored token with environment info
+    // First, check for active server profile
+    const activeProfile = this.profileService.activeProfile();
+    if (activeProfile?.fhirServerUrl) {
+      return activeProfile.fhirServerUrl;
+    }
+
+    // Fallback: Check legacy stored token with environment info
     const storedTokenStr = localStorage.getItem('fhir_token');
     if (storedTokenStr) {
       try {
@@ -50,8 +58,15 @@ export class FhirService {
       }
     }
 
-    // Fallback to Adapcare development FHIR server
-    return 'https://fhir-adapcare.dev.carebeat-connector.nl';
+    // Fallback to default FHIR server
+    return 'https://hapi.fhir.org/baseR4';
+  }
+
+  /**
+   * Get auth headers from the active server profile
+   */
+  private async getProfileAuthHeaders(): Promise<Record<string, string>> {
+    return this.profileService.getActiveAuthHeaders();
   }
 
   /**
@@ -71,6 +86,7 @@ export class FhirService {
   /**
    * Execute a FHIR query
    * Automatically routes through mTLS when a certificate is configured for the domain
+   * Uses auth headers from the active server profile
    *
    * @example
    * ```typescript
@@ -84,14 +100,23 @@ export class FhirService {
   executeQuery<T = any>(query: string): Observable<T> {
     const url = query.startsWith('http') ? query : `${this.baseUrl}${query}`;
 
-    // Check if mTLS is needed for this URL
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    // Check if mTLS is needed for this URL and get auth headers
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for request:', url);
           return this.executeMtlsRequest<T>(url, 'GET');
         }
-        return this.http.get<T>(url);
+
+        // Apply profile auth headers if available
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+
+        return this.http.get<T>(url, options);
       }),
       catchError(error => {
         this.logger.error('Query failed:', error);
@@ -189,13 +214,19 @@ export class FhirService {
    */
   create(resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resource.resourceType}`;
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for create:', url);
           return this.executeMtlsRequest(url, 'POST', resource);
         }
-        return this.http.post(url, resource);
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+        return this.http.post(url, resource, options);
       }),
       catchError(error => {
         this.logger.error('Create failed:', error);
@@ -211,13 +242,19 @@ export class FhirService {
    */
   update(resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resource.resourceType}/${resource.id}`;
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for update:', url);
           return this.executeMtlsRequest(url, 'PUT', resource);
         }
-        return this.http.put(url, resource);
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+        return this.http.put(url, resource, options);
       }),
       catchError(error => {
         this.logger.error('Update failed:', error);
@@ -233,13 +270,19 @@ export class FhirService {
    */
   createResource(resourceType: string, resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}`;
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for createResource:', url);
           return this.executeMtlsRequest(url, 'POST', resource);
         }
-        return this.http.post(url, resource);
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+        return this.http.post(url, resource, options);
       }),
       catchError(error => {
         this.logger.error('Create failed:', error);
@@ -254,13 +297,19 @@ export class FhirService {
    */
   updateResource(resourceType: string, id: string, resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}/${id}`;
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for updateResource:', url);
           return this.executeMtlsRequest(url, 'PUT', resource);
         }
-        return this.http.put(url, resource);
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+        return this.http.put(url, resource, options);
       }),
       catchError(error => {
         this.logger.error('Update failed:', error);
@@ -275,13 +324,19 @@ export class FhirService {
    */
   delete(resourceType: string, id: string): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}/${id}`;
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for delete:', url);
           return this.executeMtlsRequest(url, 'DELETE');
         }
-        return this.http.delete(url);
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+        return this.http.delete(url, options);
       }),
       catchError(error => {
         this.logger.error('Delete failed:', error);
@@ -302,13 +357,19 @@ export class FhirService {
    */
   validateResource(resourceType: string, resource: any): Observable<any> {
     const url = `${this.baseUrl}/${resourceType}/$validate`;
-    return from(this.checkMtlsRequired(url)).pipe(
-      switchMap(useMtls => {
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for validateResource:', url);
           return this.executeMtlsRequest(url, 'POST', resource);
         }
-        return this.http.post(url, resource);
+        const options = Object.keys(authHeaders).length > 0
+          ? { headers: new HttpHeaders(authHeaders) }
+          : {};
+        return this.http.post(url, resource, options);
       }),
       catchError(error => {
         this.logger.error('Validation failed:', error);

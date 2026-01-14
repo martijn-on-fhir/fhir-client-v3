@@ -1,9 +1,11 @@
 import {Injectable, signal, computed, inject} from '@angular/core';
+import {getEnvironmentConfig, Environment} from '../config/environments';
 import {
   ServerProfile,
   ServerSession,
   AuthType,
-  DEFAULT_PROFILE
+  DEFAULT_PROFILE,
+  PROFILE_COLORS
 } from '../models/server-profile.model';
 import {LoggerService} from './logger.service';
 
@@ -40,20 +42,24 @@ export class ServerProfileService {
 
   readonly hasActiveSession = computed(() => {
     const id = this._activeProfileId();
-    if (!id) return false;
+    if (!id) {
+return false;
+}
     const session = this._sessions().get(id);
     return session?.isActive ?? false;
   });
 
-  readonly sortedProfiles = computed(() => {
-    return [...this._profiles()].sort((a, b) => {
+  readonly sortedProfiles = computed(() => [...this._profiles()].sort((a, b) => {
       // Default profile first
-      if (a.isDefault && !b.isDefault) return -1;
-      if (!a.isDefault && b.isDefault) return 1;
+      if (a.isDefault && !b.isDefault) {
+return -1;
+}
+      if (!a.isDefault && b.isDefault) {
+return 1;
+}
       // Then by lastUsed
       return (b.lastUsed ?? 0) - (a.lastUsed ?? 0);
-    });
-  });
+    }));
 
   constructor() {
     this.initialize();
@@ -67,6 +73,21 @@ export class ServerProfileService {
       await this.loadProfiles();
       await this.loadSessions();
       await this.loadActiveProfileId();
+
+      // Check if we need to migrate from old SavedAccounts
+      if (this._profiles().length === 0) {
+        await this.migrateFromSavedAccounts();
+      }
+
+      // Auto-select first profile if none is active
+      if (!this._activeProfileId() && this._profiles().length > 0) {
+        const defaultProfile = this.getDefaultProfile();
+        const firstProfile = defaultProfile || this._profiles()[0];
+        if (firstProfile) {
+          await this.switchToProfile(firstProfile.id);
+        }
+      }
+
       this._initialized.set(true);
       this.logger.debug('ServerProfileService initialized', {
         profileCount: this._profiles().length,
@@ -75,6 +96,67 @@ export class ServerProfileService {
     } catch (error) {
       this.logger.error('Failed to initialize ServerProfileService:', error);
       this._initialized.set(true); // Still mark as initialized to prevent blocking
+    }
+  }
+
+  /**
+   * Migrate from old SavedAccount format to new ServerProfile format
+   * Only runs once when no profiles exist
+   */
+  private async migrateFromSavedAccounts(): Promise<void> {
+    try {
+      // Check if we have old saved accounts
+      const savedAccounts = await this.getOldSavedAccounts();
+      if (!savedAccounts || savedAccounts.length === 0) {
+        this.logger.debug('No saved accounts to migrate');
+        return;
+      }
+
+      this.logger.info(`Migrating ${savedAccounts.length} saved account(s) to server profiles`);
+
+      const profiles: ServerProfile[] = savedAccounts.map((account, index) => {
+        // Try to get environment config for token endpoint
+        const envConfig = getEnvironmentConfig(account.environment as Environment);
+
+        return {
+          id: account.id,
+          name: account.name,
+          fhirServerUrl: account.fhirUrl || envConfig?.fhirServer || '',
+          authType: 'oauth2' as AuthType,
+          authConfig: {
+            clientId: account.clientId,
+            clientSecret: account.clientSecret,
+            tokenEndpoint: envConfig?.tokenEndpoint || ''
+          },
+          color: PROFILE_COLORS[index % PROFILE_COLORS.length],
+          isDefault: account.autoLogin || false,
+          lastUsed: account.lastUsed
+        };
+      });
+
+      // Save migrated profiles
+      this._profiles.set(profiles);
+      await this.saveProfiles();
+
+      this.logger.info(`Successfully migrated ${profiles.length} profile(s)`);
+    } catch (error) {
+      this.logger.error('Failed to migrate saved accounts:', error);
+    }
+  }
+
+  /**
+   * Get old saved accounts from storage (for migration)
+   */
+  private async getOldSavedAccounts(): Promise<any[]> {
+    try {
+      if ((window as any).electronAPI?.auth?.getSavedAccounts) {
+        return await (window as any).electronAPI.auth.getSavedAccounts();
+      }
+      // Fallback to localStorage
+      const stored = localStorage.getItem('fhir_saved_accounts');
+      return stored ? JSON.parse(stored) : [];
+    } catch {
+      return [];
     }
   }
 
@@ -242,16 +324,26 @@ export class ServerProfileService {
    */
   hasValidSession(profileId: string): boolean {
     const session = this._sessions().get(profileId);
-    if (!session?.isActive) return false;
+    if (!session?.isActive) {
+return false;
+}
 
     // For profiles that don't need tokens (none, basic with stored creds)
     const profile = this.getProfile(profileId);
-    if (profile?.authType === 'none') return true;
-    if (profile?.authType === 'basic') return true;
-    if (profile?.authType === 'bearer') return !!profile.authConfig?.bearerToken;
+    if (profile?.authType === 'none') {
+return true;
+}
+    if (profile?.authType === 'basic') {
+return true;
+}
+    if (profile?.authType === 'bearer') {
+return !!profile.authConfig?.bearerToken;
+}
 
     // For oauth2, check token expiry
-    if (!session.expiresAt) return false;
+    if (!session.expiresAt) {
+return false;
+}
     return session.expiresAt > Date.now();
   }
 
@@ -450,7 +542,9 @@ export class ServerProfileService {
    */
   async refreshOAuth2Token(profileId: string): Promise<boolean> {
     const profile = this.getProfile(profileId);
-    if (!profile || profile.authType !== 'oauth2') return false;
+    if (!profile || profile.authType !== 'oauth2') {
+return false;
+}
 
     return this.authenticateOAuth2(profile);
   }
@@ -462,7 +556,9 @@ export class ServerProfileService {
    */
   async getAuthHeadersForProfile(profileId: string): Promise<Record<string, string>> {
     const profile = this.getProfile(profileId);
-    if (!profile) return {};
+    if (!profile) {
+return {};
+}
 
     switch (profile.authType) {
       case 'none':

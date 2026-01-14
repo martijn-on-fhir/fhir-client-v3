@@ -1,7 +1,7 @@
-import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmitter} from '@angular/core';
 import {CommonModule} from '@angular/common';
-import {ServerProfileService} from '../../../core/services/server-profile.service';
+import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmitter} from '@angular/core';
 import {ServerProfile, PROFILE_COLORS} from '../../../core/models/server-profile.model';
+import {ServerProfileService} from '../../../core/services/server-profile.service';
 
 /**
  * Server Selector Component
@@ -36,14 +36,17 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
 
   readonly displayName = computed(() => {
     const profile = this.activeProfile();
+
     if (profile) {
       return profile.name;
     }
+
     return 'Geen server';
   });
 
   readonly displayColor = computed(() => {
     const profile = this.activeProfile();
+
     return profile?.color || PROFILE_COLORS[2];
   });
 
@@ -76,6 +79,7 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
 
     if (profile.id === this.activeProfileId()) {
       this.isOpen.set(false);
+
       return;
     }
 

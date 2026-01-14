@@ -4,6 +4,12 @@
     <div class="header-left">
       <i class="fas fa-heartbeat brand-icon"></i>
       <h1 class="brand-title">FHIR Client</h1>
+
+      <!-- Server Selector -->
+      <app-server-selector
+        (addProfile)="openAddProfile()"
+        (manageProfiles)="openManageProfiles()">
+      </app-server-selector>
     </div>
 
     <!-- Right: Controls -->
@@ -45,3 +51,6 @@
 
 <!-- Settings Dialog -->
 <app-settings-dialog></app-settings-dialog>
+
+<!-- Server Profile Dialog -->
+<app-server-profile-dialog></app-server-profile-dialog>

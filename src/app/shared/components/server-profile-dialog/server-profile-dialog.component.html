@@ -1,0 +1,271 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-dialog server-profile-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h5 class="modal-title">
+          <i class="fas fa-server"></i>
+          {{ dialogTitle() }}
+        </h5>
+        <button class="btn-close" (click)="close()" title="Sluiten">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        @if (error()) {
+          <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            {{ error() }}
+            <button class="btn-dismiss" (click)="error.set(null)">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        }
+
+        <!-- Basic Info Section -->
+        <div class="form-section">
+          <h6 class="section-title">Algemeen</h6>
+
+          <div class="form-group">
+            <label for="profile-name">Naam <span class="required">*</span></label>
+            <input
+              type="text"
+              id="profile-name"
+              [ngModel]="formData().name"
+              (ngModelChange)="updateField('name', $event)"
+              placeholder="bijv. Productie HCIM"
+              autocomplete="off"
+            />
+          </div>
+
+          <div class="form-group">
+            <label for="fhir-url">FHIR Server URL <span class="required">*</span></label>
+            <input
+              type="url"
+              id="fhir-url"
+              [ngModel]="formData().fhirServerUrl"
+              (ngModelChange)="updateField('fhirServerUrl', $event)"
+              placeholder="https://fhir.example.com/baseR4"
+              autocomplete="off"
+            />
+          </div>
+
+          <!-- Color Picker -->
+          <div class="form-group">
+            <label>Kleur</label>
+            <div class="color-picker">
+              @for (color of colors; track color) {
+                <button
+                  type="button"
+                  class="color-option"
+                  [style.background-color]="color"
+                  [class.selected]="formData().color === color"
+                  (click)="selectColor(color)"
+                  [title]="color">
+                  @if (formData().color === color) {
+                    <i class="fas fa-check"></i>
+                  }
+                </button>
+              }
+            </div>
+          </div>
+
+          <!-- Default checkbox -->
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input
+                type="checkbox"
+                [ngModel]="formData().isDefault"
+                (ngModelChange)="updateField('isDefault', $event)"
+              />
+              <span>Standaard server (automatisch selecteren bij opstarten)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- Authentication Section -->
+        <div class="form-section">
+          <h6 class="section-title">Authenticatie</h6>
+
+          <div class="form-group">
+            <label>Type</label>
+            <div class="auth-type-selector">
+              @for (authType of authTypes; track authType.value) {
+                <label class="auth-option" [class.selected]="formData().authType === authType.value">
+                  <input
+                    type="radio"
+                    name="authType"
+                    [value]="authType.value"
+                    [checked]="formData().authType === authType.value"
+                    (change)="updateField('authType', authType.value)"
+                  />
+                  <i class="fas {{ authType.icon }}"></i>
+                  <span>{{ authType.label }}</span>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Auth Type Specific Fields -->
+          @switch (formData().authType) {
+            @case ('basic') {
+              <div class="auth-fields">
+                <div class="form-group">
+                  <label for="username">Gebruikersnaam <span class="required">*</span></label>
+                  <input
+                    type="text"
+                    id="username"
+                    [ngModel]="formData().username"
+                    (ngModelChange)="updateField('username', $event)"
+                    placeholder="Gebruikersnaam"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="form-group">
+                  <label for="password">Wachtwoord <span class="required">*</span></label>
+                  <input
+                    type="password"
+                    id="password"
+                    [ngModel]="formData().password"
+                    (ngModelChange)="updateField('password', $event)"
+                    placeholder="Wachtwoord"
+                    autocomplete="off"
+                  />
+                </div>
+              </div>
+            }
+
+            @case ('bearer') {
+              <div class="auth-fields">
+                <div class="form-group">
+                  <label for="bearer-token">Bearer Token <span class="required">*</span></label>
+                  <textarea
+                    id="bearer-token"
+                    [ngModel]="formData().bearerToken"
+                    (ngModelChange)="updateField('bearerToken', $event)"
+                    placeholder="Plak hier je API token of access token"
+                    rows="3"
+                  ></textarea>
+                </div>
+              </div>
+            }
+
+            @case ('oauth2') {
+              <div class="auth-fields">
+                <div class="form-group">
+                  <label for="token-endpoint">Token Endpoint <span class="required">*</span></label>
+                  <input
+                    type="url"
+                    id="token-endpoint"
+                    [ngModel]="formData().tokenEndpoint"
+                    (ngModelChange)="updateField('tokenEndpoint', $event)"
+                    placeholder="https://auth.example.com/oauth/token"
+                    autocomplete="off"
+                  />
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="client-id">Client ID <span class="required">*</span></label>
+                    <input
+                      type="text"
+                      id="client-id"
+                      [ngModel]="formData().clientId"
+                      (ngModelChange)="updateField('clientId', $event)"
+                      placeholder="Client ID"
+                      autocomplete="off"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label for="client-secret">Client Secret <span class="required">*</span></label>
+                    <input
+                      type="password"
+                      id="client-secret"
+                      [ngModel]="formData().clientSecret"
+                      (ngModelChange)="updateField('clientSecret', $event)"
+                      placeholder="Client Secret"
+                      autocomplete="off"
+                    />
+                  </div>
+                </div>
+              </div>
+            }
+
+            @case ('mtls') {
+              <div class="auth-fields">
+                <div class="form-group">
+                  <label for="certificate">Client Certificaat <span class="required">*</span></label>
+                  @if (certificates().length > 0) {
+                    <select
+                      id="certificate"
+                      [ngModel]="formData().mtlsCertificateId"
+                      (ngModelChange)="updateField('mtlsCertificateId', $event)">
+                      <option value="">Selecteer een certificaat...</option>
+                      @for (cert of certificates(); track cert.id) {
+                        <option [value]="cert.id" [disabled]="!cert.enabled">
+                          {{ cert.name }} ({{ cert.domain }})
+                          @if (!cert.enabled) { - Uitgeschakeld }
+                        </option>
+                      }
+                    </select>
+                  } @else {
+                    <div class="no-certificates">
+                      <i class="fas fa-info-circle"></i>
+                      Geen certificaten beschikbaar. Voeg eerst een certificaat toe via de Certificate Manager.
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @case ('none') {
+              <div class="auth-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Deze server vereist geen authenticatie (open toegang).</span>
+              </div>
+            }
+          }
+        </div>
+
+        <!-- Test Connection -->
+        <div class="form-section test-section">
+          <button
+            type="button"
+            class="btn btn-secondary btn-test"
+            (click)="testConnection()"
+            [disabled]="testing() || !formData().fhirServerUrl">
+            @if (testing()) {
+              <i class="fas fa-spinner fa-spin"></i>
+              Testen...
+            } @else {
+              <i class="fas fa-plug"></i>
+              Test verbinding
+            }
+          </button>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">
+          Annuleren
+        </button>
+        <button
+          type="button"
+          class="btn btn-primary"
+          (click)="save()"
+          [disabled]="!canSave() || loading()">
+          @if (loading()) {
+            <i class="fas fa-spinner fa-spin"></i>
+          } @else {
+            <i class="fas fa-save"></i>
+          }
+          {{ mode() === 'add' ? 'Toevoegen' : 'Opslaan' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}
