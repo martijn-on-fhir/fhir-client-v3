@@ -172,42 +172,42 @@
     top: calc(100% + 4px);
     left: 0;
     z-index: 9999; // Very high to ensure visibility
-    background: white;
-    border: 1px solid #dee2e6;
+    background: var(--bs-body-bg);
+    border: 1px solid var(--bs-border-color);
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     min-width: 280px;
     line-height: 1.4;
-    color: #212529;
+    color: var(--bs-body-color);
   }
 
   .dropdown-item {
-    color: #212529;
+    color: var(--bs-body-color);
 
     &:hover {
-      background: #f8f9fa;
+      background: var(--bs-tertiary-bg);
     }
 
     &.active {
-      background: #e7f1ff;
+      background: var(--bs-primary-bg-subtle);
     }
   }
 
   .dropdown-empty,
   .dropdown-actions .action-item {
-    color: #6c757d;
+    color: var(--bs-secondary-color);
 
     &:hover {
-      color: #212529;
-      background: #f8f9fa;
+      color: var(--bs-body-color);
+      background: var(--bs-tertiary-bg);
     }
   }
 
   .dropdown-divider {
-    background: #dee2e6;
+    background: var(--bs-border-color);
   }
 
   .profile-meta {
-    color: #6c757d !important;
+    color: var(--bs-secondary-color) !important;
   }
 }

@@ -61,19 +61,13 @@
   left: 0;
   min-width: 250px;
   max-width: 350px;
-  background: #ffffff;
-  border: 1px solid #dee2e6;
+  background: var(--bs-body-bg);
+  border: 1px solid var(--bs-border-color);
   border-radius: 0.5rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
   z-index: 99999;
   overflow: visible;
-
-  // Dark mode support
-  [data-bs-theme="dark"] & {
-    background: #212529;
-    border-color: #495057;
-    color: #f8f9fa;
-  }
+  color: var(--bs-body-color);
 }
 
 .dropdown-section {
@@ -101,14 +95,14 @@
     padding: 0;
     background: transparent;
     border: none;
-    color: #6c757d;
+    color: var(--bs-secondary-color);
     cursor: pointer;
     opacity: 0;
     transition: all 0.15s ease;
 
     &:hover {
-      color: #0d6efd;
-      background: rgba(13, 110, 253, 0.1);
+      color: var(--bs-primary);
+      background: var(--bs-primary-bg-subtle);
     }
 
     i {
@@ -118,18 +112,6 @@
 
   &:hover .edit-btn {
     opacity: 1;
-  }
-
-  // Dark mode
-  [data-bs-theme="dark"] & {
-    .edit-btn {
-      color: #adb5bd;
-
-      &:hover {
-        color: #6ea8fe;
-        background: rgba(110, 168, 254, 0.1);
-      }
-    }
   }
 }
 
@@ -141,14 +123,14 @@
   padding: 0.625rem 1rem;
   background: transparent;
   border: none;
-  color: #212529;
+  color: var(--bs-body-color);
   font-size: 0.875rem;
   text-align: left;
   cursor: pointer;
   transition: background-color 0.15s ease;
 
   &:hover:not(:disabled) {
-    background: #f8f9fa;
+    background: var(--bs-tertiary-bg);
   }
 
   &:disabled {
@@ -157,7 +139,7 @@
   }
 
   &.active {
-    background: #e7f1ff;
+    background: var(--bs-primary-bg-subtle);
 
     .profile-name {
       font-weight: 500;
@@ -166,19 +148,6 @@
 
   &.switching {
     opacity: 0.7;
-  }
-
-  // Dark mode
-  [data-bs-theme="dark"] & {
-    color: #f8f9fa;
-
-    &:hover:not(:disabled) {
-      background: #343a40;
-    }
-
-    &.active {
-      background: #1a365d;
-    }
   }
 
   .status-dot {
@@ -232,7 +201,7 @@
   align-items: center;
   gap: 0.5rem;
   padding: 1.5rem 1rem;
-  color: #6c757d;
+  color: var(--bs-secondary-color);
   font-size: 0.875rem;
 
   i {
@@ -243,17 +212,13 @@
 
 .dropdown-divider {
   height: 1px;
-  background: #dee2e6;
+  background: var(--bs-border-color);
   margin: 0.25rem 0;
-
-  [data-bs-theme="dark"] & {
-    background: #495057;
-  }
 }
 
 .dropdown-actions {
   .action-item {
-    color: #6c757d;
+    color: var(--bs-secondary-color);
 
     i {
       width: 16px;
@@ -261,17 +226,12 @@
     }
 
     &:hover {
-      color: #212529;
-      background: #f8f9fa;
-    }
-
-    [data-bs-theme="dark"] &:hover {
-      color: #f8f9fa;
-      background: #343a40;
+      color: var(--bs-body-color);
+      background: var(--bs-tertiary-bg);
     }
   }
 }
 
 .profile-meta {
-  color: #6c757d;
+  color: var(--bs-secondary-color);
 }
