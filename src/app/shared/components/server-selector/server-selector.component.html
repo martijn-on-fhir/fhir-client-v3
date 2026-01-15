@@ -2,7 +2,6 @@
   <button
     class="selector-button"
     (click)="toggleDropdown($event)"
-    [disabled]="!initialized()"
     title="Server selecteren">
     <span class="status-dot" [style.background-color]="displayColor()"></span>
     <span class="server-name">{{ displayName() }}</span>
@@ -14,28 +13,36 @@
       @if (hasProfiles()) {
         <div class="dropdown-section">
           @for (profile of profiles(); track profile.id) {
-            <button
-              class="dropdown-item"
-              [class.active]="profile.id === activeProfileId()"
-              [class.switching]="switching() === profile.id"
-              (click)="selectProfile(profile, $event)"
-              [disabled]="switching() !== null">
-              <span
-                class="status-dot"
-                [style.background-color]="profile.color"
-                [class.has-session]="hasValidSession(profile.id)">
-              </span>
-              <div class="profile-info">
-                <span class="profile-name">{{ profile.name }}</span>
-                <span class="profile-meta">{{ getAuthTypeLabel(profile.authType) }}</span>
-              </div>
-              @if (profile.id === activeProfileId()) {
-                <i class="fas fa-check check-icon"></i>
-              }
-              @if (switching() === profile.id) {
-                <i class="fas fa-spinner fa-spin spinner-icon"></i>
-              }
-            </button>
+            <div class="dropdown-item-row">
+              <button
+                class="dropdown-item"
+                [class.active]="profile.id === activeProfileId()"
+                [class.switching]="switching() === profile.id"
+                (click)="selectProfile(profile, $event)"
+                [disabled]="switching() !== null">
+                <span
+                  class="status-dot"
+                  [style.background-color]="profile.color"
+                  [class.has-session]="hasValidSession(profile.id)">
+                </span>
+                <div class="profile-info">
+                  <span class="profile-name">{{ profile.name }}</span>
+                  <span class="profile-meta">{{ getAuthTypeLabel(profile.authType) }}</span>
+                </div>
+                @if (profile.id === activeProfileId()) {
+                  <i class="fas fa-check check-icon"></i>
+                }
+                @if (switching() === profile.id) {
+                  <i class="fas fa-spinner fa-spin spinner-icon"></i>
+                }
+              </button>
+              <button
+                class="edit-btn"
+                (click)="onEditProfile(profile, $event)"
+                title="Bewerken">
+                <i class="fas fa-pen"></i>
+              </button>
+            </div>
           }
         </div>
       } @else {

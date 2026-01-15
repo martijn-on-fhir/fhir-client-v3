@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmitter} from '@angular/core';
+import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmitter, ViewEncapsulation} from '@angular/core';
 import {ServerProfile, PROFILE_COLORS} from '../../../core/models/server-profile.model';
 import {ServerProfileService} from '../../../core/services/server-profile.service';
 
@@ -14,12 +14,14 @@ import {ServerProfileService} from '../../../core/services/server-profile.servic
   standalone: true,
   imports: [CommonModule],
   templateUrl: './server-selector.component.html',
-  styleUrls: ['./server-selector.component.scss']
+  styleUrls: ['./server-selector.component.scss'],
+  encapsulation: ViewEncapsulation.None
 })
 export class ServerSelectorComponent implements OnInit, OnDestroy {
   private profileService = inject(ServerProfileService);
 
   @Output() addProfile = new EventEmitter<void>();
+  @Output() editProfile = new EventEmitter<ServerProfile>();
   @Output() manageProfiles = new EventEmitter<void>();
 
   isOpen = signal(false);
@@ -71,7 +73,7 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
 
   toggleDropdown(event: MouseEvent): void {
     event.stopPropagation();
-    this.isOpen.update(v => !v);
+    this.isOpen.set(!this.isOpen());
   }
 
   async selectProfile(profile: ServerProfile, event: MouseEvent): Promise<void> {
@@ -103,6 +105,12 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
     event.stopPropagation();
     this.isOpen.set(false);
     this.manageProfiles.emit();
+  }
+
+  onEditProfile(profile: ServerProfile, event: MouseEvent): void {
+    event.stopPropagation();
+    this.isOpen.set(false);
+    this.editProfile.emit(profile);
   }
 
   hasValidSession(profileId: string): boolean {

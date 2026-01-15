@@ -25,6 +25,7 @@ interface ProfileFormData {
   clientId: string;
   clientSecret: string;
   tokenEndpoint: string;
+  scope: string;
   // Basic auth fields
   username: string;
   password: string;
@@ -227,7 +228,8 @@ return;
           const tokenResponse = await this.getOAuth2Token(
             form.tokenEndpoint,
             form.clientId,
-            form.clientSecret
+            form.clientSecret,
+            form.scope || undefined
           );
 
           if (tokenResponse?.access_token) {
@@ -287,23 +289,30 @@ return;
   private async getOAuth2Token(
     tokenEndpoint: string,
     clientId: string,
-    clientSecret: string
+    clientSecret: string,
+    scope?: string
   ): Promise<{access_token: string; expires_in: number} | null> {
     if ((window as any).electronAPI?.auth?.oauth2Login) {
-      return (window as any).electronAPI.auth.oauth2Login(tokenEndpoint, clientId, clientSecret);
+      return (window as any).electronAPI.auth.oauth2Login(tokenEndpoint, clientId, clientSecret, scope);
     }
 
     // Fallback: direct fetch (may fail due to CORS)
+    const params: Record<string, string> = {
+      grant_type: 'client_credentials',
+      client_id: clientId,
+      client_secret: clientSecret
+    };
+
+    if (scope) {
+      params['scope'] = scope;
+    }
+
     const response = await fetch(tokenEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: new URLSearchParams({
-        grant_type: 'client_credentials',
-        client_id: clientId,
-        client_secret: clientSecret
-      })
+      body: new URLSearchParams(params)
     });
 
     if (response.ok) {
@@ -353,6 +362,7 @@ return;
       clientId: '',
       clientSecret: '',
       tokenEndpoint: '',
+      scope: '',
       username: '',
       password: '',
       bearerToken: '',
@@ -373,6 +383,7 @@ return;
       clientId: profile.authConfig?.clientId || '',
       clientSecret: profile.authConfig?.clientSecret || '',
       tokenEndpoint: profile.authConfig?.tokenEndpoint || '',
+      scope: profile.authConfig?.scope || '',
       username: profile.authConfig?.username || '',
       password: profile.authConfig?.password || '',
       bearerToken: profile.authConfig?.bearerToken || '',
@@ -398,6 +409,9 @@ return;
         authConfig.clientId = form.clientId;
         authConfig.clientSecret = form.clientSecret;
         authConfig.tokenEndpoint = form.tokenEndpoint;
+        if (form.scope) {
+          authConfig.scope = form.scope;
+        }
         break;
     }
 

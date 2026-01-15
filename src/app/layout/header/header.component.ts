@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { ServerProfile } from '../../core/models/server-profile.model';
 import { ServerProfileService } from '../../core/services/server-profile.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { ThemeService } from '../../core/services/theme.service';
@@ -79,6 +80,13 @@ export class HeaderComponent {
    */
   openAddProfile(): void {
     this.profileDialog.openAdd();
+  }
+
+  /**
+   * Open profile dialog for editing an existing server
+   */
+  openEditProfile(profile: ServerProfile): void {
+    this.profileDialog.openEdit(profile);
   }
 
   /**

@@ -480,7 +480,7 @@ return false;
    * Authenticate using OAuth2 client credentials
    */
   private async authenticateOAuth2(profile: ServerProfile): Promise<boolean> {
-    const {clientId, clientSecret, tokenEndpoint} = profile.authConfig || {};
+    const {clientId, clientSecret, tokenEndpoint, scope} = profile.authConfig || {};
 
     if (!clientId || !clientSecret || !tokenEndpoint) {
       this.logger.error('OAuth2 config incomplete:', {profileId: profile.id});
@@ -493,7 +493,8 @@ return false;
         const result = await (window as any).electronAPI.auth.oauth2Login(
           tokenEndpoint,
           clientId,
-          clientSecret
+          clientSecret,
+          scope
         );
 
         if (result?.access_token) {
@@ -507,16 +508,22 @@ return false;
         }
       } else {
         // Fallback: direct fetch (may fail due to CORS)
+        const params: Record<string, string> = {
+          grant_type: 'client_credentials',
+          client_id: clientId,
+          client_secret: clientSecret
+        };
+
+        if (scope) {
+          params['scope'] = scope;
+        }
+
         const response = await fetch(tokenEndpoint, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/x-www-form-urlencoded'
           },
-          body: new URLSearchParams({
-            grant_type: 'client_credentials',
-            client_id: clientId,
-            client_secret: clientSecret
-          })
+          body: new URLSearchParams(params)
         });
 
         if (response.ok) {

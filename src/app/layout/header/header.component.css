@@ -7,6 +7,7 @@
   position: sticky;
   top: 0;
   z-index: 1000;
+  overflow: visible;
 }
 
 .header-content {
@@ -22,6 +23,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
+  overflow: visible;
 }
 
 .file-actions {
@@ -138,11 +140,17 @@
 
 :host ::ng-deep app-server-selector {
   margin-left: 0.5rem;
+  line-height: normal;
+}
+:host ::ng-deep app-server-selector .server-selector {
+  line-height: normal;
+  position: relative;
 }
 :host ::ng-deep app-server-selector .selector-button {
   background: rgba(255, 255, 255, 0.15);
   border-color: rgba(255, 255, 255, 0.3);
   color: white;
+  line-height: 1.4;
 }
 :host ::ng-deep app-server-selector .selector-button:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.25);
@@ -150,6 +158,44 @@
 }
 :host ::ng-deep app-server-selector .selector-button .chevron {
   color: rgba(255, 255, 255, 0.7);
+}
+:host ::ng-deep app-server-selector .dropdown-menu {
+  display: block;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 9999;
+  background: white;
+  border: 1px solid #dee2e6;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  min-width: 280px;
+  line-height: 1.4;
+  color: #212529;
+}
+:host ::ng-deep app-server-selector .dropdown-item {
+  color: #212529;
+}
+:host ::ng-deep app-server-selector .dropdown-item:hover {
+  background: #f8f9fa;
+}
+:host ::ng-deep app-server-selector .dropdown-item.active {
+  background: #e7f1ff;
+}
+:host ::ng-deep app-server-selector .dropdown-empty,
+:host ::ng-deep app-server-selector .dropdown-actions .action-item {
+  color: #6c757d;
+}
+:host ::ng-deep app-server-selector .dropdown-empty:hover,
+:host ::ng-deep app-server-selector .dropdown-actions .action-item:hover {
+  color: #212529;
+  background: #f8f9fa;
+}
+:host ::ng-deep app-server-selector .dropdown-divider {
+  background: #dee2e6;
+}
+:host ::ng-deep app-server-selector .profile-meta {
+  color: #6c757d !important;
 }
 
 /*# sourceMappingURL=header.component.css.map */

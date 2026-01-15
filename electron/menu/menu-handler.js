@@ -56,6 +56,15 @@ function createApplicationMenu() {
         },
         { type: 'separator' },
         {
+          label: 'Server Accounts',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('show-server-accounts');
+            }
+          }
+        },
+        {
           label: 'Settings',
           click: () => {
             const focusedWindow = BrowserWindow.getFocusedWindow();
@@ -142,6 +151,15 @@ function createApplicationMenu() {
           }
         },
         { type: 'separator' },
+        {
+          label: 'Server Accounts',
+          click: () => {
+            const focusedWindow = BrowserWindow.getFocusedWindow();
+            if (focusedWindow) {
+              focusedWindow.webContents.send('show-server-accounts');
+            }
+          }
+        },
         {
           label: 'Settings',
           click: () => {

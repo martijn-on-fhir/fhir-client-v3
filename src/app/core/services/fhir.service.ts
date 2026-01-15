@@ -41,6 +41,7 @@ export class FhirService {
 
     // Fallback: Check legacy stored token with environment info
     const storedTokenStr = localStorage.getItem('fhir_token');
+
     if (storedTokenStr) {
       try {
         const storedToken = JSON.parse(storedTokenStr);
@@ -59,7 +60,10 @@ export class FhirService {
     }
 
     // Fallback to default FHIR server
-    return 'https://hapi.fhir.org/baseR4';
+    /**
+     * @todo must be removed after login and server accounts are fixed
+     */
+    return 'https://fhir-adapcare.dev.carebeat-connector.nl';
   }
 
   /**

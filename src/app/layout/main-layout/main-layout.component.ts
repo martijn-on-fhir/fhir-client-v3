@@ -6,6 +6,7 @@ import { SettingsService } from '../../core/services/settings.service';
 import { AboutDialogComponent } from '../../shared/components/about-dialog/about-dialog.component';
 import { CertificateManagerDialogComponent } from '../../shared/components/certificate-manager-dialog/certificate-manager-dialog.component';
 import { ServerInfoDialogComponent } from '../../shared/components/server-info-dialog/server-info-dialog.component';
+import { ServerProfileDialogComponent } from '../../shared/components/server-profile-dialog/server-profile-dialog.component';
 import { SettingsDialogComponent } from '../../shared/components/settings-dialog/settings-dialog.component';
 import { HeaderComponent } from '../header/header.component';
 import { SidebarComponent } from '../sidebar/sidebar.component';
@@ -31,6 +32,7 @@ import { TabNavComponent } from '../tab-nav/tab-nav.component';
     SidebarComponent,
     AboutDialogComponent,
     ServerInfoDialogComponent,
+    ServerProfileDialogComponent,
     SettingsDialogComponent,
     CertificateManagerDialogComponent
   ],
@@ -43,6 +45,7 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   @ViewChild(AboutDialogComponent) aboutDialog!: AboutDialogComponent;
   @ViewChild(ServerInfoDialogComponent) serverInfoDialog!: ServerInfoDialogComponent;
+  @ViewChild(ServerProfileDialogComponent) serverProfileDialog!: ServerProfileDialogComponent;
   @ViewChild(SettingsDialogComponent) settingsDialog!: SettingsDialogComponent;
   @ViewChild(CertificateManagerDialogComponent) certificateManagerDialog!: CertificateManagerDialogComponent;
 
@@ -61,6 +64,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private showCertificateManagerCallback = () => {
     this.certificateManagerDialog?.open();
+  };
+
+  private showServerAccountsCallback = () => {
+    this.serverProfileDialog?.openAdd();
   };
 
   private handleFileOpen = async () => {
@@ -131,6 +138,7 @@ return;
       window.electronAPI.on('show-server-info', this.showServerInfoCallback);
       window.electronAPI.on('show-settings', this.showSettingsCallback);
       window.electronAPI.on('show-certificate-manager', this.showCertificateManagerCallback);
+      window.electronAPI.on('show-server-accounts', this.showServerAccountsCallback);
       window.electronAPI.on('file-open', this.handleFileOpen);
       window.electronAPI.on('file-save', this.handleFileSave);
     }
@@ -143,6 +151,7 @@ return;
       window.electronAPI.off('show-server-info', this.showServerInfoCallback);
       window.electronAPI.off('show-settings', this.showSettingsCallback);
       window.electronAPI.off('show-certificate-manager', this.showCertificateManagerCallback);
+      window.electronAPI.off('show-server-accounts', this.showServerAccountsCallback);
       window.electronAPI.off('file-open', this.handleFileOpen);
       window.electronAPI.off('file-save', this.handleFileSave);
     }

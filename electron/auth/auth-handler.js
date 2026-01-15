@@ -303,15 +303,19 @@ function registerAuthHandlers() {
   /**
    * OAuth2 login with custom token endpoint (for server profiles)
    */
-  ipcMain.handle('auth:oauth2Login', async (event, tokenEndpoint, clientId, clientSecret) => {
+  ipcMain.handle('auth:oauth2Login', async (event, tokenEndpoint, clientId, clientSecret, scope) => {
     try {
-      console.log(`[AuthHandler] OAuth2 login to: ${tokenEndpoint}`);
+      console.log(`[AuthHandler] OAuth2 login to: ${tokenEndpoint}${scope ? ` with scope: ${scope}` : ''}`);
 
       const params = new URLSearchParams({
         grant_type: 'client_credentials',
         client_id: clientId,
         client_secret: clientSecret
       });
+
+      if (scope) {
+        params.append('scope', scope);
+      }
 
       const response = await axios.post(tokenEndpoint, params.toString(), {
         headers: {

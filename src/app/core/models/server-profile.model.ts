@@ -11,6 +11,7 @@ export interface AuthConfig {
   clientId?: string;
   clientSecret?: string;
   tokenEndpoint?: string;
+  scope?: string;
   // Basic auth
   username?: string;
   password?: string;
