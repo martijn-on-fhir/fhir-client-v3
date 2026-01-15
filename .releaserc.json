@@ -42,16 +42,7 @@
     [
       "@semantic-release/github",
       {
-        "assets": [
-          {
-            "path": "release/*.zip",
-            "label": "Windows Portable (ZIP)"
-          },
-          {
-            "path": "release/*.exe",
-            "label": "Windows Portable (EXE)"
-          }
-        ]
+        "assets": []
       }
     ],
     [
