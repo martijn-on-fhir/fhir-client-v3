@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.18.0...v1.18.1) (2026-01-15)
+
+
+### Bug Fixes
+
+* generated query box now respects dark mode ([94cbc7a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/94cbc7a5193c66c2379cb3bb0dca6e55c26641d7))
+
 # [1.18.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.17.0...v1.18.0) (2026-01-15)
 
 
