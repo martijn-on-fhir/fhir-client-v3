@@ -38,7 +38,7 @@
 .modal-header {
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--bs-border-color);
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -75,7 +75,7 @@
 .modal-footer {
   padding: 0.5rem 1rem;
   border-top: 1px solid var(--bs-border-color);
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
   display: flex;
   gap: 0.5rem;
   justify-content: flex-end;
@@ -104,7 +104,7 @@
 .panel .panel-header {
   padding: 0.5rem 1rem;
   border-bottom: 1px solid var(--bs-border-color);
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -132,7 +132,7 @@
 
 .properties-panel {
   border-right: 1px solid var(--bs-border-color);
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
 }
 .properties-panel .panel-body {
   padding: 1rem;
@@ -173,8 +173,8 @@
   padding: 0.75rem 1rem;
 }
 .properties-panel .accordion .accordion-button:not(.collapsed) {
-  background-color: #cfe2ff;
-  color: #084298;
+  background-color: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary-text-emphasis);
 }
 .properties-panel .accordion .accordion-button:focus {
   box-shadow: none;
@@ -197,7 +197,7 @@
 
 .validation-panel {
   border-left: 1px solid var(--bs-border-color);
-  background-color: #f8f9fa;
+  background-color: var(--bs-tertiary-bg);
 }
 .validation-panel .validation-results .issue-section {
   margin-bottom: 1.5rem;
