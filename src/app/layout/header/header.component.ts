@@ -102,7 +102,7 @@ export class HeaderComponent {
    * Logout
    */
   async logout(): Promise<void> {
-    await this.authService.logout().toPromise();
+    await this.profileService.logout();
     this.router.navigate(['/login']);
   }
 

@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { APP_TABS } from '../../../core/models/tab.model';
 import { ServerProfile } from '../../../core/models/server-profile.model';
 import { AuthService } from '../../../core/services/auth.service';
@@ -34,6 +35,7 @@ export class SettingsDialogComponent implements OnInit {
   private themeService = inject(ThemeService);
   private toastService = inject(ToastService);
   private loggerService = inject(LoggerService);
+  private router = inject(Router);
   private logger = this.loggerService.component('SettingsDialogComponent');
 
   @ViewChild(ServerProfileDialogComponent) profileDialog!: ServerProfileDialogComponent;
@@ -361,7 +363,8 @@ export class SettingsDialogComponent implements OnInit {
       return;
     }
 
-    await this.authService.logout().toPromise();
+    await this.profileService.logout();
     this.close();
+    this.router.navigate(['/login']);
   }
 }

@@ -649,4 +649,17 @@ return {};
     await this.saveSessions();
     localStorage.removeItem('fhir_active_profile_id');
   }
+
+  /**
+   * Logout from current active profile
+   * Clears the session and deactivates the profile
+   */
+  async logout(): Promise<void> {
+    const activeId = this._activeProfileId();
+    if (activeId) {
+      await this.clearSession(activeId);
+    }
+    await this.setActiveProfileId(null);
+    this.logger.info('Logged out successfully');
+  }
 }
