@@ -38,8 +38,6 @@ export interface ServerProfile {
   mtlsCertificateId?: string;
   /** Color for visual indicator (hex color) */
   color?: string;
-  /** Auto-select this profile on app start */
-  isDefault?: boolean;
   /** Last used timestamp in milliseconds */
   lastUsed?: number;
   /** Custom headers to include in every FHIR request */
@@ -81,5 +79,4 @@ export const PROFILE_COLORS = [
 export const DEFAULT_PROFILE: Partial<ServerProfile> = {
   authType: 'none',
   color: PROFILE_COLORS[2], // Cyan/Development
-  isDefault: false,
 };

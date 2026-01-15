@@ -28,7 +28,6 @@ interface ProfileFormData {
   fhirServerUrl: string;
   authType: AuthType;
   color: string;
-  isDefault: boolean;
   // OAuth2 fields
   clientId: string;
   clientSecret: string;
@@ -400,7 +399,6 @@ return;
       fhirServerUrl: '',
       authType: 'none',
       color: DEFAULT_PROFILE.color || PROFILE_COLORS[2],
-      isDefault: false,
       clientId: '',
       clientSecret: '',
       tokenEndpoint: '',
@@ -427,7 +425,6 @@ return;
       fhirServerUrl: profile.fhirServerUrl,
       authType: profile.authType,
       color: profile.color || PROFILE_COLORS[2],
-      isDefault: profile.isDefault || false,
       clientId: profile.authConfig?.clientId || '',
       clientSecret: profile.authConfig?.clientSecret || '',
       tokenEndpoint: profile.authConfig?.tokenEndpoint || '',
@@ -477,7 +474,6 @@ return;
       fhirServerUrl: form.fhirServerUrl.trim().replace(/\/$/, ''),
       authType: form.authType,
       color: form.color,
-      isDefault: form.isDefault,
       authConfig: Object.keys(authConfig).length > 0 ? authConfig : undefined,
       mtlsCertificateId: form.authType === 'mtls' ? form.mtlsCertificateId : undefined,
       customHeaders: Object.keys(customHeaders).length > 0 ? customHeaders : undefined

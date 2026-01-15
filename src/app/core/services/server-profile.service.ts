@@ -50,14 +50,7 @@ return false;
   });
 
   readonly sortedProfiles = computed(() => [...this._profiles()].sort((a, b) => {
-      // Default profile first
-      if (a.isDefault && !b.isDefault) {
-return -1;
-}
-      if (!a.isDefault && b.isDefault) {
-return 1;
-}
-      // Then by lastUsed
+      // Sort by lastUsed (most recent first)
       return (b.lastUsed ?? 0) - (a.lastUsed ?? 0);
     }));
 
@@ -81,8 +74,7 @@ return 1;
 
       // Auto-select first profile if none is active
       if (!this._activeProfileId() && this._profiles().length > 0) {
-        const defaultProfile = this.getDefaultProfile();
-        const firstProfile = defaultProfile || this._profiles()[0];
+        const firstProfile = this._profiles()[0];
         if (firstProfile) {
           await this.switchToProfile(firstProfile.id);
         }
@@ -129,7 +121,6 @@ return 1;
             tokenEndpoint: envConfig?.tokenEndpoint || ''
           },
           color: PROFILE_COLORS[index % PROFILE_COLORS.length],
-          isDefault: account.autoLogin || false,
           lastUsed: account.lastUsed
         };
       });
@@ -625,26 +616,6 @@ return {};
   }
 
   // ==================== Utilities ====================
-
-  /**
-   * Get the default profile (if any)
-   */
-  getDefaultProfile(): ServerProfile | undefined {
-    return this._profiles().find(p => p.isDefault);
-  }
-
-  /**
-   * Set a profile as default (clears default from others)
-   */
-  async setDefaultProfile(profileId: string): Promise<void> {
-    this._profiles.update(profiles =>
-      profiles.map(p => ({
-        ...p,
-        isDefault: p.id === profileId
-      }))
-    );
-    await this.saveProfiles();
-  }
 
   /**
    * Clear all profiles and sessions (for logout/reset)

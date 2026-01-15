@@ -88,12 +88,7 @@
 
                   <!-- Profile info -->
                   <div class="profile-info">
-                    <div class="profile-name">
-                      {{ profile.name }}
-                      @if (profile.isDefault) {
-                        <i class="fas fa-star default-badge" title="Standaard server"></i>
-                      }
-                    </div>
+                    <div class="profile-name">{{ profile.name }}</div>
                     <div class="profile-url">{{ profile.fhirServerUrl }}</div>
                   </div>
 

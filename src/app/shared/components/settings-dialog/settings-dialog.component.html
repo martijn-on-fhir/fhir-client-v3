@@ -76,7 +76,7 @@
                 </div>
               } @else {
                 @for (profile of profiles(); track profile.id) {
-                  <div class="profile-card" [class.active]="activeProfileId() === profile.id">
+                  <div class="profile-card border-1" [class.active]="activeProfileId() === profile.id">
                     <!-- Color & Status -->
                     <span class="profile-color" [style.background-color]="profile.color"></span>
 
@@ -85,9 +85,6 @@
                       <div class="profile-header">
                         <h4>
                           {{ profile.name }}
-                          @if (profile.isDefault) {
-                            <i class="fas fa-star default-badge" title="Standaard server"></i>
-                          }
                           @if (activeProfileId() === profile.id) {
                             <span class="active-badge">Actief</span>
                           }
@@ -107,25 +104,16 @@
 
                     <!-- Actions -->
                     <div class="profile-actions">
-                      @if (!profile.isDefault) {
-                        <button
-                          type="button"
-                          class="btn btn-sm btn-icon btn-outline-secondary"
-                          (click)="setDefaultProfile(profile)"
-                          title="Instellen als standaard">
-                          <i class="fas fa-star"></i>
-                        </button>
-                      }
                       <button
                         type="button"
-                        class="btn btn-sm btn-icon btn-outline-primary"
+                        class="btn btn-sm btn-icon btn-primary"
                         (click)="openEditProfile(profile)"
                         title="Bewerken">
                         <i class="fas fa-edit"></i>
                       </button>
                       <button
                         type="button"
-                        class="btn btn-sm btn-icon btn-outline-danger"
+                        class="btn btn-sm btn-icon btn-danger"
                         (click)="deleteProfile(profile)"
                         title="Verwijderen">
                         <i class="fas fa-trash"></i>

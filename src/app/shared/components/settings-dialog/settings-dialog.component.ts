@@ -144,18 +144,6 @@ export class SettingsDialogComponent implements OnInit {
   }
 
   /**
-   * Set profile as default
-   */
-  async setDefaultProfile(profile: ServerProfile) {
-    try {
-      await this.profileService.setDefaultProfile(profile.id);
-      this.toastService.success(`"${profile.name}" ingesteld als standaard`);
-    } catch (error) {
-      this.logger.error('Failed to set default profile:', error);
-    }
-  }
-
-  /**
    * Get auth type label
    */
   getAuthTypeLabel(authType: string): string {

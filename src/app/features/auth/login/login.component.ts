@@ -61,16 +61,8 @@ export class LoginComponent implements OnInit {
     const profiles = this.profiles();
 
     if (profiles.length > 0) {
-      // Check for auto-login with default profile
-      const defaultProfile = profiles.find(p => p.isDefault);
-
-      if (defaultProfile) {
-        this.selectedProfileId.set(defaultProfile.id);
-        await this.performAutoLogin(defaultProfile);
-      } else {
-        // Select first profile
-        this.selectedProfileId.set(profiles[0].id);
-      }
+      // Select first profile
+      this.selectedProfileId.set(profiles[0].id);
     }
   }
 
