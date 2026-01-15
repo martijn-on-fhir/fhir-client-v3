@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
-import { ServerProfile, PROFILE_COLORS } from '../../../core/models/server-profile.model';
+import { ServerProfile } from '../../../core/models/server-profile.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { ServerProfileService } from '../../../core/services/server-profile.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -51,6 +51,7 @@ export class LoginComponent implements OnInit {
    */
   get selectedProfile(): ServerProfile | null {
     const id = this.selectedProfileId();
+
     return id ? this.profiles().find(p => p.id === id) ?? null : null;
   }
 
@@ -97,6 +98,7 @@ export class LoginComponent implements OnInit {
 
     if (!profile) {
       this.toastService.warning('Selecteer eerst een server profiel');
+
       return;
     }
 
@@ -105,6 +107,7 @@ export class LoginComponent implements OnInit {
 
     if (twoFactorEnabled) {
       this.show2FAVerification.set(true);
+
       return;
     }
 
@@ -119,10 +122,12 @@ export class LoginComponent implements OnInit {
 
     if (!isValid) {
       this.toastService.error('Ongeldige verificatiecode');
+
       return;
     }
 
     const profile = this.selectedProfile;
+
     if (profile) {
       await this.performLogin(profile);
     }

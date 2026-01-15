@@ -49,10 +49,10 @@ return false;
     return session?.isActive ?? false;
   });
 
-  readonly sortedProfiles = computed(() => [...this._profiles()].sort((a, b) => {
+  readonly sortedProfiles = computed(() => [...this._profiles()].sort((a, b) => 
       // Sort by lastUsed (most recent first)
-      return (b.lastUsed ?? 0) - (a.lastUsed ?? 0);
-    }));
+       (b.lastUsed ?? 0) - (a.lastUsed ?? 0)
+    ));
 
   constructor() {
     this.initialize();

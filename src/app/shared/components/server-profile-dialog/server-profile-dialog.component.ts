@@ -455,6 +455,7 @@ return;
         authConfig.clientId = form.clientId;
         authConfig.clientSecret = form.clientSecret;
         authConfig.tokenEndpoint = form.tokenEndpoint;
+
         if (form.scope) {
           authConfig.scope = form.scope;
         }

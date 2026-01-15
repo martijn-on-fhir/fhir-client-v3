@@ -2,8 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { APP_TABS } from '../../../core/models/tab.model';
 import { ServerProfile } from '../../../core/models/server-profile.model';
+import { APP_TABS } from '../../../core/models/tab.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { LoggerService } from '../../../core/services/logger.service';
 import { ServerProfileService } from '../../../core/services/server-profile.service';
@@ -326,7 +326,9 @@ export class SettingsDialogComponent implements OnInit {
    * Format last used date
    */
   formatLastUsed(timestamp: number | undefined): string {
-    if (!timestamp) return 'Nooit';
+    if (!timestamp) {
+return 'Nooit';
+}
 
     const now = Date.now();
     const diff = now - timestamp;
@@ -335,10 +337,21 @@ export class SettingsDialogComponent implements OnInit {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) return 'Zojuist';
-    if (minutes < 60) return `${minutes}m geleden`;
-    if (hours < 24) return `${hours}u geleden`;
-    if (days < 7) return `${days}d geleden`;
+    if (minutes < 1) {
+return 'Zojuist';
+}
+
+    if (minutes < 60) {
+return `${minutes}m geleden`;
+}
+
+    if (hours < 24) {
+return `${hours}u geleden`;
+}
+
+    if (days < 7) {
+return `${days}d geleden`;
+}
 
     return new Date(timestamp).toLocaleDateString();
   }

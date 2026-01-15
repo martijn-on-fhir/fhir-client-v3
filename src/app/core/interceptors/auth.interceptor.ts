@@ -1,8 +1,8 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { from, switchMap, catchError, throwError } from 'rxjs';
-import { ServerProfileService } from '../services/server-profile.service';
 import { LoggerService } from '../services/logger.service';
+import { ServerProfileService } from '../services/server-profile.service';
 
 /**
  * Authentication HTTP Interceptor

@@ -514,6 +514,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (this.textModeEditor() !== textEditor) {
       this.textModeEditor.set(textEditor);
     }
+
     if (this.visualModeEditor() !== visualEditor) {
       this.visualModeEditor.set(visualEditor);
     }
