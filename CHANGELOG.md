@@ -1,3 +1,23 @@
+# [1.18.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.17.0...v1.18.0) (2026-01-15)
+
+
+### Bug Fixes
+
+* logout now clears session and redirects to login ([f8ac3e0](https://github.com/martijn-on-fhir/fhir-client-v3/commit/f8ac3e00080ffc20a219384321e32961274363d6))
+* resolve ExpressionChangedAfterItHasBeenCheckedError in QueryComponent ([164d82a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/164d82ac484acea8dc78fa6869a39c333d52e067))
+* resource editor dialog now respects dark mode ([f4d9a79](https://github.com/martijn-on-fhir/fhir-client-v3/commit/f4d9a797c4eb656cc67b827dcae06c904ee0e235)), closes [#f8f9fa](https://github.com/martijn-on-fhir/fhir-client-v3/issues/f8f9fa)
+* server selector dropdown now respects dark mode ([6ddfdf0](https://github.com/martijn-on-fhir/fhir-client-v3/commit/6ddfdf0474a1db644842b7b2c7776f55423b49b7))
+
+
+### Features
+
+* add custom headers per server profile ([a4f6a9d](https://github.com/martijn-on-fhir/fhir-client-v3/commit/a4f6a9d8f159f0c1cccf75bf3814a3591d7bea3e))
+* add portable Windows build configuration ([7f843cb](https://github.com/martijn-on-fhir/fhir-client-v3/commit/7f843cb7ace1051abff5f6dc8359937ff0ed1df3))
+* add profile editing, menu access, and OAuth2 scope support ([346eb8a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/346eb8a3075c1a0e5af0c0f672d6ddc45004f059))
+* complete multi-server profile feature ([20e6587](https://github.com/martijn-on-fhir/fhir-client-v3/commit/20e658730269e03f1b61b96d046d71ccb137fcfe))
+* **wip:** multi-server profile infrastructure ([d621d9b](https://github.com/martijn-on-fhir/fhir-client-v3/commit/d621d9bf130898ed93085891a8d5294e856390e8))
+* rewrite login and settings to use ServerProfiles ([f1bf8d8](https://github.com/martijn-on-fhir/fhir-client-v3/commit/f1bf8d852b89e200b11420a8c031267c27f29cc6))
+
 # [1.17.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.16.1...v1.17.0) (2026-01-14)
 
 
