@@ -1,44 +1,56 @@
 import { HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { from, switchMap, catchError, throwError } from 'rxjs';
-import { AuthService } from '../services/auth.service';
+import { ServerProfileService } from '../services/server-profile.service';
 import { LoggerService } from '../services/logger.service';
 
 /**
  * Authentication HTTP Interceptor
  *
- * Automatically adds Bearer token to all HTTP requests
- * Validates and refreshes token before each request
+ * Automatically adds authentication headers to all FHIR requests
+ * Based on the active server profile's auth configuration
  */
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  const authService = inject(AuthService);
+  const profileService = inject(ServerProfileService);
   const loggerService = inject(LoggerService);
   const logger = loggerService.component('AuthInterceptor');
 
-  // Skip auth for login requests (token endpoint)
-  if (req.url.includes('/protocol/openid-connect/token')) {
+  // Skip auth for token endpoint requests
+  if (req.url.includes('/protocol/openid-connect/token') ||
+      req.url.includes('/oauth/token') ||
+      req.url.includes('/oauth2/token')) {
     return next(req);
   }
 
-  // Skip auth if not authenticated
-  if (!authService.isAuthenticated()) {
+  // Get active profile
+  const activeId = profileService.activeProfileId();
+
+  // Skip auth if no active profile
+  if (!activeId) {
     return next(req);
   }
 
-  // Validate and refresh token if needed, then add to request
-  return from(authService.validateAndRefreshToken()).pipe(
-    switchMap(token => {
-      if (!token) {
-        logger.warn('No valid token available');
-        return next(req);
+  // Get auth headers for the active profile
+  return from(profileService.getActiveAuthHeaders()).pipe(
+    switchMap(authHeaders => {
+      // If no auth headers needed, proceed without modification
+      if (Object.keys(authHeaders).length === 0) {
+        // Still add FHIR content type headers
+        const fhirReq = req.clone({
+          setHeaders: {
+            'Content-Type': req.headers.get('Content-Type') || 'application/fhir+json',
+            'Accept': 'application/fhir+json'
+          }
+        });
+        return next(fhirReq);
       }
 
-      // Clone request and add Authorization header
+      // Clone request and add auth headers
       const authReq = req.clone({
         setHeaders: {
-          Authorization: `Bearer ${token}`,
+          ...authHeaders,
           'Content-Type': req.headers.get('Content-Type') || 'application/fhir+json',
-          Accept: 'application/fhir+json'
+          'Accept': 'application/fhir+json'
         }
       });
 

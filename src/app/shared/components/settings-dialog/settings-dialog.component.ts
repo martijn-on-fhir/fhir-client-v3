@@ -1,19 +1,21 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, computed, inject } from '@angular/core';
+import { Component, OnInit, signal, computed, inject, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Environment, getAvailableEnvironments } from '../../../core/config/environments';
-import { SavedAccount } from '../../../core/models/auth.model';
 import { APP_TABS } from '../../../core/models/tab.model';
+import { ServerProfile } from '../../../core/models/server-profile.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { LoggerService } from '../../../core/services/logger.service';
+import { ServerProfileService } from '../../../core/services/server-profile.service';
 import { SettingsService } from '../../../core/services/settings.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { ToastService } from '../../../core/services/toast.service';
+import { ServerProfileDialogComponent } from '../server-profile-dialog/server-profile-dialog.component';
 
 /**
  * Settings Dialog Component
  *
  * Comprehensive settings management with sections for:
- * - Account Management (Saved FHIR credentials)
+ * - Server Profiles Management
  * - Two-Factor Authentication
  * - UI Preferences
  * - Server Information
@@ -21,31 +23,29 @@ import { ThemeService } from '../../../core/services/theme.service';
 @Component({
   selector: 'app-settings-dialog',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ServerProfileDialogComponent],
   templateUrl: './settings-dialog.component.html',
   styleUrls: ['./settings-dialog.component.scss']
 })
 export class SettingsDialogComponent implements OnInit {
   private authService = inject(AuthService);
+  private profileService = inject(ServerProfileService);
   private settingsService = inject(SettingsService);
   private themeService = inject(ThemeService);
+  private toastService = inject(ToastService);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('SettingsDialogComponent');
 
+  @ViewChild(ServerProfileDialogComponent) profileDialog!: ServerProfileDialogComponent;
+
   // Dialog state
   isOpen = signal(false);
-  activeTab = signal<'accounts' | '2fa' | 'ui' | 'server'>('accounts');
+  activeTab = signal<'servers' | '2fa' | 'ui' | 'server'>('servers');
 
-  // Account Management
-  savedAccounts = signal<SavedAccount[]>([]);
-  editingAccount = signal<SavedAccount | null>(null);
-  isAddingAccount = signal(false);
-  accountForm = signal({
-    name: '',
-    clientId: '',
-    environment: 'development' as Environment,
-    fhirUrl: ''
-  });
+  // Server Profiles
+  readonly profiles = this.profileService.sortedProfiles;
+  readonly activeProfile = this.profileService.activeProfile;
+  readonly activeProfileId = this.profileService.activeProfileId;
 
   // 2FA
   twoFactorEnabled = signal(false);
@@ -63,13 +63,6 @@ export class SettingsDialogComponent implements OnInit {
   // Available tabs
   availableTabs = APP_TABS;
 
-  // Server Info
-  readonly currentEnvironment = computed(() => this.authService.environment());
-  readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
-
-  // Available environments
-  availableEnvironments = getAvailableEnvironments();
-
   // Loading states
   loading = signal(false);
 
@@ -81,9 +74,6 @@ export class SettingsDialogComponent implements OnInit {
    * Load initial data
    */
   async loadData() {
-    const accounts = await this.authService.getSavedAccounts();
-    this.savedAccounts.set(accounts.sort((a, b) => b.lastUsed - a.lastUsed));
-
     const twoFactorEnabled = await this.authService.isTwoFactorEnabled();
     this.twoFactorEnabled.set(twoFactorEnabled);
   }
@@ -107,126 +97,88 @@ export class SettingsDialogComponent implements OnInit {
   /**
    * Switch tab
    */
-  switchTab(tab: 'accounts' | '2fa' | 'ui' | 'server') {
+  switchTab(tab: 'servers' | '2fa' | 'ui' | 'server') {
     this.activeTab.set(tab);
     this.resetForms();
   }
 
   // =============================================================================
-  // Account Management
+  // Server Profile Management
   // =============================================================================
 
   /**
-   * Start adding new account
+   * Open add profile dialog
    */
-  startAddAccount() {
-    this.isAddingAccount.set(true);
-    this.editingAccount.set(null);
-    this.accountForm.set({
-      name: '',
-      clientId: '',
-      environment: 'development',
-      fhirUrl: ''
-    });
+  openAddProfile() {
+    this.profileDialog.openAdd();
   }
 
   /**
-   * Start editing account
+   * Open edit profile dialog
    */
-  startEditAccount(account: SavedAccount) {
-    this.isAddingAccount.set(false);
-    this.editingAccount.set(account);
-    this.accountForm.set({
-      name: account.name,
-      clientId: account.clientId,
-      environment: account.environment,
-      fhirUrl: account.fhirUrl || ''
-    });
+  openEditProfile(profile: ServerProfile) {
+    this.profileDialog.openEdit(profile);
   }
 
   /**
-   * Save account (add or update)
+   * Delete profile
    */
-  async saveAccount() {
-    const form = this.accountForm();
-
-    if (!form.name || !form.clientId) {
+  async deleteProfile(profile: ServerProfile) {
+    if (!confirm(`Server "${profile.name}" verwijderen?`)) {
       return;
     }
 
     this.loading.set(true);
 
     try {
-      if (this.editingAccount()) {
-        // Update existing account
-        const updated: SavedAccount = {
-          ...this.editingAccount()!,
-          name: form.name,
-          clientId: form.clientId,
-          environment: form.environment,
-          fhirUrl: form.fhirUrl || undefined,
-          lastUsed: Date.now()
-        };
-
-        // Remove old and add updated
-        await this.authService.removeSavedAccount(updated.id);
-        await this.authService.saveAccount({
-          name: updated.name,
-          clientId: updated.clientId,
-          environment: updated.environment,
-          fhirUrl: updated.fhirUrl
-        });
-      } else {
-        // Add new account
-        await this.authService.saveAccount({
-          name: form.name,
-          clientId: form.clientId,
-          environment: form.environment,
-          fhirUrl: form.fhirUrl || undefined
-        });
-      }
-
-      await this.loadData();
-      this.cancelAccountEdit();
+      await this.profileService.deleteProfile(profile.id);
+      this.toastService.success(`Server "${profile.name}" verwijderd`);
     } catch (error) {
-      this.logger.error('Failed to save account:', error);
+      this.logger.error('Failed to delete profile:', error);
+      this.toastService.error('Verwijderen mislukt');
     } finally {
       this.loading.set(false);
     }
   }
 
   /**
-   * Delete account
+   * Set profile as default
    */
-  async deleteAccount(accountId: string) {
-    if (!confirm('Are you sure you want to delete this account?')) {
-      return;
-    }
-
-    this.loading.set(true);
-
+  async setDefaultProfile(profile: ServerProfile) {
     try {
-      await this.authService.removeSavedAccount(accountId);
-      await this.loadData();
+      await this.profileService.setDefaultProfile(profile.id);
+      this.toastService.success(`"${profile.name}" ingesteld als standaard`);
     } catch (error) {
-      this.logger.error('Failed to delete account:', error);
-    } finally {
-      this.loading.set(false);
+      this.logger.error('Failed to set default profile:', error);
     }
   }
 
   /**
-   * Cancel account edit
+   * Get auth type label
    */
-  cancelAccountEdit() {
-    this.isAddingAccount.set(false);
-    this.editingAccount.set(null);
-    this.accountForm.set({
-      name: '',
-      clientId: '',
-      environment: 'development',
-      fhirUrl: ''
-    });
+  getAuthTypeLabel(authType: string): string {
+    switch (authType) {
+      case 'none': return 'Open';
+      case 'basic': return 'Basic';
+      case 'bearer': return 'Token';
+      case 'oauth2': return 'OAuth2';
+      case 'mtls': return 'mTLS';
+      default: return authType;
+    }
+  }
+
+  /**
+   * Get auth type icon
+   */
+  getAuthTypeIcon(authType: string): string {
+    switch (authType) {
+      case 'none': return 'fa-unlock';
+      case 'basic': return 'fa-user-lock';
+      case 'bearer': return 'fa-key';
+      case 'oauth2': return 'fa-shield-alt';
+      case 'mtls': return 'fa-certificate';
+      default: return 'fa-server';
+    }
   }
 
   // =============================================================================
@@ -285,7 +237,7 @@ export class SettingsDialogComponent implements OnInit {
    * Disable 2FA
    */
   async disable2FA() {
-    if (!confirm('Are you sure you want to disable two-factor authentication?')) {
+    if (!confirm('Weet je zeker dat je twee-factor authenticatie wilt uitschakelen?')) {
       return;
     }
 
@@ -319,7 +271,7 @@ export class SettingsDialogComponent implements OnInit {
   async copy2FASecret() {
     try {
       await navigator.clipboard.writeText(this.twoFactorSecret());
-      alert('Secret copied to clipboard!');
+      this.toastService.success('Secret gekopieerd naar klembord');
     } catch (error) {
       this.logger.error('Failed to copy secret:', error);
     }
@@ -361,11 +313,12 @@ export class SettingsDialogComponent implements OnInit {
    * Reset settings to defaults
    */
   resetSettings() {
-    if (!confirm('Reset all UI settings to defaults?')) {
+    if (!confirm('Alle UI instellingen terugzetten naar standaard?')) {
       return;
     }
 
     this.settingsService.resetSettings();
+    this.toastService.success('Instellingen gereset');
   }
 
   // =============================================================================
@@ -376,15 +329,15 @@ export class SettingsDialogComponent implements OnInit {
    * Reset all forms
    */
   private resetForms() {
-    this.cancelAccountEdit();
     this.cancel2FASetup();
   }
 
   /**
    * Format last used date
    */
-  formatLastUsed(timestamp: number): string {
-    const date = new Date(timestamp);
+  formatLastUsed(timestamp: number | undefined): string {
+    if (!timestamp) return 'Nooit';
+
     const now = Date.now();
     const diff = now - timestamp;
 
@@ -392,30 +345,19 @@ export class SettingsDialogComponent implements OnInit {
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
 
-    if (minutes < 1) {
-return 'Just now';
-}
+    if (minutes < 1) return 'Zojuist';
+    if (minutes < 60) return `${minutes}m geleden`;
+    if (hours < 24) return `${hours}u geleden`;
+    if (days < 7) return `${days}d geleden`;
 
-    if (minutes < 60) {
-return `${minutes}m ago`;
-}
-
-    if (hours < 24) {
-return `${hours}h ago`;
-}
-
-    if (days < 7) {
-return `${days}d ago`;
-}
-
-    return date.toLocaleDateString();
+    return new Date(timestamp).toLocaleDateString();
   }
 
   /**
    * Logout
    */
   async logout() {
-    if (!confirm('Are you sure you want to logout?')) {
+    if (!confirm('Weet je zeker dat je wilt uitloggen?')) {
       return;
     }
 

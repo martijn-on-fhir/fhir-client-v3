@@ -1,21 +1,22 @@
 import { inject } from '@angular/core';
 import { Router, CanActivateFn } from '@angular/router';
-import { AuthService } from '../services/auth.service';
+import { ServerProfileService } from '../services/server-profile.service';
 
 /**
  * Authentication Guard
  *
  * Protects routes that require authentication
  * Redirects to login if user is not authenticated
+ * Uses ServerProfileService to check for active profile with valid session
  */
 export const authGuard: CanActivateFn = async (route, state) => {
-  const authService = inject(AuthService);
+  const profileService = inject(ServerProfileService);
   const router = inject(Router);
 
-  const isAuthenticated = authService.isAuthenticated();
+  const activeId = profileService.activeProfileId();
+  const isAuthenticated = activeId !== null && profileService.hasValidSession(activeId);
 
   if (!isAuthenticated) {
-    // Store the attempted URL for redirecting after login
     router.navigate(['/login'], {
       queryParams: { returnUrl: state.url }
     });
@@ -32,13 +33,14 @@ export const authGuard: CanActivateFn = async (route, state) => {
  * Redirects to home if already authenticated
  */
 export const loginGuard: CanActivateFn = async () => {
-  const authService = inject(AuthService);
+  const profileService = inject(ServerProfileService);
   const router = inject(Router);
 
-  const isAuthenticated = authService.isAuthenticated();
+  const activeId = profileService.activeProfileId();
+  const isAuthenticated = activeId !== null && profileService.hasValidSession(activeId);
 
   if (isAuthenticated) {
-    router.navigate(['/app/profiles']);
+    router.navigate(['/app/query']);
     return false;
   }
 

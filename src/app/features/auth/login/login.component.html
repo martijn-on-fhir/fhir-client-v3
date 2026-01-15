@@ -11,8 +11,8 @@
       <div class="verification-screen">
         <div class="verification-header">
           <i class="fas fa-shield-alt verification-icon"></i>
-          <h2>Two-Factor Authentication</h2>
-          <p>Enter the 6-digit code from your authenticator app</p>
+          <h2>Twee-Factor Authenticatie</h2>
+          <p>Voer de 6-cijferige code van je authenticator app in</p>
         </div>
 
         <form (ngSubmit)="onVerify2FA()">
@@ -34,173 +34,114 @@
 
           <div class="button-group">
             <button type="button" class="btn btn-secondary" (click)="cancel2FA()" [disabled]="loading()">
-              <i class="fas fa-arrow-left"></i> Back
+              <i class="fas fa-arrow-left"></i> Terug
             </button>
             <button type="submit" class="btn btn-primary" [disabled]="loading() || twoFactorCode().length !== 6">
               @if (loading()) {
                 <span class="spinner-border spinner-border-sm"></span>
-                Verifying...
+                Verifiëren...
               } @else {
-                <i class="fas fa-check"></i> Verify
+                <i class="fas fa-check"></i> Verifieer
               }
             </button>
           </div>
         </form>
       </div>
     } @else {
-      <!-- Login Form Layout -->
-      <div class="login-layout">
-        <!-- Left: Login Form -->
-        <div class="login-form">
-          <form (ngSubmit)="onLogin()">
-          <!-- Environment Selection -->
-          <div class="form-group">
-            <label class="form-label" for="environment">
-              <i class="fas fa-server"></i> Environment
-            </label>
-            <select
-              id="environment"
-              class="form-select"
-              [ngModel]="selectedEnvironment()"
-              (ngModelChange)="selectedEnvironment.set($event)"
-              name="environment"
-              required>
-              @for (env of availableEnvironments; track env) {
-                <option [value]="env">{{ env }}</option>
-              }
-            </select>
+      <!-- Server Profiles -->
+      <div class="login-content">
+        @if (!initialized()) {
+          <!-- Loading state -->
+          <div class="loading-state">
+            <i class="fas fa-spinner fa-spin"></i>
+            <span>Laden...</span>
           </div>
-
-          <!-- Client ID -->
-          <div class="form-group">
-            <label class="form-label" for="clientId">
-              <i class="fas fa-id-card"></i> Client ID
-            </label>
-            <input
-              id="clientId"
-              type="text"
-              class="form-control"
-              [ngModel]="clientId()"
-              (ngModelChange)="clientId.set($event)"
-              name="clientId"
-              placeholder="Enter your client ID"
-              autocomplete="username"
-              required
-            />
+        } @else if (profiles().length === 0) {
+          <!-- Empty state -->
+          <div class="empty-state">
+            <i class="fas fa-server empty-icon"></i>
+            <h3>Geen servers geconfigureerd</h3>
+            <p>Voeg een FHIR server toe om te beginnen</p>
+            <button class="btn btn-primary" (click)="openAddProfile()">
+              <i class="fas fa-plus"></i> Server toevoegen
+            </button>
           </div>
-
-          <!-- Client Secret -->
-          <div class="form-group">
-            <label class="form-label" for="clientSecret">
-              <i class="fas fa-key"></i> Client Secret
-            </label>
-            <div class="input-group">
-              <input
-                id="clientSecret"
-                [type]="showPassword() ? 'text' : 'password'"
-                class="form-control"
-                [ngModel]="clientSecret()"
-                (ngModelChange)="clientSecret.set($event)"
-                name="clientSecret"
-                placeholder="Enter your client secret"
-                autocomplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                (click)="togglePasswordVisibility()"
-              >
-                <i class="fas" [class.fa-eye]="!showPassword()" [class.fa-eye-slash]="showPassword()"></i>
+        } @else {
+          <!-- Profile List -->
+          <div class="profile-section">
+            <div class="section-header">
+              <label class="section-title">Selecteer een server</label>
+              <button class="btn btn-sm btn-outline-primary" (click)="openAddProfile()">
+                <i class="fas fa-plus"></i> Toevoegen
               </button>
             </div>
-          </div>
 
-          <!-- Save Account -->
-          <div class="form-group">
-            <div class="form-check">
-              <input
-                id="saveAccount"
-                type="checkbox"
-                class="form-check-input"
-                [ngModel]="rememberMe()"
-                (ngModelChange)="rememberMe.set($event)"
-                name="saveAccount"
-              />
-              <label class="form-check-label" for="saveAccount">
-                Account opslaan
-              </label>
-            </div>
-          </div>
-
-          <!-- Account Name (if Save Account is checked) -->
-          @if (rememberMe()) {
-            <div class="form-group">
-              <label class="form-label" for="accountName">
-                <i class="fas fa-tag"></i> Naam
-              </label>
-              <input
-                id="accountName"
-                type="text"
-                class="form-control"
-                [ngModel]="accountName()"
-                (ngModelChange)="accountName.set($event)"
-                name="accountName"
-                placeholder="Bijv. Development Account"
-                required
-              />
-            </div>
-          }
-
-          <!-- Submit Button -->
-          <button type="submit" class="btn btn-sm btn-primary btn w-100" [disabled]="loading()">
-            @if (loading()) {
-              <span class="spinner-border spinner-border-sm"></span>
-              Authenticating...
-            } @else {
-              <i class="fas fa-sign-in-alt"></i> Login
-            }
-          </button>
-          </form>
-        </div>
-
-        <!-- Right: Saved Accounts -->
-        @if (savedAccounts().length > 0) {
-          <div class="saved-accounts">
-            <label class="form-label">Saved Accounts</label>
-            <div class="account-list">
-              @for (account of savedAccounts(); track account.id) {
+            <div class="profile-list">
+              @for (profile of profiles(); track profile.id) {
                 <div
-                  class="account-item"
-                  [class.active]="selectedAccount()?.id === account.id"
-                  (click)="selectAccount(account)">
-                  <div class="account-info">
-                    <i class="fas fa-user-circle account-avatar"></i>
-                    <div>
-                      <div class="account-name">
-                        {{ account.name }}
-                        @if (account.autoLogin) {
-                          <i class="fas fa-bolt text-warning ms-2" title="Auto-login enabled"></i>
-                        }
-                      </div>
-                      <div class="account-details">
-                        {{ account.clientId }} • {{ account.environment }}
-                      </div>
+                  class="profile-item"
+                  [class.selected]="selectedProfileId() === profile.id"
+                  (click)="selectProfile(profile)">
+
+                  <!-- Color indicator -->
+                  <span class="profile-color" [style.background-color]="profile.color"></span>
+
+                  <!-- Profile info -->
+                  <div class="profile-info">
+                    <div class="profile-name">
+                      {{ profile.name }}
+                      @if (profile.isDefault) {
+                        <i class="fas fa-star default-badge" title="Standaard server"></i>
+                      }
                     </div>
+                    <div class="profile-url">{{ profile.fhirServerUrl }}</div>
                   </div>
-                  <button
-                    type="button"
-                    class="btn-remove"
-                    (click)="removeSavedAccount($event, account.id)"
-                    title="Remove account">
-                    <i class="fas fa-times"></i>
-                  </button>
+
+                  <!-- Auth type badge -->
+                  <div class="auth-badge" [title]="getAuthTypeLabel(profile.authType)">
+                    <i class="fas {{ getAuthTypeIcon(profile.authType) }}"></i>
+                    <span>{{ getAuthTypeLabel(profile.authType) }}</span>
+                  </div>
+
+                  <!-- Actions -->
+                  <div class="profile-actions">
+                    <button
+                      class="btn-action"
+                      (click)="openEditProfile($event, profile)"
+                      title="Bewerken">
+                      <i class="fas fa-pen"></i>
+                    </button>
+                    <button
+                      class="btn-action btn-danger"
+                      (click)="deleteProfile($event, profile)"
+                      title="Verwijderen">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
                 </div>
               }
             </div>
+          </div>
+
+          <!-- Login Button -->
+          <div class="login-actions">
+            <button
+              class="btn btn-primary btn-login"
+              (click)="onLogin()"
+              [disabled]="loading() || !selectedProfileId()">
+              @if (loading()) {
+                <span class="spinner-border spinner-border-sm"></span>
+                Verbinden...
+              } @else {
+                <i class="fas fa-sign-in-alt"></i> Verbinden
+              }
+            </button>
           </div>
         }
       </div>
     }
   </div>
 </div>
+
+<!-- Server Profile Dialog -->
+<app-server-profile-dialog (profileSaved)="onProfileSaved($event)"></app-server-profile-dialog>

@@ -7,7 +7,7 @@
       <!-- Header -->
       <div class="modal-header">
         <h2 class="modal-title">
-          <i class="fas fa-cog"></i> Settings
+          <i class="fas fa-cog"></i> Instellingen
         </h2>
         <button type="button" class="btn-close" (click)="close()">
           <i class="fas fa-times"></i>
@@ -19,10 +19,10 @@
         <button
           type="button"
           class="tab-button"
-          [class.active]="activeTab() === 'accounts'"
-          (click)="switchTab('accounts')"
+          [class.active]="activeTab() === 'servers'"
+          (click)="switchTab('servers')"
         >
-          <i class="fas fa-users"></i> Accounts
+          <i class="fas fa-server"></i> Servers
         </button>
         <button
           type="button"
@@ -30,7 +30,7 @@
           [class.active]="activeTab() === '2fa'"
           (click)="switchTab('2fa')"
         >
-          <i class="fas fa-shield-alt"></i> Two-Factor Auth
+          <i class="fas fa-shield-alt"></i> 2FA
         </button>
         <button
           type="button"
@@ -38,7 +38,7 @@
           [class.active]="activeTab() === 'ui'"
           (click)="switchTab('ui')"
         >
-          <i class="fas fa-palette"></i> UI Preferences
+          <i class="fas fa-palette"></i> Weergave
         </button>
         <button
           type="button"
@@ -46,163 +46,132 @@
           [class.active]="activeTab() === 'server'"
           (click)="switchTab('server')"
         >
-          <i class="fas fa-server"></i> Server Info
+          <i class="fas fa-info-circle"></i> Verbinding
         </button>
       </div>
 
       <!-- Modal Body -->
       <div class="modal-body">
-        <!-- Accounts Tab -->
-        @if (activeTab() === 'accounts') {
+        <!-- Servers Tab -->
+        @if (activeTab() === 'servers') {
           <div class="tab-content">
-            <h3>Saved Accounts</h3>
-            <p class="text-muted">Manage your saved FHIR server credentials</p>
+            <div class="tab-header">
+              <div>
+                <h3>Server Profielen</h3>
+                <p class="text-muted">Beheer je FHIR server verbindingen</p>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" (click)="openAddProfile()">
+                <i class="fas fa-plus"></i> Toevoegen
+              </button>
+            </div>
 
-            @if (!isAddingAccount() && !editingAccount()) {
-              <!-- Account List -->
-              <div class="account-list">
-                @if (savedAccounts().length === 0) {
-                  <div class="empty-state">
-                    <i class="fas fa-users"></i>
-                    <p>No saved accounts yet</p>
-                    <button type="button" class="btn btn-primary" (click)="startAddAccount()">
-                      <i class="fas fa-plus"></i> Add Account
-                    </button>
-                  </div>
-                } @else {
-                  @for (account of savedAccounts(); track account.id) {
-                    <div class="account-card">
-                      <div class="account-info">
-                        <div class="account-header">
-                          <h4>{{ account.name }}</h4>
-                          <span class="badge">{{ account.environment }}</span>
-                        </div>
-                        <div class="account-details">
-                          <span><i class="fas fa-id-card"></i> {{ account.clientId }}</span>
+            <div class="profile-list">
+              @if (profiles().length === 0) {
+                <div class="empty-state">
+                  <i class="fas fa-server"></i>
+                  <p>Nog geen servers geconfigureerd</p>
+                  <button type="button" class="btn btn-primary" (click)="openAddProfile()">
+                    <i class="fas fa-plus"></i> Server toevoegen
+                  </button>
+                </div>
+              } @else {
+                @for (profile of profiles(); track profile.id) {
+                  <div class="profile-card" [class.active]="activeProfileId() === profile.id">
+                    <!-- Color & Status -->
+                    <span class="profile-color" [style.background-color]="profile.color"></span>
 
-                          <span><i class="fas fa-clock"></i> {{ formatLastUsed(account.lastUsed) }}</span>
-                        </div>
+                    <!-- Info -->
+                    <div class="profile-info">
+                      <div class="profile-header">
+                        <h4>
+                          {{ profile.name }}
+                          @if (profile.isDefault) {
+                            <i class="fas fa-star default-badge" title="Standaard server"></i>
+                          }
+                          @if (activeProfileId() === profile.id) {
+                            <span class="active-badge">Actief</span>
+                          }
+                        </h4>
+                        <span class="auth-badge">
+                          <i class="fas {{ getAuthTypeIcon(profile.authType) }}"></i>
+                          {{ getAuthTypeLabel(profile.authType) }}
+                        </span>
                       </div>
-                      <div class="account-actions">
-                        <button type="button" class="btn btn-sm btn-icon btn-outline-primary" (click)="startEditAccount(account)">
-                          <i class="fas fa-edit"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-icon btn-outline-danger" (click)="deleteAccount(account.id)">
-                          <i class="fas fa-trash"></i>
-                        </button>
+                      <div class="profile-details">
+                        <span class="profile-url">{{ profile.fhirServerUrl }}</span>
+                        <span class="profile-meta">
+                          <i class="fas fa-clock"></i> {{ formatLastUsed(profile.lastUsed) }}
+                        </span>
                       </div>
                     </div>
-                  }
 
-                  <button type="button" class="btn btn-primary mt-3" (click)="startAddAccount()">
-                    <i class="fas fa-plus"></i> Add New Account
-                  </button>
+                    <!-- Actions -->
+                    <div class="profile-actions">
+                      @if (!profile.isDefault) {
+                        <button
+                          type="button"
+                          class="btn btn-sm btn-icon btn-outline-secondary"
+                          (click)="setDefaultProfile(profile)"
+                          title="Instellen als standaard">
+                          <i class="fas fa-star"></i>
+                        </button>
+                      }
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-icon btn-outline-primary"
+                        (click)="openEditProfile(profile)"
+                        title="Bewerken">
+                        <i class="fas fa-edit"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn btn-sm btn-icon btn-outline-danger"
+                        (click)="deleteProfile(profile)"
+                        title="Verwijderen">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </div>
+                  </div>
                 }
-              </div>
-            } @else {
-              <!-- Account Form -->
-              <div class="account-form">
-                <h4>{{ editingAccount() ? 'Edit Account' : 'Add New Account' }}</h4>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-tag"></i> Account Name
-                  </label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    [(ngModel)]="accountForm().name"
-                    placeholder="e.g., Development Account"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-server"></i> Environment
-                  </label>
-                  <select class="form-select" [(ngModel)]="accountForm().environment">
-                    @for (env of availableEnvironments; track env) {
-                      <option [value]="env">{{ env }}</option>
-                    }
-                  </select>
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-id-card"></i> Client ID
-                  </label>
-                  <input
-                    type="text"
-                    class="form-control"
-                    [(ngModel)]="accountForm().clientId"
-                    placeholder="Enter client ID"
-                  />
-                </div>
-
-                <div class="form-group">
-                  <label class="form-label">
-                    <i class="fas fa-link"></i> FHIR URL
-                  </label>
-                  <input
-                    type="url"
-                    class="form-control"
-                    [(ngModel)]="accountForm().fhirUrl"
-                    placeholder="https://fhir.example.com/fhir"
-                  />
-                  <small class="form-text text-muted">Optional: Custom FHIR server URL</small>
-                </div>
-
-                <div class="form-actions">
-                  <button type="button" class="btn btn-secondary" (click)="cancelAccountEdit()" [disabled]="loading()">
-                    Cancel
-                  </button>
-                  <button type="button" class="btn btn-primary" (click)="saveAccount()" [disabled]="loading()">
-                    @if (loading()) {
-                      <span class="spinner-border spinner-border-sm"></span> Saving...
-                    } @else {
-                      <i class="fas fa-save"></i> Save
-                    }
-                  </button>
-                </div>
-              </div>
-            }
+              }
+            </div>
           </div>
         }
 
         <!-- 2FA Tab -->
         @if (activeTab() === '2fa') {
           <div class="tab-content">
-            <h3>Two-Factor Authentication</h3>
-            <p class="text-muted">Add an extra layer of security to your account</p>
+            <h3>Twee-Factor Authenticatie</h3>
+            <p class="text-muted">Voeg een extra beveiligingslaag toe</p>
 
             @if (!showQRCode()) {
               <div class="tfa-status">
                 <div class="status-indicator">
                   @if (twoFactorEnabled()) {
                     <i class="fas fa-check-circle text-success"></i>
-                    <span class="badge bg-success">Enabled</span>
+                    <span class="badge bg-success">Ingeschakeld</span>
                   } @else {
                     <i class="fas fa-times-circle text-danger"></i>
-                    <span class="badge bg-secondary">Disabled</span>
+                    <span class="badge bg-secondary">Uitgeschakeld</span>
                   }
                 </div>
 
                 @if (twoFactorEnabled()) {
-                  <p class="mt-3">Your account is protected with two-factor authentication.</p>
+                  <p class="mt-3">Je account is beveiligd met twee-factor authenticatie.</p>
                   <button type="button" class="btn btn-outline-danger" (click)="disable2FA()" [disabled]="loading()">
                     @if (loading()) {
-                      <span class="spinner-border spinner-border-sm"></span> Disabling...
+                      <span class="spinner-border spinner-border-sm"></span> Uitschakelen...
                     } @else {
-                      <i class="fas fa-times"></i> Disable 2FA
+                      <i class="fas fa-times"></i> 2FA Uitschakelen
                     }
                   </button>
                 } @else {
-                  <p class="mt-3">Protect your account with time-based one-time passwords.</p>
+                  <p class="mt-3">Beveilig je account met time-based one-time passwords.</p>
                   <button type="button" class="btn btn-primary" (click)="enable2FA()" [disabled]="loading()">
                     @if (loading()) {
-                      <span class="spinner-border spinner-border-sm"></span> Setting up...
+                      <span class="spinner-border spinner-border-sm"></span> Instellen...
                     } @else {
-                      <i class="fas fa-shield-alt"></i> Enable 2FA
+                      <i class="fas fa-shield-alt"></i> 2FA Inschakelen
                     }
                   </button>
                 }
@@ -213,14 +182,14 @@
                 <div class="setup-step">
                   <div class="step-number">1</div>
                   <h4>Scan QR Code</h4>
-                  <p>Use your authenticator app to scan this QR code</p>
+                  <p>Gebruik je authenticator app om deze QR code te scannen</p>
 
                   <div class="qr-code-container">
                     <img [src]="twoFactorQRCode()" alt="2FA QR Code" class="qr-code" />
                   </div>
 
                   <div class="secret-display">
-                    <label>Or enter this code manually:</label>
+                    <label>Of voer deze code handmatig in:</label>
                     <div class="secret-box">
                       <code>{{ twoFactorSecret() }}</code>
                       <button type="button" class="btn btn-sm btn-outline-primary" (click)="copy2FASecret()">
@@ -232,8 +201,8 @@
 
                 <div class="setup-step">
                   <div class="step-number">2</div>
-                  <h4>Verify Code</h4>
-                  <p>Enter the 6-digit code from your authenticator app</p>
+                  <h4>Verifieer Code</h4>
+                  <p>Voer de 6-cijferige code van je authenticator app in</p>
 
                   <input
                     type="text"
@@ -251,13 +220,13 @@
 
                   <div class="form-actions mt-3">
                     <button type="button" class="btn btn-secondary" (click)="cancel2FASetup()" [disabled]="loading()">
-                      Cancel
+                      Annuleren
                     </button>
                     <button type="button" class="btn btn-primary" (click)="verify2FA()" [disabled]="loading() || verificationCode().length !== 6">
                       @if (loading()) {
-                        <span class="spinner-border spinner-border-sm"></span> Verifying...
+                        <span class="spinner-border spinner-border-sm"></span> Verifiëren...
                       } @else {
-                        <i class="fas fa-check"></i> Verify & Enable
+                        <i class="fas fa-check"></i> Verifiëren & Inschakelen
                       }
                     </button>
                   </div>
@@ -270,8 +239,8 @@
         <!-- UI Preferences Tab -->
         @if (activeTab() === 'ui') {
           <div class="tab-content">
-            <h3>UI Preferences</h3>
-            <p class="text-muted">Customize the appearance and behavior</p>
+            <h3>Weergave</h3>
+            <p class="text-muted">Pas het uiterlijk en gedrag aan</p>
 
             <div class="settings-list">
               <!-- Theme -->
@@ -279,16 +248,16 @@
                 <div class="setting-info">
                   <i class="fas fa-moon"></i>
                   <div>
-                    <h4>Theme</h4>
-                    <p>Choose your preferred color scheme</p>
+                    <h4>Thema</h4>
+                    <p>Kies je voorkeur kleurenschema</p>
                   </div>
                 </div>
                 <div class="setting-control">
                   <button type="button" class="btn btn-outline-primary" (click)="toggleTheme()">
                     @if (theme() === 'dark') {
-                      <i class="fas fa-sun"></i> Switch to Light
+                      <i class="fas fa-sun"></i> Licht
                     } @else {
-                      <i class="fas fa-moon"></i> Switch to Dark
+                      <i class="fas fa-moon"></i> Donker
                     }
                   </button>
                 </div>
@@ -299,8 +268,8 @@
                 <div class="setting-info">
                   <i class="fas fa-th-large"></i>
                   <div>
-                    <h4>Visible Tabs</h4>
-                    <p>Choose which tabs to show in the navigation</p>
+                    <h4>Zichtbare Tabs</h4>
+                    <p>Kies welke tabs zichtbaar zijn in de navigatie</p>
                   </div>
                 </div>
               </div>
@@ -330,7 +299,7 @@
             <hr />
 
             <button type="button" class="btn btn-outline-danger" (click)="resetSettings()">
-              <i class="fas fa-undo"></i> Reset to Defaults
+              <i class="fas fa-undo"></i> Reset naar standaard
             </button>
           </div>
         }
@@ -338,35 +307,44 @@
         <!-- Server Info Tab -->
         @if (activeTab() === 'server') {
           <div class="tab-content">
-            <h3>Server Information</h3>
-            <p class="text-muted">Current connection details</p>
+            <h3>Huidige Verbinding</h3>
+            <p class="text-muted">Details van de actieve server verbinding</p>
 
-            @if (isAuthenticated()) {
+            @if (activeProfile()) {
               <div class="server-info">
                 <div class="info-item">
-                  <label><i class="fas fa-server"></i> Environment</label>
-                  <span class="badge badge-lg">{{ currentEnvironment() }}</span>
+                  <label><i class="fas fa-server"></i> Server</label>
+                  <div class="info-value">
+                    <span class="profile-color-dot" [style.background-color]="activeProfile()!.color"></span>
+                    <strong>{{ activeProfile()!.name }}</strong>
+                  </div>
+                </div>
+
+                <div class="info-item">
+                  <label><i class="fas fa-link"></i> FHIR URL</label>
+                  <code class="info-value url">{{ activeProfile()!.fhirServerUrl }}</code>
+                </div>
+
+                <div class="info-item">
+                  <label><i class="fas fa-shield-alt"></i> Authenticatie</label>
+                  <span class="info-value">
+                    <i class="fas {{ getAuthTypeIcon(activeProfile()!.authType) }}"></i>
+                    {{ getAuthTypeLabel(activeProfile()!.authType) }}
+                  </span>
                 </div>
 
                 <div class="info-item">
                   <label><i class="fas fa-plug"></i> Status</label>
                   <span class="status-badge connected">
-                    <i class="fas fa-circle"></i> Connected
-                  </span>
-                </div>
-
-                <div class="info-item">
-                  <label><i class="fas fa-shield-alt"></i> Authentication</label>
-                  <span class="status-badge authenticated">
-                    <i class="fas fa-check-circle"></i> Authenticated
+                    <i class="fas fa-circle"></i> Verbonden
                   </span>
                 </div>
 
                 @if (twoFactorEnabled()) {
                   <div class="info-item">
-                    <label><i class="fas fa-lock"></i> Two-Factor</label>
+                    <label><i class="fas fa-lock"></i> Twee-Factor</label>
                     <span class="status-badge enabled">
-                      <i class="fas fa-check-circle"></i> Enabled
+                      <i class="fas fa-check-circle"></i> Ingeschakeld
                     </span>
                   </div>
                 }
@@ -375,13 +353,13 @@
               <hr />
 
               <button type="button" class="btn btn-outline-danger" (click)="logout()">
-                <i class="fas fa-sign-out-alt"></i> Logout
+                <i class="fas fa-sign-out-alt"></i> Uitloggen
               </button>
             } @else {
               <div class="empty-state">
                 <i class="fas fa-unlink"></i>
-                <p>Not connected to any server</p>
-                <p class="text-muted">Please login to view server information</p>
+                <p>Niet verbonden met een server</p>
+                <p class="text-muted">Log in om verbindingsdetails te bekijken</p>
               </div>
             }
           </div>
@@ -390,3 +368,6 @@
     </div>
   </div>
 }
+
+<!-- Server Profile Dialog -->
+<app-server-profile-dialog></app-server-profile-dialog>
