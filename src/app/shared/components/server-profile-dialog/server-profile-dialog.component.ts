@@ -13,6 +13,14 @@ import {ServerProfileService} from '../../../core/services/server-profile.servic
 import {ToastService} from '../../../core/services/toast.service';
 
 /**
+ * Custom header key-value pair for form editing
+ */
+interface CustomHeaderEntry {
+  key: string;
+  value: string;
+}
+
+/**
  * Form data for creating/editing server profiles
  */
 interface ProfileFormData {
@@ -33,6 +41,8 @@ interface ProfileFormData {
   bearerToken: string;
   // mTLS field
   mtlsCertificateId: string;
+  // Custom headers
+  customHeaders: CustomHeaderEntry[];
 }
 
 /**
@@ -350,6 +360,38 @@ return;
   }
 
   /**
+   * Add a new custom header entry
+   */
+  addCustomHeader(): void {
+    this.formData.update(f => ({
+      ...f,
+      customHeaders: [...f.customHeaders, {key: '', value: ''}]
+    }));
+  }
+
+  /**
+   * Remove a custom header entry by index
+   */
+  removeCustomHeader(index: number): void {
+    this.formData.update(f => ({
+      ...f,
+      customHeaders: f.customHeaders.filter((_, i) => i !== index)
+    }));
+  }
+
+  /**
+   * Update a custom header entry
+   */
+  updateCustomHeader(index: number, field: 'key' | 'value', value: string): void {
+    this.formData.update(f => ({
+      ...f,
+      customHeaders: f.customHeaders.map((h, i) =>
+        i === index ? {...h, [field]: value} : h
+      )
+    }));
+  }
+
+  /**
    * Get empty form data
    */
   private getEmptyFormData(): ProfileFormData {
@@ -366,7 +408,8 @@ return;
       username: '',
       password: '',
       bearerToken: '',
-      mtlsCertificateId: ''
+      mtlsCertificateId: '',
+      customHeaders: []
     };
   }
 
@@ -374,6 +417,11 @@ return;
    * Convert profile to form data
    */
   private profileToFormData(profile: ServerProfile): ProfileFormData {
+    // Convert customHeaders Record to array
+    const customHeaders: CustomHeaderEntry[] = profile.customHeaders
+      ? Object.entries(profile.customHeaders).map(([key, value]) => ({key, value}))
+      : [];
+
     return {
       name: profile.name,
       fhirServerUrl: profile.fhirServerUrl,
@@ -387,7 +435,8 @@ return;
       username: profile.authConfig?.username || '',
       password: profile.authConfig?.password || '',
       bearerToken: profile.authConfig?.bearerToken || '',
-      mtlsCertificateId: profile.mtlsCertificateId || ''
+      mtlsCertificateId: profile.mtlsCertificateId || '',
+      customHeaders
     };
   }
 
@@ -415,6 +464,14 @@ return;
         break;
     }
 
+    // Convert customHeaders array to Record (filter out empty entries)
+    const customHeaders: Record<string, string> = {};
+    form.customHeaders
+      .filter(h => h.key.trim() && h.value.trim())
+      .forEach(h => {
+        customHeaders[h.key.trim()] = h.value.trim();
+      });
+
     return {
       name: form.name.trim(),
       fhirServerUrl: form.fhirServerUrl.trim().replace(/\/$/, ''),
@@ -422,7 +479,8 @@ return;
       color: form.color,
       isDefault: form.isDefault,
       authConfig: Object.keys(authConfig).length > 0 ? authConfig : undefined,
-      mtlsCertificateId: form.authType === 'mtls' ? form.mtlsCertificateId : undefined
+      mtlsCertificateId: form.authType === 'mtls' ? form.mtlsCertificateId : undefined,
+      customHeaders: Object.keys(customHeaders).length > 0 ? customHeaders : undefined
     };
   }
 

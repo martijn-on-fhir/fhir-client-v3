@@ -242,6 +242,54 @@
           }
         </div>
 
+        <!-- Custom Headers Section -->
+        <div class="form-section">
+          <div class="section-header">
+            <h6 class="section-title">Extra Headers</h6>
+            <button type="button" class="btn btn-sm btn-add-header" (click)="addCustomHeader()">
+              <i class="fas fa-plus"></i>
+              Header toevoegen
+            </button>
+          </div>
+
+          @if (formData().customHeaders.length === 0) {
+            <div class="auth-info">
+              <i class="fas fa-info-circle"></i>
+              <span>Voeg optioneel extra HTTP headers toe die bij elk request worden meegestuurd (bijv. tenant, x-api-key).</span>
+            </div>
+          } @else {
+            <div class="custom-headers-list">
+              @for (header of formData().customHeaders; track $index) {
+                <div class="header-row">
+                  <input
+                    type="text"
+                    class="header-key"
+                    [value]="header.key"
+                    (input)="updateCustomHeader($index, 'key', $any($event.target).value)"
+                    placeholder="Header naam"
+                    autocomplete="off"
+                  />
+                  <input
+                    type="text"
+                    class="header-value"
+                    [value]="header.value"
+                    (input)="updateCustomHeader($index, 'value', $any($event.target).value)"
+                    placeholder="Waarde"
+                    autocomplete="off"
+                  />
+                  <button
+                    type="button"
+                    class="btn-remove-header"
+                    (click)="removeCustomHeader($index)"
+                    title="Verwijderen">
+                    <i class="fas fa-times"></i>
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
+
         <!-- Test Connection -->
         <div class="form-section test-section">
           <button

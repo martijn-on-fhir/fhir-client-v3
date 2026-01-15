@@ -42,6 +42,8 @@ export interface ServerProfile {
   isDefault?: boolean;
   /** Last used timestamp in milliseconds */
   lastUsed?: number;
+  /** Custom headers to include in every FHIR request */
+  customHeaders?: Record<string, string>;
 }
 
 /**

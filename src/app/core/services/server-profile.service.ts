@@ -567,22 +567,27 @@ return false;
 return {};
 }
 
+    let authHeaders: Record<string, string> = {};
+
     switch (profile.authType) {
       case 'none':
-        return {};
+        break;
 
       case 'basic': {
         const {username, password} = profile.authConfig || {};
         if (username && password) {
           const credentials = btoa(`${username}:${password}`);
-          return {'Authorization': `Basic ${credentials}`};
+          authHeaders = {'Authorization': `Basic ${credentials}`};
         }
-        return {};
+        break;
       }
 
       case 'bearer': {
         const token = profile.authConfig?.bearerToken;
-        return token ? {'Authorization': `Bearer ${token}`} : {};
+        if (token) {
+          authHeaders = {'Authorization': `Bearer ${token}`};
+        }
+        break;
       }
 
       case 'oauth2': {
@@ -594,18 +599,21 @@ return {};
         }
 
         const updatedSession = this.getSession(profileId);
-        return updatedSession?.accessToken
-          ? {'Authorization': `Bearer ${updatedSession.accessToken}`}
-          : {};
+        if (updatedSession?.accessToken) {
+          authHeaders = {'Authorization': `Bearer ${updatedSession.accessToken}`};
+        }
+        break;
       }
 
       case 'mtls':
         // mTLS is handled at transport level, no auth header needed
-        return {};
-
-      default:
-        return {};
+        break;
     }
+
+    // Merge custom headers (custom headers take precedence)
+    const customHeaders = profile.customHeaders || {};
+
+    return {...authHeaders, ...customHeaders};
   }
 
   /**
