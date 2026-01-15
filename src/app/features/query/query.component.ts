@@ -7,7 +7,7 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef} from '@angular/core';
+import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 import {firstValueFrom} from 'rxjs';
 import {
@@ -31,7 +31,7 @@ import {ResultHeaderComponent} from '../../shared/components/result-header/resul
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
 })
-export class QueryComponent implements OnInit, OnDestroy {
+export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   /**
    * Injected FHIR service for executing queries
    */
@@ -83,6 +83,16 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Reference to Monaco Editor component in visual builder mode
    */
   @ViewChild('componentVisual') componentVisual?: MonacoEditorComponent;
+
+  /**
+   * Signal for text mode editor (avoids ExpressionChangedAfterItHasBeenCheckedError)
+   */
+  textModeEditor = signal<any>(null);
+
+  /**
+   * Signal for visual mode editor (avoids ExpressionChangedAfterItHasBeenCheckedError)
+   */
+  visualModeEditor = signal<any>(null);
 
   /**
    * Reference to text query input element
@@ -490,6 +500,23 @@ export class QueryComponent implements OnInit, OnDestroy {
    */
   ngOnDestroy() {
     this.editorStateService.unregisterEditor('/app/query');
+  }
+
+  /**
+   * View checked lifecycle hook
+   * Updates editor signals after view changes are stable
+   */
+  ngAfterViewChecked() {
+    const textEditor = this.component?.editor ?? null;
+    const visualEditor = this.componentVisual?.editor ?? null;
+
+    // Only update if value actually changed to avoid unnecessary change detection
+    if (this.textModeEditor() !== textEditor) {
+      this.textModeEditor.set(textEditor);
+    }
+    if (this.visualModeEditor() !== visualEditor) {
+      this.visualModeEditor.set(visualEditor);
+    }
   }
 
   /**
