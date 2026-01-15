@@ -44,8 +44,12 @@
       {
         "assets": [
           {
-            "path": "dist/**/*.{exe,dmg,AppImage,deb,rpm}",
-            "label": "Electron Installers"
+            "path": "release/*.zip",
+            "label": "Windows Portable (ZIP)"
+          },
+          {
+            "path": "release/*.exe",
+            "label": "Windows Portable (EXE)"
           }
         ]
       }
