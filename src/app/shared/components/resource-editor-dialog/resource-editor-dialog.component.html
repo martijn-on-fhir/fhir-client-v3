@@ -419,8 +419,7 @@
             </div>
           }
 
-
-          <button type="button" class="btn btn-primary" (click)="validateResource()"
+          <button type="button" class="btn btn-sm btn-primary" (click)="validateResource()"
             [disabled]="validationLoading()">
             @if (validationLoading()) {
               <span class="spinner-border spinner-border-sm me-2"></span>
@@ -430,7 +429,7 @@
               Validate
             }
           </button>
-          <button type="button" class="btn btn-success" (click)="saveResource()" [disabled]="saveLoading()">
+          <button type="button" class="btn btn-sm btn-success" (click)="saveResource()" [disabled]="saveLoading()">
             @if (saveLoading()) {
               <span class="spinner-border spinner-border-sm me-2"></span>
               {{ isEditing() ? 'Updating...' : 'Creating...' }}
@@ -439,7 +438,7 @@
               {{ isEditing() ? 'Update' : 'Create' }}
             }
           </button>
-          <button type="button" class="btn btn-danger" (click)="closeDialog()">
+          <button type="button" class="btn btn-sm btn-danger" (click)="closeDialog()">
             <i class="fas fa-times me-2"></i>Cancel
           </button>
         </div>
