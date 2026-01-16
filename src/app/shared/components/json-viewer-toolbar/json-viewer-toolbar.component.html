@@ -4,6 +4,12 @@
       <i class="fas fa-save"></i>
     </button>
 
+    @if (showEditButton) {
+      <button class="btn btn-sm btn-outline-primary" title="Edit resource" (click)="editClicked.emit()">
+        <i class="fas fa-edit"></i>
+      </button>
+    }
+
     @if (!readOnly) {
       <button class="btn btn-sm btn-outline-secondary" title="Open file..." (click)="load()">
         <i class="fas fa-folder-open"></i>

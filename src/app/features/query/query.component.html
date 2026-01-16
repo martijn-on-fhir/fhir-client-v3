@@ -102,7 +102,9 @@
               [readOnly]="true"
               [paginationLinks]="paginationLinks()"
               [total]="resultTotal()"
-              (pageNavigate)="navigateToPage($event)">
+              [showEditButton]="isSingleResource()"
+              (pageNavigate)="navigateToPage($event)"
+              (editClicked)="onEditClicked()">
             </app-result-header>
 
             @if (loading()) {
@@ -538,7 +540,9 @@
             [readOnly]="true"
             [paginationLinks]="paginationLinks()"
             [total]="resultTotal()"
-            (pageNavigate)="navigateToPage($event)">
+            [showEditButton]="isSingleResource()"
+            (pageNavigate)="navigateToPage($event)"
+            (editClicked)="onEditClicked()">
           </app-result-header>
 
           @if (loading()) {

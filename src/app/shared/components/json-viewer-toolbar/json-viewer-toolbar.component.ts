@@ -1,5 +1,5 @@
 import {CommonModule} from '@angular/common';
-import {Component, Input} from '@angular/core';
+import {Component, Input, Output, EventEmitter} from '@angular/core';
 import {FormsModule} from '@angular/forms';
 
 /**
@@ -30,6 +30,18 @@ export class JsonViewerToolbarComponent {
    * @default true
    */
   @Input() readOnly = true;
+
+  /**
+   * Whether to show the edit button.
+   * Should be true for single FHIR resources, false for Bundles.
+   * @default false
+   */
+  @Input() showEditButton = false;
+
+  /**
+   * Emitted when the edit button is clicked.
+   */
+  @Output() editClicked = new EventEmitter<void>();
 
   /**
    * Current fold level of the editor (1-7).

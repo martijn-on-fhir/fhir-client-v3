@@ -264,6 +264,16 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   });
 
   /**
+   * Whether the result is a single FHIR resource (not a Bundle)
+   * Used to show/hide the edit button
+   */
+  isSingleResource = computed(() => {
+    const res = this.result();
+
+    return res?.resourceType && res.resourceType !== 'Bundle';
+  });
+
+  /**
    * Metadata for the currently selected resource type
    */
   resourceMetadata = computed(() => {
@@ -1286,6 +1296,19 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.executeTextQuery();
     } else {
       this.logger.info('URL does not match FHIR server, ignoring:', url);
+    }
+  }
+
+  /**
+   * Handles edit button click for single resources
+   * Navigates to Nictiz tab and opens resource editor with the resource
+   */
+  onEditClicked(): void {
+    const res = this.result();
+
+    if (res?.resourceType) {
+      this.logger.info('Opening resource editor for:', res.resourceType, res.id);
+      this.navigationService.openResourceEditor(res);
     }
   }
 }

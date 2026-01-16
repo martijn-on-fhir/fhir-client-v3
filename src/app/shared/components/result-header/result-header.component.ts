@@ -118,6 +118,18 @@ export class ResultHeaderComponent {
   @Output() pageNavigate = new EventEmitter<string>();
 
   /**
+   * Whether to show the edit button in the toolbar
+   * Should be true for single FHIR resources, false for Bundles
+   * @default false
+   */
+  @Input() showEditButton = false;
+
+  /**
+   * Event emitted when the edit button is clicked
+   */
+  @Output() editClicked = new EventEmitter<void>();
+
+  /**
    * Check if a specific pagination link exists
    * Handles 'prev'/'previous' interchangeably
    */
