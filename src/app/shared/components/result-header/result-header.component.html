@@ -9,7 +9,11 @@
 
     <!-- Total count badge -->
     @if (total !== undefined) {
-      <span class="badge bg-secondary ms-2">{{ total }} results</span>
+      <span
+        class="badge rounded-pill bg-primary text-white ms-2"
+        style="font-size: 0.75rem; min-width: 24px; padding: 0.35em 0.6em;">
+        {{ total }}
+      </span>
     }
 
     <!-- Content projection for badges or other content after title -->
