@@ -183,7 +183,7 @@ export class SettingsDialogComponent implements OnInit {
     this.twoFactorError.set(null);
 
     try {
-      const { secret, qrCode } = await this.authService.enableTwoFactor('FHIR Client Account');
+      const { secret, qrCode } = await this.authService.enableTwoFactor('FHIR Client MX');
       this.twoFactorSecret.set(secret);
       this.twoFactorQRCode.set(qrCode);
       this.showQRCode.set(true);
