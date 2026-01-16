@@ -1,3 +1,15 @@
+# [1.20.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.19.0...v1.20.0) (2026-01-16)
+
+
+### Bug Fixes
+
+* use app.getVersion() for dynamic splash screen version ([a7f1b33](https://github.com/martijn-on-fhir/fhir-client-v3/commit/a7f1b33b48c8e08e4c99443615ff38874754b4c6))
+
+
+### Features
+
+* add pagination controls to predefined tab ([6709c2c](https://github.com/martijn-on-fhir/fhir-client-v3/commit/6709c2c2fe2cba781e9880d2726c83a1337a681f))
+
 # [1.19.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.18.1...v1.19.0) (2026-01-16)
 
 
