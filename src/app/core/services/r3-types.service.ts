@@ -56,6 +56,49 @@ export class R3TypesService {
   };
 
   /**
+   * Reference parameter target types for chained search
+   * Maps search parameter names to their possible target resource types
+   */
+  private readonly referenceTargets: Record<string, string[]> = {
+    // Common reference parameters
+    'subject': ['Patient', 'Group'],
+    'patient': ['Patient'],
+    'encounter': ['Encounter'],
+    'performer': ['Practitioner', 'PractitionerRole', 'Organization', 'Patient', 'RelatedPerson', 'Device'],
+    'requester': ['Practitioner', 'PractitionerRole', 'Organization', 'Patient', 'RelatedPerson', 'Device'],
+    'recorder': ['Practitioner', 'PractitionerRole', 'Patient', 'RelatedPerson'],
+    'asserter': ['Practitioner', 'PractitionerRole', 'Patient', 'RelatedPerson'],
+    'author': ['Practitioner', 'PractitionerRole', 'Organization', 'Patient', 'Device', 'RelatedPerson'],
+    'context': ['Encounter', 'EpisodeOfCare'],
+    'location': ['Location'],
+    'organization': ['Organization'],
+    'general-practitioner': ['Organization', 'Practitioner', 'PractitionerRole'],
+    'practitioner': ['Practitioner'],
+    'participant': ['Practitioner', 'PractitionerRole', 'Patient', 'RelatedPerson', 'Device'],
+    'based-on': ['CarePlan', 'ServiceRequest', 'MedicationRequest'],
+    'part-of': ['Observation', 'Procedure', 'MedicationAdministration', 'Immunization'],
+    'specimen': ['Specimen'],
+    'device': ['Device'],
+    'focus': ['Resource'],
+    'code': ['CodeSystem', 'ValueSet'],
+    'source': ['Patient', 'Practitioner', 'PractitionerRole', 'RelatedPerson', 'Organization'],
+    'target': ['Patient', 'Practitioner', 'PractitionerRole', 'RelatedPerson', 'Organization', 'Device'],
+    'service-provider': ['Organization'],
+    'managing-organization': ['Organization'],
+    'custodian': ['Organization'],
+    'care-team': ['CareTeam'],
+    'episode-of-care': ['EpisodeOfCare'],
+    'appointment': ['Appointment'],
+    'result': ['Observation'],
+    'medication': ['Medication'],
+    'information-source': ['Patient', 'Practitioner', 'PractitionerRole', 'RelatedPerson', 'Organization'],
+    'insurance': ['Coverage', 'ClaimResponse'],
+    'condition': ['Condition'],
+    'procedure': ['Procedure'],
+    'reason-reference': ['Condition', 'Observation', 'DiagnosticReport', 'DocumentReference']
+  };
+
+  /**
    * FHIR search parameter prefix operators (for date, number, quantity)
    */
   private readonly prefixOperators = [
@@ -217,5 +260,13 @@ export class R3TypesService {
     return this.globalParameters.filter(param =>
       param.name.toLowerCase().startsWith(lowerPrefix)
     );
+  }
+
+  /**
+   * Get possible target resource types for a reference parameter
+   * Used for chained search autocomplete (e.g., subject:Patient.identifier)
+   */
+  getReferenceTargets(paramName: string): string[] {
+    return this.referenceTargets[paramName] || [];
   }
 }

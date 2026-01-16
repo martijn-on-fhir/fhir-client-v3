@@ -11,6 +11,7 @@ export type QueryContext =
   | 'parameter_value'    // After = - expecting value
   | 'include_value'      // After _include= - expecting include path
   | 'revinclude_value'   // After _revinclude= - expecting revinclude path
+  | 'chained_parameter'  // After :ResourceType. - expecting chained parameter name
   | 'unknown';
 
 /**
@@ -37,6 +38,8 @@ export interface ParsedQuery {
   usedIncludeValues: string[];
   /** Already used _revinclude values in current parameter */
   usedRevIncludeValues: string[];
+  /** Resource type for chained search (e.g., "Patient" in subject:Patient.) */
+  chainedResourceType?: string;
 }
 
 /**
@@ -131,6 +134,17 @@ export class QueryAutocompleteService {
     if (textBeforeCursor.match(/^\/[A-Za-z]*$/)) {
       result.context = 'resource_type';
       result.prefix = textBeforeCursor.substring(1);
+      return result;
+    }
+
+    // Check if we're typing a chained parameter (after :ResourceType.)
+    // This must come BEFORE the modifier check as it's more specific
+    const chainedMatch = textBeforeCursor.match(/[?&]([a-zA-Z_][a-zA-Z0-9_.-]*):([A-Z][a-zA-Z]+)\.([a-zA-Z]*)$/);
+    if (chainedMatch) {
+      result.context = 'chained_parameter';
+      result.currentParam = chainedMatch[1];      // e.g., "subject"
+      result.chainedResourceType = chainedMatch[2]; // e.g., "Patient"
+      result.prefix = chainedMatch[3];             // e.g., "" or "iden"
       return result;
     }
 
@@ -239,6 +253,12 @@ export class QueryAutocompleteService {
           parsedQuery.usedRevIncludeValues
         );
 
+      case 'chained_parameter':
+        return this.getChainedParameterSuggestions(
+          parsedQuery.chainedResourceType,
+          parsedQuery.prefix
+        );
+
       default:
         return [];
     }
@@ -333,13 +353,37 @@ export class QueryAutocompleteService {
     const modifiers = this.r3Types.getModifiers(paramType || 'string');
 
     const lowerPrefix = prefix.toLowerCase();
+    const suggestions: Suggestion[] = [];
 
-    return modifiers.filter(mod => mod.toLowerCase().startsWith(lowerPrefix)).map(mod => ({
-      label: mod,
-      insertText: mod,
-      category: 'modifier' as const,
-      description: `${paramType} modifier`
-    }));
+    // Add standard modifiers (missing, type, etc.)
+    for (const mod of modifiers) {
+      if (mod.toLowerCase().startsWith(lowerPrefix)) {
+        suggestions.push({
+          label: mod,
+          insertText: mod,
+          category: 'modifier',
+          description: `${paramType} modifier`
+        });
+      }
+    }
+
+    // For reference parameters, also add target resource types for chained search
+    if (paramType === 'reference') {
+      const targets = this.r3Types.getReferenceTargets(paramName);
+      for (const target of targets) {
+        if (target.toLowerCase().startsWith(lowerPrefix)) {
+          suggestions.push({
+            label: target,
+            insertText: target,
+            category: 'modifier',
+            description: `Chain to ${target}`,
+            paramType: 'reference-type'
+          });
+        }
+      }
+    }
+
+    return suggestions;
   }
 
   /**
@@ -444,6 +488,49 @@ export class QueryAutocompleteService {
   }
 
   /**
+   * Get chained parameter suggestions for a resource type
+   * Used when typing after :ResourceType. (e.g., subject:Patient.)
+   */
+  private getChainedParameterSuggestions(
+    chainedResourceType: string | undefined,
+    prefix: string
+  ): Suggestion[] {
+    if (!chainedResourceType) {
+      return [];
+    }
+
+    const suggestions: Suggestion[] = [];
+    const lowerPrefix = prefix.toLowerCase();
+
+    // Get search parameters from metadata for the chained resource type
+    if (this.metadata) {
+      const resourceMeta = this.getResourceMetadata(chainedResourceType);
+      if (resourceMeta?.searchParam) {
+        for (const param of resourceMeta.searchParam) {
+          if (param.name.toLowerCase().startsWith(lowerPrefix)) {
+            suggestions.push({
+              label: param.name,
+              insertText: param.name + '=',
+              category: 'parameter',
+              description: `${chainedResourceType} search parameter`,
+              paramType: param.type
+            });
+          }
+        }
+      }
+    }
+
+    // Sort: exact matches first, then alphabetically
+    return suggestions.sort((a, b) => {
+      const aExact = a.label.toLowerCase() === lowerPrefix;
+      const bExact = b.label.toLowerCase() === lowerPrefix;
+      if (aExact && !bExact) return -1;
+      if (!aExact && bExact) return 1;
+      return a.label.localeCompare(b.label);
+    });
+  }
+
+  /**
    * Get resource metadata from cached CapabilityStatement
    */
   private getResourceMetadata(resourceType: string): any {
@@ -514,8 +601,17 @@ export class QueryAutocompleteService {
         // Replace from : to cursor
         const colonPos = textBeforeCursor.lastIndexOf(':');
         const beforeModifier = textBeforeCursor.substring(0, colonPos + 1);
-        newQuery = beforeModifier + suggestion.insertText + '=' + textAfterCursor;
-        newCursorPosition = beforeModifier.length + suggestion.insertText.length + 1;
+
+        // Check if this is a reference-type modifier (for chained search)
+        if (suggestion.paramType === 'reference-type') {
+          // Append . for chained search instead of =
+          newQuery = beforeModifier + suggestion.insertText + '.' + textAfterCursor;
+          newCursorPosition = beforeModifier.length + suggestion.insertText.length + 1;
+        } else {
+          // Regular modifier, append =
+          newQuery = beforeModifier + suggestion.insertText + '=' + textAfterCursor;
+          newCursorPosition = beforeModifier.length + suggestion.insertText.length + 1;
+        }
         break;
       }
 
@@ -546,6 +642,15 @@ export class QueryAutocompleteService {
           newQuery = beforeVal + suggestion.insertText + textAfterCursor;
           newCursorPosition = beforeVal.length + suggestion.insertText.length;
         }
+        break;
+      }
+
+      case 'chained_parameter': {
+        // Replace from . to cursor (e.g., subject:Patient.iden → subject:Patient.identifier=)
+        const dotPos = textBeforeCursor.lastIndexOf('.');
+        const beforeDot = textBeforeCursor.substring(0, dotPos + 1);
+        newQuery = beforeDot + suggestion.insertText + textAfterCursor;
+        newCursorPosition = beforeDot.length + suggestion.insertText.length;
         break;
       }
 
