@@ -126,7 +126,10 @@
             icon="fa-file-lines"
             title="Result"
             [editor]="this.component?.editor"
-            [readOnly]="true">
+            [readOnly]="true"
+            [paginationLinks]="paginationLinks()"
+            [total]="resultTotal()"
+            (pageNavigate)="navigateToPage($event)">
           </app-result-header>
           <div class="card-body p-0 d-flex flex-column" style="flex: 1; min-height: 0; overflow: hidden;">
             @if (!result() && !loading()) {

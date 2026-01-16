@@ -8,7 +8,7 @@ import { LoggerService } from '../../core/services/logger.service';
 import { TemplateService } from '../../core/services/template.service';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
-import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
+import { BundleLink, ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
 import { TemplateBrowserComponent } from './components/template-browser.component';
 import { TemplateConfigDialogComponent } from './dialogs/template-config-dialog.component';
 import { TemplateEditorDialogComponent } from './dialogs/template-editor-dialog.component';
@@ -151,6 +151,20 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     return res ? JSON.stringify(res, null, 2) : '';
   });
 
+  /** Computed pagination links from FHIR Bundle result */
+  paginationLinks = computed<BundleLink[]>(() => {
+    const res = this.result();
+
+    if (!res?.link || !Array.isArray(res.link)) {
+      return [];
+    }
+
+    return res.link as BundleLink[];
+  });
+
+  /** Computed total count from FHIR Bundle result */
+  resultTotal = computed<number | undefined>(() => this.result()?.total);
+
   /**
    * Creates an instance of PredefinedComponent
    *
@@ -264,6 +278,35 @@ export class PredefinedComponent implements OnInit, OnDestroy {
     } catch (err: any) {
       this.error.set(err.message || 'Failed to execute query');
       this.logger.error('Query execution failed:', err);
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Navigates to a pagination page by executing the provided URL
+   *
+   * @param url - Full URL of the page to navigate to
+   */
+  async navigateToPage(url: string) {
+    this.loading.set(true);
+    this.error.set(null);
+    this.currentQuery.set(url);
+
+    try {
+      this.fhirService.executeQuery(url).subscribe({
+        next: (data) => {
+          this.result.set(data);
+          this.loading.set(false);
+        },
+        error: (err) => {
+          this.error.set(err.message || 'Failed to navigate to page');
+          this.logger.error('Page navigation failed:', err);
+          this.loading.set(false);
+        }
+      });
+    } catch (err: any) {
+      this.error.set(err.message || 'Failed to navigate to page');
+      this.logger.error('Page navigation failed:', err);
       this.loading.set(false);
     }
   }
