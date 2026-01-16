@@ -84,6 +84,14 @@ function createSplashWindow() {
   splashWindow.loadFile(path.join(__dirname, 'splash.html'));
   splashWindow.center();
 
+  // Inject version number after page loads
+  splashWindow.webContents.on('did-finish-load', () => {
+    const version = app.getVersion();
+    splashWindow.webContents.executeJavaScript(`
+      document.getElementById('app-version').textContent = 'Version ${version}';
+    `);
+  });
+
   // Record when splash screen was created
   splashStartTime = Date.now();
 }

@@ -5,15 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Loading FHIR Client</title>
   <link rel="stylesheet" href="../node_modules/@fortawesome/fontawesome-free/css/all.min.css">
-  <script>
-    // Set version when page loads
-    window.addEventListener('DOMContentLoaded', () => {
-      const versionElement = document.getElementById('app-version');
-      if (versionElement && window.appVersion) {
-        versionElement.textContent = `Version ${window.appVersion}`;
-      }
-    });
-  </script>
+  <!-- Version is injected from main process via executeJavaScript -->
   <style>
     * {
       margin: 0;
@@ -129,7 +121,7 @@
     <div class="loader">
       <div class="loader-bar"></div>
     </div>
-    <div class="version" id="app-version">Version 1.5.5</div>
+    <div class="version" id="app-version">Loading...</div>
   </div>
 </body>
 </html>
