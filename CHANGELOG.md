@@ -1,3 +1,17 @@
+# [1.19.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.18.1...v1.19.0) (2026-01-16)
+
+
+### Bug Fixes
+
+* enable file open in FHIRPath tab via Electron menu ([2898d68](https://github.com/martijn-on-fhir/fhir-client-v3/commit/2898d68dd4aecbe37131a3764da25d8a6dc22bf5))
+* use visualModeEditor signal to avoid ExpressionChangedAfterItHasBeenCheckedError ([a86d91f](https://github.com/martijn-on-fhir/fhir-client-v3/commit/a86d91f392aa9ffa06466425cca4bb64e1443d3c))
+
+
+### Features
+
+* add chained search autocomplete for reference parameters ([b66d728](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b66d728b96746140dee165060bcf1f077c661297))
+* add pagination controls to query result header ([9d160cc](https://github.com/martijn-on-fhir/fhir-client-v3/commit/9d160cc3d19fc721e58ad5ab55688896ee89f346))
+
 ## [1.18.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.18.0...v1.18.1) (2026-01-15)
 
 
