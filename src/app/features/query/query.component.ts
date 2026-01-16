@@ -242,6 +242,25 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   result = signal<any>(null);
 
   /**
+   * Pagination links from Bundle result
+   */
+  paginationLinks = computed(() => {
+    const res = this.result();
+    if (!res?.link || !Array.isArray(res.link)) {
+      return [];
+    }
+    return res.link;
+  });
+
+  /**
+   * Total count from Bundle result
+   */
+  resultTotal = computed(() => {
+    const res = this.result();
+    return res?.total;
+  });
+
+  /**
    * Metadata for the currently selected resource type
    */
   resourceMetadata = computed(() => {
@@ -709,6 +728,32 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
     } catch (err: any) {
       this.logger.error('Query execution failed:', err);
       this.toastService.error(err.message || 'Query execution failed', 'Query Error');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Navigate to a pagination page using the Bundle link URL
+   * @param url Full URL from the Bundle link array
+   */
+  async navigateToPage(url: string) {
+    this.loading.set(true);
+    this.error.set(null);
+
+    try {
+      // executeQuery already handles full URLs (checks if starts with 'http')
+      let result = await this.fhirService.executeQuery(url);
+
+      if (result && typeof result === 'object' && 'subscribe' in result) {
+        result = await firstValueFrom(result as any);
+      }
+
+      this.result.set(result);
+      this.logger.info('Navigated to page:', url);
+    } catch (err: any) {
+      this.logger.error('Page navigation failed:', err);
+      this.toastService.error(err.message || 'Page navigation failed', 'Navigation Error');
     } finally {
       this.loading.set(false);
     }

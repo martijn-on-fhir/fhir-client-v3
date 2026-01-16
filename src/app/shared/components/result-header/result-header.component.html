@@ -7,11 +7,54 @@
     <i class="fas {{ icon }} me-2"></i>
     {{ title }}
 
+    <!-- Total count badge -->
+    @if (total !== undefined) {
+      <span class="badge bg-secondary ms-2">{{ total }} results</span>
+    }
+
     <!-- Content projection for badges or other content after title -->
     <ng-content select="[slot='title-suffix']"></ng-content>
   </span>
 
   <div class="d-flex gap-2 align-items-center">
+    <!-- Pagination controls - show if any navigation link exists -->
+    @if (hasLink('first') || hasLink('previous') || hasLink('next') || hasLink('last')) {
+      <div class="btn-group btn-group-sm" role="group" aria-label="Pagination">
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          [disabled]="!hasLink('first')"
+          (click)="navigateTo('first')"
+          title="First page">
+          <i class="fas fa-angles-left"></i>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          [disabled]="!hasLink('previous')"
+          (click)="navigateTo('previous')"
+          title="Previous page">
+          <i class="fas fa-angle-left"></i>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          [disabled]="!hasLink('next')"
+          (click)="navigateTo('next')"
+          title="Next page">
+          <i class="fas fa-angle-right"></i>
+        </button>
+        <button
+          type="button"
+          class="btn btn-outline-secondary"
+          [disabled]="!hasLink('last')"
+          (click)="navigateTo('last')"
+          title="Last page">
+          <i class="fas fa-angles-right"></i>
+        </button>
+      </div>
+    }
+
     <!-- Content projection for extra buttons/controls before toolbar -->
     <ng-content select="[slot='actions']"></ng-content>
 

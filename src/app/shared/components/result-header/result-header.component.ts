@@ -1,6 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { JsonViewerToolbarComponent } from '../json-viewer-toolbar/json-viewer-toolbar.component';
+
+/**
+ * FHIR Bundle link for pagination
+ * Note: FHIR spec uses 'previous' but some servers use 'prev'
+ */
+export interface BundleLink {
+  relation: 'self' | 'first' | 'previous' | 'prev' | 'next' | 'last';
+  url: string;
+}
 
 /**
  * Result Header Component
@@ -90,4 +99,53 @@ export class ResultHeaderComponent {
    * @default 'default'
    */
   @Input() padding: 'default' | 'small' = 'default';
+
+  /**
+   * FHIR Bundle pagination links
+   * Contains URLs for first, previous, next, last pages
+   */
+  @Input() paginationLinks: BundleLink[] = [];
+
+  /**
+   * Total number of results in the Bundle
+   */
+  @Input() total?: number;
+
+  /**
+   * Event emitted when user navigates to a page via pagination
+   * Emits the URL to navigate to
+   */
+  @Output() pageNavigate = new EventEmitter<string>();
+
+  /**
+   * Check if a specific pagination link exists
+   * Handles 'prev'/'previous' interchangeably
+   */
+  hasLink(relation: string): boolean {
+    if (relation === 'previous') {
+      return this.paginationLinks.some(link => link.relation === 'previous' || link.relation === 'prev');
+    }
+    return this.paginationLinks.some(link => link.relation === relation);
+  }
+
+  /**
+   * Get URL for a specific pagination link
+   * Handles 'prev'/'previous' interchangeably
+   */
+  getLink(relation: string): string | undefined {
+    if (relation === 'previous') {
+      return this.paginationLinks.find(link => link.relation === 'previous' || link.relation === 'prev')?.url;
+    }
+    return this.paginationLinks.find(link => link.relation === relation)?.url;
+  }
+
+  /**
+   * Navigate to a specific page
+   */
+  navigateTo(relation: string): void {
+    const url = this.getLink(relation);
+    if (url) {
+      this.pageNavigate.emit(url);
+    }
+  }
 }

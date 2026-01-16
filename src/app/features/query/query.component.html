@@ -99,7 +99,10 @@
               icon="fa-file-lines"
               title="Result"
               [editor]="textModeEditor()"
-              [readOnly]="true">
+              [readOnly]="true"
+              [paginationLinks]="paginationLinks()"
+              [total]="resultTotal()"
+              (pageNavigate)="navigateToPage($event)">
             </app-result-header>
 
             @if (loading()) {
@@ -531,7 +534,10 @@
             icon="fa-file-lines"
             title="Result"
             [editor]="componentVisual?.editor ?? null"
-            [readOnly]="true">
+            [readOnly]="true"
+            [paginationLinks]="paginationLinks()"
+            [total]="resultTotal()"
+            (pageNavigate)="navigateToPage($event)">
           </app-result-header>
 
           @if (loading()) {
