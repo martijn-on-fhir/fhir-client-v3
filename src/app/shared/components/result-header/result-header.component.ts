@@ -125,6 +125,7 @@ export class ResultHeaderComponent {
     if (relation === 'previous') {
       return this.paginationLinks.some(link => link.relation === 'previous' || link.relation === 'prev');
     }
+
     return this.paginationLinks.some(link => link.relation === relation);
   }
 
@@ -136,6 +137,7 @@ export class ResultHeaderComponent {
     if (relation === 'previous') {
       return this.paginationLinks.find(link => link.relation === 'previous' || link.relation === 'prev')?.url;
     }
+
     return this.paginationLinks.find(link => link.relation === relation)?.url;
   }
 
@@ -144,6 +146,7 @@ export class ResultHeaderComponent {
    */
   navigateTo(relation: string): void {
     const url = this.getLink(relation);
+
     if (url) {
       this.pageNavigate.emit(url);
     }

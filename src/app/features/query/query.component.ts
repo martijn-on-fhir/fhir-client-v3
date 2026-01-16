@@ -246,9 +246,11 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   paginationLinks = computed(() => {
     const res = this.result();
+
     if (!res?.link || !Array.isArray(res.link)) {
       return [];
     }
+
     return res.link;
   });
 
@@ -257,6 +259,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   resultTotal = computed(() => {
     const res = this.result();
+
     return res?.total;
   });
 

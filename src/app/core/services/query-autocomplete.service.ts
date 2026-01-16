@@ -524,8 +524,12 @@ export class QueryAutocompleteService {
     return suggestions.sort((a, b) => {
       const aExact = a.label.toLowerCase() === lowerPrefix;
       const bExact = b.label.toLowerCase() === lowerPrefix;
-      if (aExact && !bExact) return -1;
-      if (!aExact && bExact) return 1;
+      if (aExact && !bExact) {
+return -1;
+}
+      if (!aExact && bExact) {
+return 1;
+}
       return a.label.localeCompare(b.label);
     });
   }
