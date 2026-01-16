@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import {Component, OnInit, OnDestroy, signal, effect, inject, ViewChild} from '@angular/core';
+import {Component, OnInit, OnDestroy, AfterViewInit, signal, effect, inject, ViewChild} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as fhirpath from 'fhirpath';
+import { EditorStateService } from '../../core/services/editor-state.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { ThemeService } from '../../core/services/theme.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component'
@@ -30,10 +31,13 @@ import {ResultHeaderComponent} from '../../shared/components/result-header/resul
   templateUrl: './fhirpath.component.html',
   styleUrl: './fhirpath.component.scss'
 })
-export class FhirpathComponent implements OnInit, OnDestroy {
+export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Reference to Monaco editor component for JSON input */
   @ViewChild('component') component?: MonacoEditorComponent;
+
+  /** Service for managing editor state across tabs */
+  private editorStateService = inject(EditorStateService);
 
   /** FHIRPath expression to evaluate */
   expression = signal<string>('');
@@ -116,12 +120,46 @@ export class FhirpathComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Angular lifecycle hook called after view initialization
+   * Registers Monaco editor with EditorStateService for file operations
+   */
+  ngAfterViewInit() {
+    this.registerEditorWithRetry();
+  }
+
+  /**
+   * Registers Monaco editor with retry mechanism for async loading
+   *
+   * Monaco editor loads asynchronously, so this method:
+   * 1. Attempts to register after 100ms delay
+   * 2. Retries after 200ms if first attempt fails
+   *
+   * Registers editor as editable for file load/save operations.
+   */
+  private registerEditorWithRetry() {
+    setTimeout(() => {
+      if (this.component?.editor) {
+        this.editorStateService.registerEditor(this.component, true, '/app/fhirpath');
+        this.logger.info('FHIRPath editor registered as editable');
+      } else {
+        setTimeout(() => {
+          if (this.component?.editor) {
+            this.editorStateService.registerEditor(this.component, true, '/app/fhirpath');
+            this.logger.info('FHIRPath editor registered as editable (retry)');
+          }
+        }, 200);
+      }
+    }, 100);
+  }
+
+  /**
    * Angular lifecycle hook called on component destruction
    *
    * Cleans up event listeners and unregisters Electron file open handler.
    */
   ngOnDestroy() {
     this.cleanup();
+    this.editorStateService.unregisterEditor('/app/fhirpath');
 
     if (this.fileOpenCleanup) {
       this.fileOpenCleanup();

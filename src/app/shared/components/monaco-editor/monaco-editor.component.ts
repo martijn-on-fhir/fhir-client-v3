@@ -75,7 +75,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
   @Input() value: string = '';
   @Input() language: string = 'json';
-  @Input() readOnly: boolean = true;
+  @Input() readOnly: boolean = false;
   @Input() theme: string = 'vs-dark';
   @Input() autocompleteConfig?: AutocompleteConfig;
 
