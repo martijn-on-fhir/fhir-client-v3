@@ -1,3 +1,11 @@
+# [1.21.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.20.0...v1.21.0) (2026-01-16)
+
+
+### Features
+
+* add Ctrl+click link handling in Monaco editor ([86d44b8](https://github.com/martijn-on-fhir/fhir-client-v3/commit/86d44b8798af9ee33c669ec8b2af401b707df6e7))
+* add edit button for single resources in query results ([1c88040](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1c8804016d49ba58fe56a6b4ef7b38c591dea218))
+
 # [1.20.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.19.0...v1.20.0) (2026-01-16)
 
 
