@@ -1263,4 +1263,29 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
       default: return 'text-muted';
     }
   }
+
+  /**
+   * Handles link clicks in Monaco editor
+   * If the URL starts with the FHIR server URL, strips the base and sets it as the query
+   */
+  onLinkClicked(url: string): void {
+    const serverUrl = this.fhirService.getServerUrl();
+    console.log('Link clicked:', url);
+    console.log('Server URL:', serverUrl);
+
+    if (url.startsWith(serverUrl)) {
+      // Strip the server URL to get the relative path
+      const relativePath = url.substring(serverUrl.length);
+      console.log('Relative path:', relativePath);
+
+      // Set the query and switch to text mode
+      this.textQuery.set(relativePath);
+      this.queryMode.set('text');
+
+      // Execute the query
+      this.executeTextQuery();
+    } else {
+      this.logger.info('URL does not match FHIR server, ignoring:', url);
+    }
+  }
 }

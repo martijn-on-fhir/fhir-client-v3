@@ -81,6 +81,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
   @Output() valueChange = new EventEmitter<string>();
   @Output() altEnterPressed = new EventEmitter<{ propertyName: string; lineNumber: number }>();
+  @Output() linkClicked = new EventEmitter<string>();
 
   private themeService = inject(ThemeService);
   private autocompleteService = inject(AutocompleteService);
@@ -90,6 +91,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   public monaco: typeof Monaco | null = null;
   private initInterval: any = null;
   private completionProvider: Monaco.IDisposable | null = null;
+  private linkOpener: Monaco.IDisposable | null = null;
 
   isDarkMode = computed(() => this.themeService.currentTheme() === 'dark');
 
@@ -174,6 +176,12 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       this.completionProvider = null;
     }
 
+    // Dispose link opener
+    if (this.linkOpener) {
+      this.linkOpener.dispose();
+      this.linkOpener = null;
+    }
+
     // Dispose editor
     if (this.editor) {
       this.editor.dispose();
@@ -231,6 +239,9 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
     // Register keyboard shortcuts
     this.registerKeyboardShortcuts();
+
+    // Register custom link opener
+    this.registerLinkOpener();
   }
 
   /**
@@ -424,6 +435,37 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       // Comma key: Auto-format after insertion
       if (!e.ctrlKey && !e.altKey && e.keyCode === this.monaco!.KeyCode.Comma) {
         setTimeout(() => this.handleCommaKey(), 100);
+      }
+    });
+  }
+
+  /**
+   * Registers a custom link opener to intercept Ctrl+click on URLs
+   */
+  private registerLinkOpener() {
+
+    if (!this.monaco) {
+      return;
+    }
+
+    // Dispose previous link opener if exists
+    if (this.linkOpener) {
+      this.linkOpener.dispose();
+      this.linkOpener = null;
+    }
+
+    console.log('Registering link opener...');
+
+    this.linkOpener = this.monaco.editor.registerLinkOpener({
+      open: (resource: Monaco.Uri) => {
+        const url = resource.toString();
+        this.logger.debug('Link clicked:', url);
+
+        // Emit the URL for external handling
+        this.linkClicked.emit(url);
+
+        // Return true to indicate we handled the link (prevents default browser open)
+        return true;
       }
     });
   }
