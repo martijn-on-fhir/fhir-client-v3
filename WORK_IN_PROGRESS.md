@@ -68,6 +68,32 @@ Een "Edit" knop in de toolbar die alleen zichtbaar is bij single resources (niet
 - [ ] Edit knop ook toevoegen aan predefined tab
 - [ ] Keyboard shortcut voor edit (bijv. Ctrl+E)
 
+## Uitbreiden: Ctrl+Click Functionaliteit
+
+**Huidige implementatie:**
+- Ctrl+click op URL in Monaco editor
+- Locatie: `monaco-editor.component.ts` → `registerLinkOpener()`
+- Handler: `query.component.ts` → `onLinkClicked()`
+
+**URL patronen ondersteund:**
+
+| URL patroon | Actie |
+|-------------|-------|
+| Begint met FHIR server URL | Strip base → voer uit als query |
+| Begint met `http://hl7.org/fhir` | Query: `/administration/CodeSystem?url=<URL>` |
+| Anders | Negeren (log message) |
+
+**Ideeën voor uitbreiding:**
+- [ ] Ondersteuning voor relative references (bijv. `Patient/123` zonder base URL)
+- [x] ~~Ondersteuning voor HL7 FHIR canonical URLs~~ ✅ (CodeSystem lookup)
+- [ ] Ondersteuning voor ValueSet URLs (syntax uitzoeken)
+- [ ] Ondersteuning voor StructureDefinition URLs (syntax uitzoeken)
+- [ ] Preview popup bij hover over link (zonder klik)
+- [ ] Ctrl+click op `reference` velden in JSON (niet alleen URLs)
+- [ ] Context menu met opties (Open, Open in new tab, Copy URL)
+- [ ] Breadcrumb navigatie (terug naar vorige resource)
+- [ ] Ondersteuning in andere tabs (Predefined, Validator, FHIRPath)
+
 ## Uncommitted Changes
 
 ```
