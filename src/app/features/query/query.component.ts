@@ -21,6 +21,7 @@ import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
 import {QueryAutocompleteService, Suggestion} from '../../core/services/query-autocomplete.service';
 import {QueryHistoryService} from '../../core/services/query-history.service';
+import {QueryStateService} from '../../core/services/query-state.service';
 import {ToastService} from '../../core/services/toast.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
@@ -72,6 +73,11 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * Injected router for navigation
    */
   private router = inject(Router);
+
+  /**
+   * Injected query state service for persisting state across tab navigation
+   */
+  private queryStateService = inject(QueryStateService);
 
   /**
    * Logger instance for this component
@@ -530,6 +536,14 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   async ngOnInit() {
     await this.loadMetadata();
+
+    // Restore state from query state service (persists across tab navigation)
+    if (this.queryStateService.hasResult()) {
+      this.result.set(this.queryStateService.result());
+      this.queryMode.set(this.queryStateService.queryMode());
+      this.currentPage.set(this.queryStateService.currentPage());
+      this.logger.debug('Restored query state from service');
+    }
   }
 
   /**
@@ -742,6 +756,8 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
       }
 
       this.result.set(result);
+      this.queryStateService.setResult(result);
+      this.queryStateService.setQueryMode(this.queryMode());
 
       this.queryHistoryService.addQuery(query, this.queryMode());
     } catch (err: any) {
@@ -769,6 +785,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
       }
 
       this.result.set(result);
+      this.queryStateService.setResult(result);
       this.logger.info('Navigated to page:', url);
     } catch (err: any) {
       this.logger.error('Page navigation failed:', err);
@@ -1302,8 +1319,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * - If URL starts with https://zibs.nl/wiki: opens in browser
    */
   onLinkClicked(url: string): void {
-
-    console.log('onLinkClicked URL:', url);
+    this.logger.debug('Link clicked:', url);
 
     const serverUrl = this.fhirService.getServerUrl();
 
@@ -1339,17 +1355,10 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
 
       // Zibs wiki URL - open in external browser (decode URL-encoded characters)
       const decodedUrl = decodeURIComponent(url);
-      console.log('Opening zibs URL:', decodedUrl);
-      console.log('electronAPI available:', !!window.electronAPI);
-      console.log('shell available:', !!window.electronAPI?.shell);
-      console.log('openExternal available:', !!window.electronAPI?.shell?.openExternal);
+      this.logger.debug('Opening zibs URL in external browser:', decodedUrl);
 
       window.electronAPI?.shell?.openExternal(decodedUrl)
-        .then((result) => {
-          console.log('openExternal result:', result);
-        })
         .catch((err) => {
-          console.error('openExternal error:', err);
           this.logger.error('Failed to open URL in browser:', err);
         });
 

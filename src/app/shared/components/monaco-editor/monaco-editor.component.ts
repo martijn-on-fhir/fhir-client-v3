@@ -561,7 +561,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   /**
    * Recursively find all coding objects in JSON
    */
-  private findCodingsRecursive(obj: any, results: Array<{ system: string; code: string; display?: string }> = []): Array<{ system: string; code: string; display?: string }> {
+  private findCodingsRecursive(obj: any, results: { system: string; code: string; display?: string }[] = []): { system: string; code: string; display?: string }[] {
     if (!obj || typeof obj !== 'object') {
       return results;
     }
@@ -618,6 +618,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (content[i] === '}') {
         braceCount++;
       }
+
       if (content[i] === '{') {
         if (braceCount === 0) {
           objectStart = i;
@@ -634,6 +635,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (content[i] === '{') {
         braceCount++;
       }
+
       if (content[i] === '}') {
         if (braceCount === 0) {
           objectEnd = i + 1;
@@ -706,6 +708,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       if (codeMatch) {
         code = codeMatch[1];
       }
+
       if (displayMatch) {
         display = displayMatch[1];
       }

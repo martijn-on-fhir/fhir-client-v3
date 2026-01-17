@@ -5,6 +5,7 @@ import { SmartQueryTemplate, TemplateCategory, CATEGORIES, getCategoryInfo } fro
 import { EditorStateService } from '../../core/services/editor-state.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { PredefinedStateService } from '../../core/services/predefined-state.service';
 import { TemplateService } from '../../core/services/template.service';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
@@ -51,6 +52,9 @@ export class PredefinedComponent implements OnInit, OnDestroy {
 
   /** Service for managing editor state and file operations */
   private editorStateService = inject(EditorStateService);
+
+  /** Service for persisting state across tab navigation */
+  private predefinedStateService = inject(PredefinedStateService);
 
   /** Component-specific logger instance */
   private get logger() {
@@ -200,6 +204,13 @@ export class PredefinedComponent implements OnInit, OnDestroy {
    */
   ngOnInit() {
     this.logger.info('Predefined tab initialized');
+
+    // Restore state from service (persists across tab navigation)
+    if (this.predefinedStateService.hasResult()) {
+      this.result.set(this.predefinedStateService.result());
+      this.currentQuery.set(this.predefinedStateService.currentQuery());
+      this.logger.debug('Restored predefined state from service');
+    }
   }
 
   /**
@@ -267,6 +278,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
       this.fhirService.executeQuery(query).subscribe({
         next: (data) => {
           this.result.set(data);
+          this.predefinedStateService.setResult(data, query);
           this.loading.set(false);
         },
         error: (err) => {
@@ -296,6 +308,7 @@ export class PredefinedComponent implements OnInit, OnDestroy {
       this.fhirService.executeQuery(url).subscribe({
         next: (data) => {
           this.result.set(data);
+          this.predefinedStateService.setResult(data, url);
           this.loading.set(false);
         },
         error: (err) => {

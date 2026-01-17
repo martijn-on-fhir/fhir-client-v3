@@ -4,6 +4,7 @@ import {FormsModule} from '@angular/forms';
 import {EditorStateService} from '../../core/services/editor-state.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
+import {TerminologyStateService} from '../../core/services/terminology-state.service';
 import {TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams} from '../../core/services/terminology.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
@@ -50,6 +51,9 @@ export class TerminologyComponent implements OnInit, OnDestroy {
 
   /** Service for navigation events (terminology lookup from other tabs) */
   private navigationService = inject(NavigationService);
+
+  /** Service for persisting state across tab navigation */
+  private terminologyStateService = inject(TerminologyStateService);
 
   /** Component-specific logger instance */
   private logger = this.loggerService.component('TerminologyComponent');
@@ -213,6 +217,13 @@ export class TerminologyComponent implements OnInit, OnDestroy {
         this.logger.info('Executing lookup for:', lookupEvent.system, lookupEvent.code);
         this.executeOperation();
       }, 300);
+    } else if (this.terminologyStateService.hasResult()) {
+      // Restore state from service (persists across tab navigation)
+      this.result.set(this.terminologyStateService.result());
+      this.operation.set(this.terminologyStateService.operation());
+      this.lookupSystem.set(this.terminologyStateService.lookupSystem());
+      this.lookupCode.set(this.terminologyStateService.lookupCode());
+      this.logger.debug('Restored terminology state from service');
     }
   }
 
@@ -261,6 +272,11 @@ export class TerminologyComponent implements OnInit, OnDestroy {
       }
 
       this.result.set(result);
+
+      // Save state to service (persists across tab navigation)
+      this.terminologyStateService.setResult(result);
+      this.terminologyStateService.setOperation(this.operation());
+      this.terminologyStateService.setLookupParams(this.lookupSystem(), this.lookupCode());
     } catch (err: any) {
       this.error.set(err.message || 'Operation failed');
       this.logger.error('Operation error:', err);
