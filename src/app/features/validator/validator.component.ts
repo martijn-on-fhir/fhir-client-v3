@@ -6,6 +6,7 @@ import {EditorStateService} from '../../core/services/editor-state.service';
 import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {ThemeService} from '../../core/services/theme.service';
+import {ValidatorStateService} from '../../core/services/validator-state.service';
 import {
   validateFhirResource,
   validateAgainstServer,
@@ -48,6 +49,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Service for managing editor state and file operations */
   private editorStateService = inject(EditorStateService);
+
+  /** Service for persisting state across tab navigation */
+  private validatorStateService = inject(ValidatorStateService);
 
   /** JSON input content from Monaco editor */
   jsonInput = signal<string>('');
@@ -140,6 +144,17 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
         await this.loadServerMetadata();
       }
     }, {allowSignalWrites: true});
+
+    // Save state to service whenever content changes (persists across tab navigation)
+    effect(() => {
+      const input = this.jsonInput();
+      const result = this.validationResult();
+      const profile = this.selectedProfile();
+
+      if (input) {
+        this.validatorStateService.setState(input, result, profile);
+      }
+    });
   }
 
   /**
@@ -186,10 +201,18 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /**
    * Angular lifecycle hook called on component initialization
-   * Logs component initialization for debugging
+   * Restores state from service if available
    */
   ngOnInit() {
     this.logger.info('Validator tab initialized');
+
+    // Restore state from service (persists across tab navigation)
+    if (this.validatorStateService.hasContent()) {
+      this.jsonInput.set(this.validatorStateService.jsonInput());
+      this.validationResult.set(this.validatorStateService.validationResult());
+      this.selectedProfile.set(this.validatorStateService.selectedProfile());
+      this.logger.debug('Restored validator state from service');
+    }
   }
 
   /**
