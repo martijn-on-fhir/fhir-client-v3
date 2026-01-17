@@ -1293,6 +1293,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * - If URL starts with FHIR server URL: strips base and executes as query
    * - If URL contains "StructureDefinition": creates StructureDefinition lookup query
    * - If URL starts with http://hl7.org/fhir: creates CodeSystem lookup query
+   * - If URL starts with https://zibs.nl/wiki: opens in browser
    */
   onLinkClicked(url: string): void {
 
@@ -1325,6 +1326,13 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.queryMode.set('text');
 
       this.executeTextQuery();
+
+    } else if (url.startsWith('https://zibs.nl/wiki')) {
+
+      // Zibs wiki URL - open in external browser
+      window.electronAPI?.shell?.openExternal(url).catch((err) => {
+        this.logger.error('Failed to open URL in browser:', err);
+      });
 
     } else {
       this.logger.info('URL does not match known patterns, ignoring:', url);
