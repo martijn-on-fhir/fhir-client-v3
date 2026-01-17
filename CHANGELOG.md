@@ -1,3 +1,10 @@
+# [1.27.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.26.0...v1.27.0) (2026-01-17)
+
+
+### Features
+
+* persist validator tab state across navigation ([cec8e73](https://github.com/martijn-on-fhir/fhir-client-v3/commit/cec8e73abfde14416d8e92f1fb180495ce77f26f))
+
 # [1.26.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.25.0...v1.26.0) (2026-01-17)
 
 
