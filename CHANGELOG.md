@@ -1,3 +1,10 @@
+# [1.26.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.25.0...v1.26.0) (2026-01-17)
+
+
+### Features
+
+* auto-execute query when navigating through history ([a489c49](https://github.com/martijn-on-fhir/fhir-client-v3/commit/a489c4965fe837b92a6881c6025098dc8d59e2ca))
+
 # [1.25.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.24.0...v1.25.0) (2026-01-17)
 
 
