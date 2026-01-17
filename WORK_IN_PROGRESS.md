@@ -82,13 +82,55 @@ Een "Edit" knop in de toolbar die alleen zichtbaar is bij single resources (niet
 | Begint met FHIR server URL | Strip base → voer uit als query |
 | Bevat `StructureDefinition` | Query: `/administration/StructureDefinition?url=<URL>` |
 | Begint met `http://hl7.org/fhir` | Query: `/administration/CodeSystem?url=<URL>` |
+| Begint met `https://zibs.nl/wiki` | Open in externe browser |
+| Code system URL (SNOMED, LOINC, etc.) | Navigeer naar Terminology tab en voer $lookup uit |
 | Anders | Negeren (log message) |
+
+### 3. Terminology Lookup via Ctrl+Click
+
+**Status:** Voltooid
+
+Wanneer je Ctrl+click doet op een code system URL in een coding object:
+- Extraheert automatisch system, code en display uit de JSON context
+- Navigeert naar de Terminology tab
+- Vult system en code in
+- Voert automatisch $lookup uit
+
+**Ondersteunde code systems:**
+- `http://snomed.info/sct`
+- `http://loinc.org`
+- `http://unitsofmeasure.org`
+- `http://hl7.org/fhir/sid/`
+- `urn:oid:`
+- `urn:iso:std:iso:`
+- `http://terminology.hl7.org/CodeSystem/`
+- `http://hl7.org/fhir/CodeSystem/`
+
+**Bestanden gewijzigd:**
+
+| Bestand | Wijziging |
+|---------|-----------|
+| `src/app/shared/components/monaco-editor/monaco-editor.component.ts` | `codingClicked` output, `extractCodingContext()` methodes |
+| `src/app/core/services/navigation.service.ts` | `terminologyLookupEvent`, `navigateToTerminologyLookup()` |
+| `src/app/features/query/query.component.ts` | `onCodingClicked()` handler |
+| `src/app/features/query/query.component.html` | `(codingClicked)` binding |
+| `src/app/features/terminology/terminology.component.ts` | Effect voor ontvangen lookup event |
+
+**Flow:**
+1. JSON resultaat bevat coding object met system en code
+2. Ctrl+click op de system URL (bijv. `http://snomed.info/sct`)
+3. Monaco editor extraheert system + code uit de JSON context
+4. Event wordt verstuurd naar query component
+5. NavigationService triggert terminology lookup event
+6. Router navigeert naar `/app/terminology`
+7. Terminology component ontvangt event, vult parameters in, voert $lookup uit
 
 **Ideeën voor uitbreiding:**
 - [ ] Ondersteuning voor relative references (bijv. `Patient/123` zonder base URL)
 - [x] ~~Ondersteuning voor HL7 FHIR canonical URLs~~ ✅ (CodeSystem lookup)
 - [ ] Ondersteuning voor ValueSet URLs (syntax uitzoeken)
 - [x] ~~Ondersteuning voor StructureDefinition URLs~~ ✅ (trigger op "StructureDefinition" in URL)
+- [x] ~~Zibs wiki URLs~~ ✅ (open in externe browser)
 - [ ] Preview popup bij hover over link (zonder klik)
 - [ ] Ctrl+click op `reference` velden in JSON (niet alleen URLs)
 - [ ] Context menu met opties (Open, Open in new tab, Copy URL)
@@ -108,6 +150,9 @@ src/app/shared/components/monaco-editor/monaco-editor.component.ts
 src/app/core/services/navigation.service.ts
 src/app/app.component.ts
 src/app/features/nictiz/nictiz.component.ts
+src/app/features/terminology/terminology.component.ts
+electron/preload.js
+electron/main.js
 ```
 
 ## Commit Suggestie
@@ -115,11 +160,13 @@ src/app/features/nictiz/nictiz.component.ts
 Na testen:
 ```bash
 git add -A
-git commit -m "feat: add edit button for single resources in query results
+git commit -m "feat: add edit button and ctrl+click features for query results
 
 - Add Ctrl+click link handler in Monaco editor to follow FHIR references
 - Add edit button in toolbar (visible only for single resources, not Bundles)
 - Move ResourceEditorDialog to app.component for global access
 - Add NavigationService.openResourceEditor() for cross-component communication
+- Add shell.openExternal API for opening URLs in external browser (zibs.nl/wiki support)
+- Add Ctrl+click on code system URLs to navigate to Terminology tab and execute $lookup
 "
 ```

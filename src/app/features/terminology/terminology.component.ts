@@ -3,6 +3,7 @@ import {Component, OnInit, OnDestroy, inject, signal, computed, effect, HostList
 import {FormsModule} from '@angular/forms';
 import {EditorStateService} from '../../core/services/editor-state.service';
 import {LoggerService} from '../../core/services/logger.service';
+import {NavigationService} from '../../core/services/navigation.service';
 import {TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams} from '../../core/services/terminology.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
@@ -46,6 +47,9 @@ export class TerminologyComponent implements OnInit, OnDestroy {
 
   /** Service for managing editor state and file operations */
   private editorStateService = inject(EditorStateService);
+
+  /** Service for navigation events (terminology lookup from other tabs) */
+  private navigationService = inject(NavigationService);
 
   /** Component-specific logger instance */
   private logger = this.loggerService.component('TerminologyComponent');
@@ -156,11 +160,10 @@ export class TerminologyComponent implements OnInit, OnDestroy {
   /**
    * Creates an instance of TerminologyComponent
    *
-   * Sets up reactive effect for Monaco editor registration.
-   * The editor is registered as read-only when operation results are available,
-   * with retry mechanism for async Monaco loading.
+   * Sets up reactive effect for Monaco editor registration when results are available.
    */
   constructor() {
+    // Effect for Monaco editor registration
     effect(() => {
       const hasResults = this.result() != null;
 
@@ -184,10 +187,33 @@ export class TerminologyComponent implements OnInit, OnDestroy {
 
   /**
    * Angular lifecycle hook called on component initialization
-   * Logs component initialization for debugging
+   * Checks for pending terminology lookup events from navigation
    */
   ngOnInit() {
     this.logger.info('Component initialized');
+
+    // Check for pending terminology lookup event (from Ctrl+click on coding in query results)
+    const lookupEvent = this.navigationService.terminologyLookupEvent();
+
+    if (lookupEvent) {
+      this.logger.info('Pending terminology lookup event found:', lookupEvent);
+
+      // Set operation to lookup
+      this.operation.set('lookup');
+
+      // Set the lookup parameters
+      this.lookupSystem.set(lookupEvent.system);
+      this.lookupCode.set(lookupEvent.code);
+
+      // Clear the event
+      this.navigationService.clearTerminologyLookupEvent();
+
+      // Execute the lookup after a short delay to ensure component is fully rendered
+      setTimeout(() => {
+        this.logger.info('Executing lookup for:', lookupEvent.system, lookupEvent.code);
+        this.executeOperation();
+      }, 300);
+    }
   }
 
   /**

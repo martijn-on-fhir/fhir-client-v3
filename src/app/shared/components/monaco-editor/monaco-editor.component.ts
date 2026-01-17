@@ -82,6 +82,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   @Output() valueChange = new EventEmitter<string>();
   @Output() altEnterPressed = new EventEmitter<{ propertyName: string; lineNumber: number }>();
   @Output() linkClicked = new EventEmitter<string>();
+  @Output() codingClicked = new EventEmitter<{ system: string; code: string; display?: string }>();
 
   private themeService = inject(ThemeService);
   private autocompleteService = inject(AutocompleteService);
@@ -440,6 +441,20 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   /**
+   * Known code system URL prefixes for terminology lookup
+   */
+  private readonly codeSystemPrefixes = [
+    'http://snomed.info/sct',
+    'http://loinc.org',
+    'http://unitsofmeasure.org',
+    'http://hl7.org/fhir/sid/',
+    'urn:oid:',
+    'urn:iso:std:iso:',
+    'http://terminology.hl7.org/CodeSystem/',
+    'http://hl7.org/fhir/CodeSystem/'
+  ];
+
+  /**
    * Registers a custom link opener to intercept Ctrl+click on URLs
    */
   private registerLinkOpener() {
@@ -454,12 +469,22 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       this.linkOpener = null;
     }
 
-    console.log('Registering link opener...');
-
     this.linkOpener = this.monaco.editor.registerLinkOpener({
       open: (resource: Monaco.Uri) => {
-        const url = resource.toString();
+        const url = decodeURIComponent(resource.toString());
         this.logger.debug('Link clicked:', url);
+
+        // Check if this is a code system URL
+        if (this.isCodeSystemUrl(url)) {
+          const codingContext = this.extractCodingContext(url);
+
+          if (codingContext) {
+            this.logger.debug('Coding context found:', codingContext);
+            this.codingClicked.emit(codingContext);
+
+            return true;
+          }
+        }
 
         // Emit the URL for external handling
         this.linkClicked.emit(url);
@@ -468,6 +493,233 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
         return true;
       }
     });
+  }
+
+  /**
+   * Check if URL is a known code system URL
+   */
+  private isCodeSystemUrl(url: string): boolean {
+    return this.codeSystemPrefixes.some(prefix => url.startsWith(prefix));
+  }
+
+  /**
+   * Extract coding context (system, code, display) from the JSON content
+   * when a code system URL is clicked
+   */
+  private extractCodingContext(systemUrl: string): { system: string; code: string; display?: string } | null {
+    if (!this.editor) {
+      return null;
+    }
+
+    const model = this.editor.getModel();
+
+    if (!model) {
+      return null;
+    }
+
+    const content = model.getValue();
+
+    try {
+      // Parse the JSON and find all codings
+      const json = JSON.parse(content);
+      const codings = this.findCodingsRecursive(json);
+
+      // Find matching coding(s) with this system
+      const matching = codings.filter(c => c.system === systemUrl);
+
+      if (matching.length === 0) {
+        this.logger.debug('No coding found with system:', systemUrl);
+
+        return null;
+      }
+
+      // If multiple codings with same system, try to find which one was clicked
+      // by looking at cursor position
+      if (matching.length > 1) {
+        const position = this.editor.getPosition();
+
+        if (position) {
+          const offset = model.getOffsetAt(position);
+          const codingAtCursor = this.findCodingAtOffset(content, systemUrl, offset);
+
+          if (codingAtCursor) {
+            return codingAtCursor;
+          }
+        }
+      }
+
+      // Return the first match
+      return matching[0];
+    } catch (error) {
+      this.logger.warn('Failed to parse JSON for coding extraction:', error);
+
+      // Try line-based extraction as fallback
+      return this.extractCodingFromLines(systemUrl);
+    }
+  }
+
+  /**
+   * Recursively find all coding objects in JSON
+   */
+  private findCodingsRecursive(obj: any, results: Array<{ system: string; code: string; display?: string }> = []): Array<{ system: string; code: string; display?: string }> {
+    if (!obj || typeof obj !== 'object') {
+      return results;
+    }
+
+    // Check if this object looks like a coding (has system and code)
+    if (typeof obj.system === 'string' && typeof obj.code === 'string') {
+      results.push({
+        system: obj.system,
+        code: obj.code,
+        display: obj.display
+      });
+    }
+
+    // Recurse into arrays and objects
+    if (Array.isArray(obj)) {
+      obj.forEach(item => this.findCodingsRecursive(item, results));
+    } else {
+      Object.values(obj).forEach(value => this.findCodingsRecursive(value, results));
+    }
+
+    return results;
+  }
+
+  /**
+   * Find the coding object at a specific offset in the content
+   */
+  private findCodingAtOffset(content: string, systemUrl: string, cursorOffset: number): { system: string; code: string; display?: string } | null {
+    // Find all occurrences of the system URL in the content
+    const systemPattern = `"system"\\s*:\\s*"${systemUrl.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}"`;
+    const regex = new RegExp(systemPattern, 'g');
+    let match;
+    let closestMatch: { start: number; end: number } | null = null;
+    let closestDistance = Infinity;
+
+    while ((match = regex.exec(content)) !== null) {
+      const distance = Math.abs(match.index - cursorOffset);
+
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestMatch = { start: match.index, end: match.index + match[0].length };
+      }
+    }
+
+    if (!closestMatch) {
+      return null;
+    }
+
+    // Find the object boundaries around this system property
+    // Look backwards for { and forwards for }
+    let braceCount = 0;
+    let objectStart = closestMatch.start;
+
+    for (let i = closestMatch.start; i >= 0; i--) {
+      if (content[i] === '}') {
+        braceCount++;
+      }
+      if (content[i] === '{') {
+        if (braceCount === 0) {
+          objectStart = i;
+          break;
+        }
+        braceCount--;
+      }
+    }
+
+    braceCount = 0;
+    let objectEnd = closestMatch.end;
+
+    for (let i = closestMatch.end; i < content.length; i++) {
+      if (content[i] === '{') {
+        braceCount++;
+      }
+      if (content[i] === '}') {
+        if (braceCount === 0) {
+          objectEnd = i + 1;
+          break;
+        }
+        braceCount--;
+      }
+    }
+
+    // Extract and parse the object
+    const objectStr = content.substring(objectStart, objectEnd);
+
+    try {
+      const obj = JSON.parse(objectStr);
+
+      if (obj.system === systemUrl && obj.code) {
+        return {
+          system: obj.system,
+          code: obj.code,
+          display: obj.display
+        };
+      }
+    } catch {
+      // Parsing failed, continue
+    }
+
+    return null;
+  }
+
+  /**
+   * Fallback: Extract coding from lines near the system URL
+   */
+  private extractCodingFromLines(systemUrl: string): { system: string; code: string; display?: string } | null {
+    if (!this.editor) {
+      return null;
+    }
+
+    const model = this.editor.getModel();
+
+    if (!model) {
+      return null;
+    }
+
+    const content = model.getValue();
+    const lines = content.split('\n');
+
+    // Find the line containing this system URL
+    let systemLineIndex = -1;
+
+    for (let i = 0; i < lines.length; i++) {
+      if (lines[i].includes(`"${systemUrl}"`)) {
+        systemLineIndex = i;
+        break;
+      }
+    }
+
+    if (systemLineIndex === -1) {
+      return null;
+    }
+
+    // Look for code and display in nearby lines (within 5 lines)
+    let code: string | undefined;
+    let display: string | undefined;
+
+    for (let i = Math.max(0, systemLineIndex - 5); i < Math.min(lines.length, systemLineIndex + 6); i++) {
+      const line = lines[i];
+      const codeMatch = line.match(/"code"\s*:\s*"([^"]+)"/);
+      const displayMatch = line.match(/"display"\s*:\s*"([^"]+)"/);
+
+      if (codeMatch) {
+        code = codeMatch[1];
+      }
+      if (displayMatch) {
+        display = displayMatch[1];
+      }
+    }
+
+    if (code) {
+      return {
+        system: systemUrl,
+        code,
+        display
+      };
+    }
+
+    return null;
   }
 
   /**

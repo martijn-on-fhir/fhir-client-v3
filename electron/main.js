@@ -1,4 +1,4 @@
-const { app, BrowserWindow, session, ipcMain } = require('electron');
+const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('path');
 const log = require('electron-log/main');
 const { registerAuthHandlers } = require('./auth/auth-handler');
@@ -39,6 +39,18 @@ ipcMain.handle('log:debug', (event, ...args) => {
 
 ipcMain.handle('log:verbose', (event, ...args) => {
   log.verbose('[Renderer]', ...args);
+});
+
+// Shell API handler - open URLs in external browser
+ipcMain.handle('shell:openExternal', async (event, url) => {
+  log.info('[Shell] Opening external URL:', url);
+  try {
+    await shell.openExternal(url);
+    return { success: true };
+  } catch (error) {
+    log.error('[Shell] Failed to open external URL:', error);
+    return { success: false, error: error.message };
+  }
 });
 
 log.info('Application starting...');

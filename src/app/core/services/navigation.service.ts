@@ -1,6 +1,15 @@
 import { Injectable, signal, computed } from '@angular/core';
 
 /**
+ * Coding context for terminology lookup
+ */
+export interface CodingContext {
+  system: string;
+  code: string;
+  display?: string;
+}
+
+/**
  * Navigation Service
  *
  * Facilitates communication between components for navigation events
@@ -17,6 +26,9 @@ export class NavigationService {
   // Signal for edit resource events (opens resource editor dialog)
   private editResourceEventSignal = signal<{ resource: any } | null>(null);
 
+  // Signal for terminology lookup events
+  private terminologyLookupEventSignal = signal<CodingContext | null>(null);
+
   /**
    * Read-only computed signal for query navigation events
    */
@@ -26,6 +38,11 @@ export class NavigationService {
    * Read-only computed signal for edit resource events
    */
   readonly editResourceEvent = computed(() => this.editResourceEventSignal());
+
+  /**
+   * Read-only computed signal for terminology lookup events
+   */
+  readonly terminologyLookupEvent = computed(() => this.terminologyLookupEventSignal());
 
   /**
    * Navigate to query tab with a specific resource
@@ -53,5 +70,19 @@ export class NavigationService {
    */
   clearEditResourceEvent() {
     this.editResourceEventSignal.set(null);
+  }
+
+  /**
+   * Navigate to terminology tab and execute lookup
+   */
+  navigateToTerminologyLookup(coding: CodingContext) {
+    this.terminologyLookupEventSignal.set(coding);
+  }
+
+  /**
+   * Clear the terminology lookup event after it's been handled
+   */
+  clearTerminologyLookupEvent() {
+    this.terminologyLookupEventSignal.set(null);
   }
 }

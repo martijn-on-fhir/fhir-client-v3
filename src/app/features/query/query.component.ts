@@ -9,6 +9,7 @@
 import {CommonModule} from '@angular/common';
 import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked} from '@angular/core';
 import {FormsModule} from '@angular/forms';
+import {Router} from '@angular/router';
 import {firstValueFrom} from 'rxjs';
 import {
   QueryParameter,
@@ -66,6 +67,11 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * Injected toast service for notifications
    */
   private toastService = inject(ToastService);
+
+  /**
+   * Injected router for navigation
+   */
+  private router = inject(Router);
 
   /**
    * Logger instance for this component
@@ -1297,6 +1303,8 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   onLinkClicked(url: string): void {
 
+    console.log('onLinkClicked URL:', url);
+
     const serverUrl = this.fhirService.getServerUrl();
 
     if (url.startsWith(serverUrl)) {
@@ -1329,14 +1337,39 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     } else if (url.startsWith('https://zibs.nl/wiki')) {
 
-      // Zibs wiki URL - open in external browser
-      window.electronAPI?.shell?.openExternal(url).catch((err) => {
-        this.logger.error('Failed to open URL in browser:', err);
-      });
+      // Zibs wiki URL - open in external browser (decode URL-encoded characters)
+      const decodedUrl = decodeURIComponent(url);
+      console.log('Opening zibs URL:', decodedUrl);
+      console.log('electronAPI available:', !!window.electronAPI);
+      console.log('shell available:', !!window.electronAPI?.shell);
+      console.log('openExternal available:', !!window.electronAPI?.shell?.openExternal);
+
+      window.electronAPI?.shell?.openExternal(decodedUrl)
+        .then((result) => {
+          console.log('openExternal result:', result);
+        })
+        .catch((err) => {
+          console.error('openExternal error:', err);
+          this.logger.error('Failed to open URL in browser:', err);
+        });
 
     } else {
       this.logger.info('URL does not match known patterns, ignoring:', url);
     }
+  }
+
+  /**
+   * Handles coding click from Monaco editor
+   * Navigates to terminology tab and triggers a $lookup operation
+   */
+  onCodingClicked(coding: { system: string; code: string; display?: string }): void {
+    this.logger.info('Coding clicked:', coding);
+
+    // Navigate to terminology tab via the navigation service
+    this.navigationService.navigateToTerminologyLookup(coding);
+
+    // Navigate to the terminology tab
+    this.router.navigate(['/app/terminology']);
   }
 
   /**

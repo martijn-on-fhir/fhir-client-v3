@@ -235,6 +235,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('file:save', content, defaultFileName)
   },
 
+  // Shell API
+  shell: {
+    /**
+     * Open URL in external browser
+     * @param {string} url - URL to open
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    openExternal: (url) =>
+      ipcRenderer.invoke('shell:openExternal', url)
+  },
+
   // Terminology API
   terminology: {
     /**
