@@ -80,6 +80,7 @@ Een "Edit" knop in de toolbar die alleen zichtbaar is bij single resources (niet
 | URL patroon | Actie |
 |-------------|-------|
 | Begint met FHIR server URL | Strip base → voer uit als query |
+| Bevat `StructureDefinition` | Query: `/administration/StructureDefinition?url=<URL>` |
 | Begint met `http://hl7.org/fhir` | Query: `/administration/CodeSystem?url=<URL>` |
 | Anders | Negeren (log message) |
 
@@ -87,7 +88,7 @@ Een "Edit" knop in de toolbar die alleen zichtbaar is bij single resources (niet
 - [ ] Ondersteuning voor relative references (bijv. `Patient/123` zonder base URL)
 - [x] ~~Ondersteuning voor HL7 FHIR canonical URLs~~ ✅ (CodeSystem lookup)
 - [ ] Ondersteuning voor ValueSet URLs (syntax uitzoeken)
-- [ ] Ondersteuning voor StructureDefinition URLs (syntax uitzoeken)
+- [x] ~~Ondersteuning voor StructureDefinition URLs~~ ✅ (trigger op "StructureDefinition" in URL)
 - [ ] Preview popup bij hover over link (zonder klik)
 - [ ] Ctrl+click op `reference` velden in JSON (niet alleen URLs)
 - [ ] Context menu met opties (Open, Open in new tab, Copy URL)
