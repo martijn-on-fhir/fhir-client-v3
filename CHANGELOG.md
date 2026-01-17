@@ -1,3 +1,10 @@
+# [1.23.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.22.0...v1.23.0) (2026-01-17)
+
+
+### Features
+
+* add StructureDefinition lookup for Ctrl+click on canonical URLs ([88c78f5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/88c78f50e51f08388f37f2a646ab3dcddf3e1934))
+
 # [1.22.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.21.0...v1.22.0) (2026-01-17)
 
 
