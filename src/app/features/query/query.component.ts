@@ -1249,13 +1249,20 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   getAutocompleteCategoryIcon(category: string): string {
     switch (category) {
-      case 'resource': return 'fa-cube';
-      case 'parameter': return 'fa-filter';
-      case 'global': return 'fa-globe';
-      case 'modifier': return 'fa-at';
-      case 'operator': return 'fa-equals';
-      case 'value': return 'fa-tag';
-      default: return 'fa-circle';
+      case 'resource':
+        return 'fa-cube';
+      case 'parameter':
+        return 'fa-filter';
+      case 'global':
+        return 'fa-globe';
+      case 'modifier':
+        return 'fa-at';
+      case 'operator':
+        return 'fa-equals';
+      case 'value':
+        return 'fa-tag';
+      default:
+        return 'fa-circle';
     }
   }
 
@@ -1264,45 +1271,61 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   getAutocompleteCategoryClass(category: string): string {
     switch (category) {
-      case 'resource': return 'text-primary';
-      case 'parameter': return 'text-success';
-      case 'global': return 'text-info';
-      case 'modifier': return 'text-warning';
-      case 'operator': return 'text-danger';
-      case 'value': return 'text-secondary';
-      default: return 'text-muted';
+      case 'resource':
+        return 'text-primary';
+      case 'parameter':
+        return 'text-success';
+      case 'global':
+        return 'text-info';
+      case 'modifier':
+        return 'text-warning';
+      case 'operator':
+        return 'text-danger';
+      case 'value':
+        return 'text-secondary';
+      default:
+        return 'text-muted';
     }
   }
 
   /**
    * Handles link clicks in Monaco editor
    * - If URL starts with FHIR server URL: strips base and executes as query
+   * - If URL contains "StructureDefinition": creates StructureDefinition lookup query
    * - If URL starts with http://hl7.org/fhir: creates CodeSystem lookup query
    */
   onLinkClicked(url: string): void {
+
     const serverUrl = this.fhirService.getServerUrl();
-    console.log('Link clicked:', url);
-    console.log('Server URL:', serverUrl);
 
     if (url.startsWith(serverUrl)) {
-      // Strip the server URL to get the relative path
-      const relativePath = url.substring(serverUrl.length);
-      console.log('Relative path:', relativePath);
 
-      // Set the query and switch to text mode
+      const relativePath = url.substring(serverUrl.length);
+
       this.textQuery.set(relativePath);
       this.queryMode.set('text');
 
-      // Execute the query
       this.executeTextQuery();
-    } else if (url.startsWith('http://hl7.org/fhir')) {
-      // HL7 FHIR canonical URL - create CodeSystem lookup query
-      const query = `/administration/CodeSystem?url=${encodeURIComponent(url)}`;
-      console.log('HL7 FHIR URL detected, query:', query);
+
+    } else if (url.includes('StructureDefinition')) {
+
+      const query = `/administration/StructureDefinition?url=${url}`;
 
       this.textQuery.set(query);
       this.queryMode.set('text');
+
       this.executeTextQuery();
+
+    } else if (url.startsWith('http://hl7.org/fhir')) {
+
+      // HL7 FHIR canonical URL - assume CodeSystem
+      const query = `/administration/CodeSystem?url=${url}`;
+
+      this.textQuery.set(query);
+      this.queryMode.set('text');
+
+      this.executeTextQuery();
+
     } else {
       this.logger.info('URL does not match known patterns, ignoring:', url);
     }
