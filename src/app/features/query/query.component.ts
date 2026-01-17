@@ -1276,7 +1276,8 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * Handles link clicks in Monaco editor
-   * If the URL starts with the FHIR server URL, strips the base and sets it as the query
+   * - If URL starts with FHIR server URL: strips base and executes as query
+   * - If URL starts with http://hl7.org/fhir: creates CodeSystem lookup query
    */
   onLinkClicked(url: string): void {
     const serverUrl = this.fhirService.getServerUrl();
@@ -1294,8 +1295,16 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
 
       // Execute the query
       this.executeTextQuery();
+    } else if (url.startsWith('http://hl7.org/fhir')) {
+      // HL7 FHIR canonical URL - create CodeSystem lookup query
+      const query = `/administration/CodeSystem?url=${encodeURIComponent(url)}`;
+      console.log('HL7 FHIR URL detected, query:', query);
+
+      this.textQuery.set(query);
+      this.queryMode.set('text');
+      this.executeTextQuery();
     } else {
-      this.logger.info('URL does not match FHIR server, ignoring:', url);
+      this.logger.info('URL does not match known patterns, ignoring:', url);
     }
   }
 
