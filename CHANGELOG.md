@@ -1,3 +1,10 @@
+# [1.24.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.23.0...v1.24.0) (2026-01-17)
+
+
+### Features
+
+* open zibs.nl/wiki URLs in external browser on Ctrl+click ([ad16ef7](https://github.com/martijn-on-fhir/fhir-client-v3/commit/ad16ef766b7d6f5a0dd7d41a5188488f2d1f6cd2))
+
 # [1.23.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.22.0...v1.23.0) (2026-01-17)
 
 
