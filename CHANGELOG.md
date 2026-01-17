@@ -1,3 +1,11 @@
+# [1.25.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.24.0...v1.25.0) (2026-01-17)
+
+
+### Features
+
+* add Ctrl+click on code system URLs to perform terminology lookup ([bb3bdf1](https://github.com/martijn-on-fhir/fhir-client-v3/commit/bb3bdf18c3731fe1750e88f5ba7395b7a1681329))
+* persist query/predefined/terminology results across tab navigation ([b79e14e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b79e14ee496dc6646f50903d1d9206686e76bcd3))
+
 # [1.24.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.23.0...v1.24.0) (2026-01-17)
 
 
