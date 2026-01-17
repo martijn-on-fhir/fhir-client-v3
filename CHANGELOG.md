@@ -1,3 +1,15 @@
+# [1.22.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.21.0...v1.22.0) (2026-01-17)
+
+
+### Bug Fixes
+
+* move security inside meta in resource blueprint ([070fd6c](https://github.com/martijn-on-fhir/fhir-client-v3/commit/070fd6c12930c98f3bebbff912f619acd9233c22))
+
+
+### Features
+
+* add CodeSystem lookup for HL7 FHIR URLs on Ctrl+click ([0d60e3f](https://github.com/martijn-on-fhir/fhir-client-v3/commit/0d60e3f0d2c754b137fa10b8c52d0b789d4d563c))
+
 # [1.21.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.20.0...v1.21.0) (2026-01-16)
 
 
