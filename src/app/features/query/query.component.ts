@@ -712,7 +712,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
 
   /**
    * Navigates to the previous query in history
-   * Updates the text query with the previous query from history
+   * Updates the text query and executes it
    */
   navigateBack() {
     const previousQuery = this.queryHistoryService.navigateBack();
@@ -720,12 +720,13 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (previousQuery) {
       this.textQuery.set(previousQuery);
       this.logger.debug('Navigated to previous query:', previousQuery);
+      this.executeTextQuery();
     }
   }
 
   /**
    * Navigates to the next query in history
-   * Updates the text query with the next query from history
+   * Updates the text query and executes it
    */
   navigateForward() {
     const nextQuery = this.queryHistoryService.navigateForward();
@@ -733,6 +734,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
     if (nextQuery) {
       this.textQuery.set(nextQuery);
       this.logger.debug('Navigated to next query:', nextQuery);
+      this.executeTextQuery();
     }
   }
 
