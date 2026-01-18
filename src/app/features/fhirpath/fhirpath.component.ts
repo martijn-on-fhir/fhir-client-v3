@@ -1,10 +1,12 @@
 import { CommonModule } from '@angular/common';
-import {Component, OnInit, OnDestroy, AfterViewInit, signal, effect, inject, ViewChild} from '@angular/core';
+import {Component, OnInit, OnDestroy, AfterViewInit, signal, effect, inject, ViewChild, ElementRef} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import * as fhirpath from 'fhirpath';
 import { EditorStateService } from '../../core/services/editor-state.service';
+import { FhirpathAutocompleteService, FhirPathSuggestion } from '../../core/services/fhirpath-autocomplete.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { ToastService } from '../../core/services/toast.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component'
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
@@ -36,8 +38,17 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
   /** Reference to Monaco editor component for JSON input */
   @ViewChild('component') component?: MonacoEditorComponent;
 
+  /** Reference to expression input element for autocomplete */
+  @ViewChild('expressionInput') expressionInput?: ElementRef<HTMLInputElement>;
+
   /** Service for managing editor state across tabs */
   private editorStateService = inject(EditorStateService);
+
+  /** Service for FHIRPath expression autocomplete */
+  private autocompleteService = inject(FhirpathAutocompleteService);
+
+  /** Service for toast notifications */
+  private toastService = inject(ToastService);
 
   /** FHIRPath expression to evaluate */
   expression = signal<string>('');
@@ -51,9 +62,6 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
   /** Result from FHIRPath expression evaluation */
   result = signal<any>(null);
 
-  /** Error message from JSON parsing or FHIRPath evaluation */
-  error = signal<string | null>(null);
-
   /** Loading state during FHIRPath evaluation */
   loading = signal<boolean>(false);
 
@@ -62,6 +70,15 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Whether panel resize is in progress */
   isResizing = signal<boolean>(false);
+
+  /** Autocomplete suggestions for FHIRPath expression */
+  autocompleteSuggestions = signal<FhirPathSuggestion[]>([]);
+
+  /** Whether to show autocomplete dropdown */
+  showAutocomplete = signal<boolean>(false);
+
+  /** Currently selected autocomplete suggestion index */
+  autocompleteSelectedIndex = signal<number>(-1);
 
   /** Mouse move event handler for panel resizing */
   private mouseMoveHandler?: (e: MouseEvent) => void;
@@ -95,7 +112,6 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
         if (input.trim()) {
           const parsed = JSON.parse(input);
           this.parsedData.set(parsed);
-          this.error.set(null);
         } else {
           this.parsedData.set(null);
         }
@@ -170,13 +186,13 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
    * Handles file open operation via Electron file API
    *
    * Opens a file dialog and loads the selected file content into the JSON input editor.
-   * Updates jsonInput signal with file content on success, or sets error message on failure.
+   * Updates jsonInput signal with file content on success, or shows toast on failure.
    *
    * @returns Promise that resolves when file operation completes
    */
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
-      this.error.set('File API not available');
+      this.toastService.error('File API not available', 'File Error');
 
       return;
     }
@@ -185,10 +201,9 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
 
     if (result) {
       if ('error' in result) {
-        this.error.set(result.error);
+        this.toastService.error(result.error, 'File Error');
       } else {
         this.jsonInput.set(result.content);
-        this.error.set(null);
       }
     }
   }
@@ -198,13 +213,12 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
    *
    * Validates that JSON is parsed successfully, then evaluates the FHIRPath
    * expression using the fhirpath.js library. Updates result signal with
-   * evaluation output or error signal on failure.
+   * evaluation output or shows toast on failure.
    *
    * Sets loading state during evaluation.
    */
   handleExecute() {
     this.loading.set(true);
-    this.error.set(null);
 
     try {
       const data = this.parsedData();
@@ -217,7 +231,7 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
       this.result.set(evaluationResult);
     } catch (err: any) {
       this.logger.error('FHIRPath evaluation error:', err);
-      this.error.set(err.message || 'Failed to evaluate FHIRPath expression');
+      this.toastService.error(err.message || 'Failed to evaluate FHIRPath expression', 'FHIRPath Error');
       this.result.set(null);
     } finally {
       this.loading.set(false);
@@ -227,15 +241,158 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
   /**
    * Handles keyboard input in the FHIRPath expression field
    *
-   * Executes the FHIRPath expression when Enter key is pressed (without Shift).
-   * Shift+Enter allows multi-line input without execution.
+   * Supports autocomplete navigation and executes expression on Enter.
    *
    * @param event - Keyboard event from the expression input field
    */
   handleKeyDown(event: KeyboardEvent) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.handleExecute();
+    const suggestions = this.autocompleteSuggestions();
+    const currentIndex = this.autocompleteSelectedIndex();
+    const hasVisibleSuggestions = this.showAutocomplete() && suggestions.length > 0;
+
+    switch (event.key) {
+      case 'ArrowDown':
+        if (hasVisibleSuggestions) {
+          event.preventDefault();
+          this.autocompleteSelectedIndex.set(
+            Math.min(currentIndex + 1, suggestions.length - 1)
+          );
+        }
+        break;
+
+      case 'ArrowUp':
+        if (hasVisibleSuggestions) {
+          event.preventDefault();
+          this.autocompleteSelectedIndex.set(Math.max(currentIndex - 1, -1));
+        }
+        break;
+
+      case 'Tab':
+        if (hasVisibleSuggestions) {
+          event.preventDefault();
+          const idx = currentIndex >= 0 ? currentIndex : 0;
+          this.selectSuggestion(suggestions[idx]);
+        }
+        break;
+
+      case 'Enter':
+        if (hasVisibleSuggestions && currentIndex >= 0) {
+          event.preventDefault();
+          this.selectSuggestion(suggestions[currentIndex]);
+        } else if (!event.shiftKey) {
+          event.preventDefault();
+          this.showAutocomplete.set(false);
+          this.handleExecute();
+        }
+        break;
+
+      case 'Escape':
+        if (hasVisibleSuggestions) {
+          this.showAutocomplete.set(false);
+          this.autocompleteSelectedIndex.set(-1);
+        }
+        break;
+    }
+  }
+
+  /**
+   * Handles input changes in the expression field
+   * Updates autocomplete suggestions based on current input
+   */
+  onExpressionInput() {
+    this.updateAutocompleteSuggestions();
+  }
+
+  /**
+   * Handles blur from expression input
+   * Delays hiding autocomplete to allow click on suggestion
+   */
+  onExpressionBlur() {
+    setTimeout(() => {
+      this.showAutocomplete.set(false);
+    }, 150);
+  }
+
+  /**
+   * Updates autocomplete suggestions based on current expression and cursor position
+   */
+  private updateAutocompleteSuggestions() {
+    const input = this.expressionInput?.nativeElement;
+    const cursorPosition = input?.selectionStart ?? this.expression().length;
+    const data = this.parsedData();
+
+    const parsed = this.autocompleteService.parseExpression(this.expression(), cursorPosition);
+    const suggestions = this.autocompleteService.getSuggestions(parsed, data);
+
+    this.autocompleteSuggestions.set(suggestions);
+    this.autocompleteSelectedIndex.set(-1);
+    this.showAutocomplete.set(suggestions.length > 0);
+  }
+
+  /**
+   * Selects an autocomplete suggestion and applies it to the expression
+   *
+   * @param suggestion - The suggestion to apply
+   */
+  selectSuggestion(suggestion: FhirPathSuggestion) {
+    const input = this.expressionInput?.nativeElement;
+    const cursorPosition = input?.selectionStart ?? this.expression().length;
+
+    const result = this.autocompleteService.applySuggestion(
+      this.expression(),
+      cursorPosition,
+      suggestion
+    );
+
+    this.expression.set(result.newExpression);
+    this.showAutocomplete.set(false);
+    this.autocompleteSelectedIndex.set(-1);
+
+    // Set cursor position and trigger new suggestions
+    setTimeout(() => {
+      if (input) {
+        input.focus();
+        input.setSelectionRange(result.newCursorPosition, result.newCursorPosition);
+        this.updateAutocompleteSuggestions();
+      }
+    }, 0);
+  }
+
+  /**
+   * Gets the Font Awesome icon class for a suggestion category
+   *
+   * @param category - The suggestion category
+   * @returns Font Awesome icon class
+   */
+  getCategoryIcon(category: string): string {
+    switch (category) {
+      case 'property':
+        return 'fa-cube';
+      case 'function':
+        return 'fa-code';
+      case 'type':
+        return 'fa-file-medical';
+      default:
+        return 'fa-circle';
+    }
+  }
+
+  /**
+   * Gets the CSS color class for a suggestion category
+   *
+   * @param category - The suggestion category
+   * @returns Bootstrap text color class
+   */
+  getCategoryClass(category: string): string {
+    switch (category) {
+      case 'property':
+        return 'text-primary';
+      case 'function':
+        return 'text-success';
+      case 'type':
+        return 'text-info';
+      default:
+        return 'text-muted';
     }
   }
 

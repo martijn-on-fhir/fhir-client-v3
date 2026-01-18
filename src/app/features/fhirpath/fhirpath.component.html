@@ -5,14 +5,39 @@
       <div class="row g-2 align-items-end">
         <div class="col-md-10">
           <label class="form-label small mb-1">FHIRPath Expression</label>
-          <input
-            type="text"
-            class="form-control"
-            [(ngModel)]="expression"
-            (keydown)="handleKeyDown($event)"
-            placeholder="e.g., name.family, telecom.where(system='phone').value"
-            autofocus
-          />
+          <div class="position-relative">
+            <input
+              #expressionInput
+              type="text"
+              class="form-control"
+              [ngModel]="expression()"
+              (ngModelChange)="expression.set($event)"
+              (input)="onExpressionInput()"
+              (keydown)="handleKeyDown($event)"
+              (blur)="onExpressionBlur()"
+              placeholder="e.g., name.family, telecom.where(system='phone').value"
+              autocomplete="off"
+              spellcheck="false"
+              autofocus
+            />
+
+            @if (showAutocomplete() && autocompleteSuggestions().length > 0) {
+              <div class="autocomplete-dropdown">
+                @for (suggestion of autocompleteSuggestions(); track $index; let i = $index) {
+                  <div
+                    class="autocomplete-item"
+                    [class.selected]="autocompleteSelectedIndex() === i"
+                    (mousedown)="selectSuggestion(suggestion)">
+                    <i class="fas {{ getCategoryIcon(suggestion.category) }} {{ getCategoryClass(suggestion.category) }} me-2"></i>
+                    <span class="autocomplete-label">{{ suggestion.label }}</span>
+                    @if (suggestion.signature) {
+                      <span class="text-muted ms-2">{{ suggestion.signature }}</span>
+                    }
+                  </div>
+                }
+              </div>
+            }
+          </div>
         </div>
         <div class="col-md-2">
           <button
@@ -32,15 +57,7 @@
     </div>
   </div>
 
-  <!-- Error Alert -->
-  @if (error()) {
-    <div class="alert alert-danger" role="alert" style="flex-shrink: 0">
-      <i class="fas fa-exclamation-triangle me-2"></i>
-      {{ error() }}
-    </div>
-  }
-
-  <!-- Results Card with Split Panel -->
+<!-- Results Card with Split Panel -->
   <div class="card flex-grow-1 d-flex flex-column" style="min-height: 0">
     <app-result-header
       icon="fa-sitemap"
