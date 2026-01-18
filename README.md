@@ -81,10 +81,15 @@ Specialized support for Dutch healthcare profiles.
 
 Evaluate FHIRPath expressions on FHIR resources.
 
-- Live evaluation as you type
+- **Smart autocomplete** - Context-aware suggestions based on your JSON data
+  - Property suggestions from the actual JSON structure
+  - FHIRPath function suggestions with signatures (where, ofType, first, exists, etc.)
+  - Resource type suggestions inside `ofType()`
+  - Element property suggestions inside `where()` filters
+- Keyboard navigation for autocomplete (arrows, Tab, Enter, Escape)
 - Load resources from files or paste JSON directly
-- Expression history
-- Syntax highlighting
+- Syntax highlighting with Monaco editor
+- Split-panel layout with resizable editor and result sections
 
 ### Server Information
 
