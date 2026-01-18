@@ -1,3 +1,10 @@
+# [1.28.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.27.0...v1.28.0) (2026-01-18)
+
+
+### Features
+
+* add FHIR query string validator with strict validation ([c22eb21](https://github.com/martijn-on-fhir/fhir-client-v3/commit/c22eb21fb0b4a6a4c852fa17e7e3f1e1707da813))
+
 # [1.27.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.26.0...v1.27.0) (2026-01-17)
 
 
