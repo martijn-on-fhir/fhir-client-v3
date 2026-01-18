@@ -1,3 +1,10 @@
+## [1.29.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.0...v1.29.1) (2026-01-18)
+
+
+### Bug Fixes
+
+* support read and vread operations in FHIR query validator ([e82c310](https://github.com/martijn-on-fhir/fhir-client-v3/commit/e82c31037c1d3ed058d8471a34411faa955d7b96))
+
 # [1.29.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.28.0...v1.29.0) (2026-01-18)
 
 
