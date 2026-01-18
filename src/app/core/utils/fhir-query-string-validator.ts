@@ -44,6 +44,10 @@ export interface ValidationWarning {
 export interface ParsedFhirQuery {
   /** The FHIR resource type (e.g., "Patient", "Observation") */
   resourceType?: string;
+  /** Resource ID for read operations (e.g., "123" in /Patient/123) */
+  resourceId?: string;
+  /** Version ID for vread operations (e.g., "1" in /Patient/123/_history/1) */
+  versionId?: string;
   /** List of parsed search parameters */
   parameters: ParsedParameter[];
 }
@@ -162,14 +166,6 @@ export class FhirQueryValidator {
   ] as const;
 
   /**
-   * Parameters that require a non-empty value.
-   * An error is returned if these parameters have an empty value.
-   */
-  private static readonly REQUIRED_VALUE_PARAMETERS = [
-    '_summary', '_total', '_count', '_offset', '_sort', '_include', '_revinclude', '_elements',
-  ] as const;
-
-  /**
    * Creates a new FHIR query validator instance.
    *
    * @param options - Configuration options for the validator
@@ -190,7 +186,9 @@ export class FhirQueryValidator {
    * Validates a FHIR query string and returns detailed validation results.
    *
    * Accepts queries in the following formats:
-   * - `/ResourceType?param=value`
+   * - `/ResourceType?param=value` (search)
+   * - `/ResourceType/id` (read)
+   * - `/ResourceType/id/_history/vid` (vread)
    * - `ResourceType?param=value`
    * - `/fhir/ResourceType?param=value`
    * - `/fhir/r4/ResourceType?param=value`
@@ -214,12 +212,18 @@ export class FhirQueryValidator {
     }
 
     let resourceType: string | undefined;
+    let resourceId: string | undefined;
+    let versionId: string | undefined;
     let queryString = query;
 
-    const urlMatch = query.match(/^(?:\/)?(?:fhir\/)?(?:r[34]\/)?([A-Z][a-zA-Z]+)?(?:\?(.*))?$/i);
+    // Match patterns including resource ID and version:
+    // /ResourceType, /ResourceType?params, /ResourceType/id, /ResourceType/id/_history/vid
+    const urlMatch = query.match(
+      /^(?:\/)?(?:fhir\/)?(?:r[34]\/)?([A-Z][a-zA-Z]+)(?:\/([A-Za-z0-9.-]+))?(?:\/_history\/([A-Za-z0-9.-]+))?(?:\?(.*))?$/i
+    );
 
     if (urlMatch) {
-      const [, resource, qs] = urlMatch;
+      const [, resource, id, version, qs] = urlMatch;
 
       if (resource) {
         resourceType = resource;
@@ -232,13 +236,21 @@ export class FhirQueryValidator {
         }
       }
 
+      if (id) {
+        resourceId = id;
+      }
+
+      if (version) {
+        versionId = version;
+      }
+
       queryString = qs || '';
     } else if (query.includes('=')) {
       queryString = query.startsWith('?') ? query.slice(1) : query;
     } else {
       errors.push({
         type: 'error',
-        message: 'Invalid query format. Expected format: ResourceType?param=value or param=value',
+        message: 'Invalid query format. Expected format: /ResourceType, /ResourceType/id, or /ResourceType?param=value',
       });
       return {valid: false, errors, warnings, parsed: null};
     }
@@ -269,6 +281,8 @@ export class FhirQueryValidator {
       warnings,
       parsed: {
         resourceType,
+        resourceId,
+        versionId,
         parameters,
       },
     };
@@ -534,20 +548,21 @@ export class FhirQueryValidator {
     warning?: ValidationWarning;
     error?: ValidationError;
   } {
-    if (!value && modifier !== 'missing') {
-      if (FhirQueryValidator.REQUIRED_VALUE_PARAMETERS.includes(name as any)) {
-        return {
-          error: {
-            type: 'error',
-            message: `Parameter '${name}' requires a value`,
-            parameter: name,
-          },
-        };
-      }
+    if (!value) {
       return {
-        warning: {
-          type: 'warning',
-          message: `Empty value for parameter "${name}"`,
+        error: {
+          type: 'error',
+          message: `Parameter '${name}' requires a value`,
+          parameter: name,
+        },
+      };
+    }
+
+    if (modifier === 'missing' && value !== 'true' && value !== 'false') {
+      return {
+        error: {
+          type: 'error',
+          message: `Parameter '${name}:missing' must have value 'true' or 'false', got: '${value}'`,
           parameter: name,
         },
       };
