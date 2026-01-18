@@ -61,7 +61,7 @@
               <!-- Autocomplete Dropdown -->
               @if (showAutocomplete() && autocompleteSuggestions().length > 0) {
                 <div class="autocomplete-dropdown">
-                  @for (suggestion of autocompleteSuggestions(); track suggestion.label; let i = $index) {
+                  @for (suggestion of autocompleteSuggestions(); track $index; let i = $index) {
                     <div
                       class="autocomplete-item"
                       [class.selected]="autocompleteSelectedIndex() === i"

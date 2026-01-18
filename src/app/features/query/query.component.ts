@@ -23,6 +23,7 @@ import {QueryAutocompleteService, Suggestion} from '../../core/services/query-au
 import {QueryHistoryService} from '../../core/services/query-history.service';
 import {QueryStateService} from '../../core/services/query-state.service';
 import {ToastService} from '../../core/services/toast.service';
+import {FhirQueryValidator} from '../../core/utils/fhir-query-string-validator'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
@@ -745,23 +746,39 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * @returns Promise that resolves when query execution completes
    */
   private async executeQueryString(query: string) {
+
     this.loading.set(true);
     this.error.set(null);
+
+    const validator = new FhirQueryValidator({
+      strictMode: true
+    });
+
+    const result = validator.validate(query);
+
+    if(!result.valid) {
+
+      this.loading.set(false);
+      this.result.set(result);
+
+      this.logger.error('Failed to validate query:', result);
+
+      return
+    }
 
     try {
 
       let result = await this.fhirService.executeQuery(query);
 
       if (result && typeof result === 'object' && 'subscribe' in result) {
-
         result = await firstValueFrom(result as any);
       }
 
       this.result.set(result);
       this.queryStateService.setResult(result);
       this.queryStateService.setQueryMode(this.queryMode());
-
       this.queryHistoryService.addQuery(query, this.queryMode());
+
     } catch (err: any) {
       this.logger.error('Query execution failed:', err);
       this.toastService.error(err.message || 'Query execution failed', 'Query Error');
@@ -1374,7 +1391,6 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * Navigates to terminology tab and triggers a $lookup operation
    */
   onCodingClicked(coding: { system: string; code: string; display?: string }): void {
-    this.logger.info('Coding clicked:', coding);
 
     // Navigate to terminology tab via the navigation service
     this.navigationService.navigateToTerminologyLookup(coding);
@@ -1388,10 +1404,10 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * Navigates to Nictiz tab and opens resource editor with the resource
    */
   onEditClicked(): void {
+
     const res = this.result();
 
     if (res?.resourceType) {
-      this.logger.info('Opening resource editor for:', res.resourceType, res.id);
       this.navigationService.openResourceEditor(res);
     }
   }
