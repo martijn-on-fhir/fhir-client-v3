@@ -1,3 +1,10 @@
+# [1.29.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.28.0...v1.29.0) (2026-01-18)
+
+
+### Features
+
+* add FHIRPath expression autocomplete with JSON-based suggestions ([be28e66](https://github.com/martijn-on-fhir/fhir-client-v3/commit/be28e66668ee307d96e5dcb8f2aa8f92d560b3a0))
+
 # [1.28.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.27.0...v1.28.0) (2026-01-18)
 
 
