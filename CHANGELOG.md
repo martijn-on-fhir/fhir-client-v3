@@ -1,3 +1,10 @@
+## [1.29.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.1...v1.29.2) (2026-01-19)
+
+
+### Bug Fixes
+
+* correct select element not showing default selected option ([180a807](https://github.com/martijn-on-fhir/fhir-client-v3/commit/180a80748580b2e70c1bfeef6249bf8e2063175f))
+
 ## [1.29.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.0...v1.29.1) (2026-01-18)
 
 
