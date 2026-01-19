@@ -1,3 +1,10 @@
+## [1.29.4](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.3...v1.29.4) (2026-01-19)
+
+
+### Bug Fixes
+
+* use ToastService for validator errors instead of inline div ([8a89b44](https://github.com/martijn-on-fhir/fhir-client-v3/commit/8a89b4420d041440edead9ad628f90aa0f8f56a9))
+
 ## [1.29.3](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.2...v1.29.3) (2026-01-19)
 
 
