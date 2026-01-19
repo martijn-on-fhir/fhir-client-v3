@@ -6,6 +6,7 @@ import {EditorStateService} from '../../core/services/editor-state.service';
 import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {ThemeService} from '../../core/services/theme.service';
+import {ToastService} from '../../core/services/toast.service';
 import {ValidatorStateService} from '../../core/services/validator-state.service';
 import {
   validateFhirResource,
@@ -53,6 +54,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Service for persisting state across tab navigation */
   private validatorStateService = inject(ValidatorStateService);
 
+  /** Service for toast notifications */
+  private toastService = inject(ToastService);
+
   /** JSON input content from Monaco editor */
   jsonInput = signal<string>('');
 
@@ -61,9 +65,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Current validation result with issues */
   validationResult = signal<ValidationResult | null>(null);
-
-  /** Error message for display to user */
-  error = signal<string | null>(null);
 
   /** Loading state during validation operations */
   loading = signal<boolean>(false);
@@ -107,9 +108,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Mouse up event handler for panel resizing */
   private mouseUpHandler?: () => void;
 
-  /** Cleanup function for file operations */
-  private fileOpenCleanup?: () => void;
-
   /** Utility function reference for severity icon mapping */
   getSeverityIcon = getSeverityIcon;
 
@@ -130,7 +128,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
         if (input.trim()) {
           const parsed = JSON.parse(input);
           this.parsedData.set(parsed);
-          this.error.set(null);
         } else {
           this.parsedData.set(null);
         }
@@ -170,6 +167,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    * @private
    */
   private async loadServerMetadata() {
+
     try {
       let storedMetadata = await window.electronAPI?.metadata?.get();
 
@@ -189,13 +187,12 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
       if (storedMetadata) {
         this.serverMetadata.set(storedMetadata);
-        this.error.set(null);
       } else {
-        this.error.set('No server metadata available. Please connect to a FHIR server first.');
+        this.toastService.error('No server metadata available. Please connect to a FHIR server first.', 'Metadata Error');
       }
     } catch (err) {
       this.logger.error('Failed to load server metadata:', err);
-      this.error.set('Failed to load server metadata');
+      this.toastService.error('Failed to load server metadata', 'Metadata Error');
     }
   }
 
@@ -204,9 +201,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    * Restores state from service if available
    */
   ngOnInit() {
-    this.logger.info('Validator tab initialized');
 
-    // Restore state from service (persists across tab navigation)
     if (this.validatorStateService.hasContent()) {
       this.jsonInput.set(this.validatorStateService.jsonInput());
       this.validationResult.set(this.validatorStateService.validationResult());
@@ -235,6 +230,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    * @private
    */
   private registerEditorWithRetry() {
+
     setTimeout(() => {
       if (this.component?.editor) {
         this.editorStateService.registerEditor(this.component, true, '/app/validator');
@@ -269,7 +265,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
-      this.error.set('File API not available');
+      this.toastService.error('File API not available', 'File Error');
 
       return;
     }
@@ -278,10 +274,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
     if (result) {
       if ('error' in result) {
-        this.error.set(result.error);
+        this.toastService.error(result.error, 'File Error');
       } else {
         this.jsonInput.set(result.content);
-        this.error.set(null);
       }
     }
   }
@@ -308,7 +303,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    */
   handleValidate() {
     this.loading.set(true);
-    this.error.set(null);
 
     try {
       const data = this.parsedData();
@@ -351,7 +345,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
           issues: allIssues,
           resourceType: `Batch (${results.length} resources)`,
         });
+
       } else if (data.resourceType === 'Bundle') {
+
         const entries = data.entry || [];
         const results = entries.map((entry: any, index: number) => {
           const resource = entry.resource;
@@ -390,6 +386,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
           resourceType: `Bundle (${results.length} entries)`,
         });
       } else {
+
         if (isServerValidation) {
           const serverResult = validateAgainstServer(data, this.serverMetadata());
           const baseResult = validateFhirResource(data, fhirVersion);
@@ -404,7 +401,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     } catch (err: any) {
       this.logger.error('Validation error:', err);
-      this.error.set(err.message || 'Failed to validate resource');
+      this.toastService.error(err.message || 'Failed to validate resource', 'Validation Error');
       this.validationResult.set(null);
     } finally {
       this.loading.set(false);
@@ -424,7 +421,6 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     this.jsonInput.set('');
     this.parsedData.set(null);
     this.validationResult.set(null);
-    this.error.set(null);
   }
 
   /**
@@ -466,6 +462,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    * @private
    */
   private resize(e: MouseEvent) {
+
     if (!this.isResizing()) {
       return;
     }
