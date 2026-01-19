@@ -1,3 +1,10 @@
+## [1.29.3](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.2...v1.29.3) (2026-01-19)
+
+
+### Bug Fixes
+
+* preserve editor state when switching tabs ([8d9c4d7](https://github.com/martijn-on-fhir/fhir-client-v3/commit/8d9c4d75f051ceaff831f70f8e59a8dda9ce85a0))
+
 ## [1.29.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.1...v1.29.2) (2026-01-19)
 
 
