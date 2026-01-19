@@ -93,6 +93,8 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   private initInterval: any = null;
   private completionProvider: Monaco.IDisposable | null = null;
   private linkOpener: Monaco.IDisposable | null = null;
+  private isInitializing = true;
+  private pendingValue: string | null = null;
 
   isDarkMode = computed(() => this.themeService.currentTheme() === 'dark');
 
@@ -147,11 +149,16 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnChanges(changes: SimpleChanges) {
-    if (changes['value'] && !changes['value'].firstChange && this.editor) {
-      const currentValue = this.editor.getValue();
+    if (changes['value'] && !changes['value'].firstChange) {
+      if (this.editor) {
+        const currentValue = this.editor.getValue();
 
-      if (currentValue !== this.value) {
-        this.editor.setValue(this.value);
+        if (currentValue !== this.value) {
+          this.editor.setValue(this.value);
+        }
+      } else {
+        // Editor not ready yet, store pending value to apply after initialization
+        this.pendingValue = this.value;
       }
     }
 
@@ -197,8 +204,12 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
 
     const currentTheme = this.isDarkMode() ? 'vs-dark' : 'vs';
 
+    // Use pending value if available (set via ngOnChanges before editor was ready)
+    const initialValue = this.pendingValue !== null ? this.pendingValue : this.value;
+    this.pendingValue = null;
+
     this.editor = this.monaco.editor.create(this.editorContainer.nativeElement, {
-      value: this.value,
+      value: initialValue,
       language: this.language,
       theme: currentTheme,
       readOnly: this.readOnly,
@@ -227,13 +238,18 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
       formatOnType: true
     });
 
-    // Listen for content changes
+    // Listen for content changes (skip during initialization to prevent overwriting restored state)
     this.editor.onDidChangeModelContent(() => {
-      if (this.editor) {
+      if (this.editor && !this.isInitializing) {
         const newValue = this.editor.getValue();
         this.valueChange.emit(newValue);
       }
     });
+
+    // Mark initialization complete after a short delay to allow initial value to settle
+    setTimeout(() => {
+      this.isInitializing = false;
+    }, 100);
 
     // Register autocomplete provider if config provided
     this.registerAutocompleteProvider();

@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import * as fhirpath from 'fhirpath';
 import { EditorStateService } from '../../core/services/editor-state.service';
 import { FhirpathAutocompleteService, FhirPathSuggestion } from '../../core/services/fhirpath-autocomplete.service';
+import { FhirpathStateService } from '../../core/services/fhirpath-state.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { ThemeService } from '../../core/services/theme.service';
 import { ToastService } from '../../core/services/toast.service';
@@ -49,6 +50,9 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
 
   /** Service for toast notifications */
   private toastService = inject(ToastService);
+
+  /** Service for persisting state across tab navigation */
+  private fhirpathStateService = inject(FhirpathStateService);
 
   /** FHIRPath expression to evaluate */
   expression = signal<string>('');
@@ -119,6 +123,17 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
         this.parsedData.set(null);
       }
     }, { allowSignalWrites: true });
+
+    // Save state to service whenever content changes (persists across tab navigation)
+    effect(() => {
+      const input = this.jsonInput();
+      const expr = this.expression();
+      const res = this.result();
+
+      if (input || expr) {
+        this.fhirpathStateService.setState(input, expr, res);
+      }
+    }, { allowSignalWrites: true });
   }
 
   /**
@@ -126,8 +141,17 @@ export class FhirpathComponent implements OnInit, OnDestroy, AfterViewInit {
    *
    * Sets up event listener for file open events from Electron main process.
    * When a file open is triggered, delegates to handleOpenFile method.
+   * Restores state from service if available.
    */
   ngOnInit() {
+    // Restore state from service (persists across tab navigation)
+    if (this.fhirpathStateService.hasContent()) {
+      this.jsonInput.set(this.fhirpathStateService.jsonInput());
+      this.expression.set(this.fhirpathStateService.expression());
+      this.result.set(this.fhirpathStateService.result());
+      this.logger.debug('Restored FHIRPath state from service');
+    }
+
     if (window.electronAPI?.onOpenFile) {
       this.fileOpenCleanup = window.electronAPI.onOpenFile(async () => {
         await this.handleOpenFile();

@@ -154,7 +154,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
       if (input) {
         this.validatorStateService.setState(input, result, profile);
       }
-    });
+    }, {allowSignalWrites: true});
   }
 
   /**
