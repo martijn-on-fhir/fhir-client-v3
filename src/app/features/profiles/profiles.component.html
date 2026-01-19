@@ -7,14 +7,13 @@
         <div style="flex: 1">
           <select
             class="form-select"
-            [value]="selectedProfileUrl()"
             (change)="onProfileChange($event)"
             [disabled]="loading() || profiles().length === 0">
             <option value="">
               {{ loading() ? '-- Loading profiles... --' : '-- Select Profile --' }}
             </option>
             @for (profile of profiles(); track profile.url) {
-              <option [value]="profile.url">
+              <option [value]="profile.url" [selected]="profile.url === selectedProfileUrl()">
                 {{ profile.resourceType }}
               </option>
             }

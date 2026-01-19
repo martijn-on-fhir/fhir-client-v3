@@ -7,14 +7,13 @@
         <div style="flex: 1">
           <select
             class="form-select"
-            [value]="selectedProfileUrl()"
             (change)="onProfileChange($event)"
             [disabled]="nictizService.isLoading() || nictizService.structureDefinitions().length === 0">
             <option value="">
               {{ nictizService.isLoading() ? '-- Loading profiles... --' : '-- Select Nictiz Profile --' }}
             </option>
             @for (profile of getSortedProfiles(); track profile.url) {
-              <option [value]="profile.url">
+              <option [value]="profile.url" [selected]="profile.url === selectedProfileUrl()">
                 {{ getProfileDisplayName(profile.title) }}
               </option>
             }
