@@ -117,8 +117,10 @@ export class SettingsDialogComponent implements OnInit {
    */
   savePlurifromBaseUrl() {
     const url = this.pluriformBaseUrl().trim();
+
     if (!url) {
       this.toastService.error('URL mag niet leeg zijn');
+
       return;
     }
 
