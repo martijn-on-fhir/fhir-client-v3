@@ -43,12 +43,12 @@ ipcMain.handle('log:verbose', (event, ...args) => {
 
 // Shell API handler - open URLs in external browser
 ipcMain.handle('shell:openExternal', async (event, url) => {
-  log.info('[Shell] Opening external URL:', url);
+
   try {
     await shell.openExternal(url);
     return { success: true };
   } catch (error) {
-    log.error('[Shell] Failed to open external URL:', error);
+
     return { success: false, error: error.message };
   }
 });
@@ -130,7 +130,8 @@ function createWindow() {
   });
 
   // Configure Content Security Policy
-  const isDev = process.env.NODE_ENV !== 'production';
+  // Use app.isPackaged for reliable detection - NODE_ENV may not be set in portable builds
+  const isDev = !app.isPackaged;
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
     const cspPolicy = isDev
@@ -149,7 +150,7 @@ function createWindow() {
         ].join('; ')
       : [
           "default-src 'self'",
-          "script-src 'self'",
+          "script-src 'self' 'unsafe-inline'",
           "worker-src 'self' blob:",
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data:",
@@ -202,8 +203,9 @@ function createWindow() {
 }
 
 // Initialize app
+// Register IPC handlers before creating window
 app.whenReady().then(() => {
-  // Register IPC handlers before creating window
+
   registerConfigHandlers();
   registerAuthHandlers();
   registerTerminologyHandlers();
@@ -211,27 +213,21 @@ app.whenReady().then(() => {
   registerProfileHandlers();
   registerCertificateHandlers();
   registerMtlsHandlers();
-
-  // Create application menu
   createApplicationMenu();
-
-  // Create splash window first
   createSplashWindow();
-
-  // Create main window (hidden initially)
   createWindow();
-
-  // Register log handlers (requires mainWindow)
   registerLogHandlers(mainWindow);
 });
 
 app.on('window-all-closed', () => {
+
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('activate', () => {
+
   if (BrowserWindow.getAllWindows().length === 0) {
     createWindow();
   }

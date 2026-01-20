@@ -1,7 +1,7 @@
 {
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.fhir.client",
-  "productName": "FHIR Client",
+  "productName": "FHIR Client MX",
   "directories": {
     "output": "release",
     "buildResources": "electron/resources"

@@ -144,6 +144,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
       this.toastService.error('File API not available', 'Error');
+
       return;
     }
 
