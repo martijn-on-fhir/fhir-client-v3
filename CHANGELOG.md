@@ -1,3 +1,10 @@
+# [1.30.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.4...v1.30.0) (2026-01-20)
+
+
+### Features
+
+* **pluriform:** add API integration and state persistence ([1d2cafa](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1d2cafad62455095cea7f02ce2a64db4ba60da34))
+
 ## [1.29.4](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.3...v1.29.4) (2026-01-19)
 
 
