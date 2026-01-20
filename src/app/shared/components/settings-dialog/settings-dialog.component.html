@@ -19,6 +19,14 @@
         <button
           type="button"
           class="tab-button"
+          [class.active]="activeTab() === 'general'"
+          (click)="switchTab('general')"
+        >
+          <i class="fas fa-cog"></i> Algemeen
+        </button>
+        <button
+          type="button"
+          class="tab-button"
           [class.active]="activeTab() === 'servers'"
           (click)="switchTab('servers')"
         >
@@ -52,6 +60,34 @@
 
       <!-- Modal Body -->
       <div class="modal-body">
+        <!-- General Tab -->
+        @if (activeTab() === 'general') {
+          <div class="tab-content">
+            <h3>Algemene Instellingen</h3>
+            <p class="text-muted">Configureer algemene applicatie instellingen</p>
+
+            <div class="settings-list">
+              <!-- Pluriform Base URL -->
+              <div class="setting-item">
+                <div class="setting-info">
+                  <i class="fas fa-link"></i>
+                  <div>
+                    <h4>Pluriform Base URL</h4>
+                    <p>De basis URL voor Pluriform API endpoint</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <input type="text" class="form-control mb-2" [(ngModel)]="pluriformBaseUrl" placeholder="http://localhost:3030"/>
+                <button type="button" class="btn btn-sm btn-success mt-2" (click)="savePlurifromBaseUrl()">
+                  <i class="fas fa-save"></i> Opslaan
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+
         <!-- Servers Tab -->
         @if (activeTab() === 'servers') {
           <div class="tab-content">

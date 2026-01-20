@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
-import { AppSettings, UISettings, DEFAULT_SETTINGS } from '../models/settings.model';
+import { AppSettings, UISettings, GeneralSettings, DEFAULT_SETTINGS } from '../models/settings.model';
 import { LoggerService } from './logger.service';
 
 /**
@@ -58,6 +58,11 @@ export class SettingsService {
    */
   readonly enabledTabs = computed(() => this.settings().ui.enabledTabs);
 
+  /**
+   * Computed signal for pluriform base URL
+   */
+  readonly pluriformBaseUrl = computed(() => this.settings().general.pluriformBaseUrl);
+
   constructor() {
     effect(() => {
       this.saveSettings(this.settings());
@@ -70,6 +75,21 @@ export class SettingsService {
    */
   getSettings(): AppSettings {
     return this.settings();
+  }
+
+  /**
+   * Update general settings
+   * @param generalSettings Partial general settings to merge with current settings
+   */
+  updateGeneralSettings(generalSettings: Partial<GeneralSettings>): void {
+    this.settings.update(current => ({
+      ...current,
+      general: {
+        ...current.general,
+        ...generalSettings
+      },
+      lastModified: Date.now()
+    }));
   }
 
   /**
@@ -196,6 +216,14 @@ export class SettingsService {
   }
 
   /**
+   * Set Pluriform base URL
+   * @param url Base URL for Pluriform API endpoint
+   */
+  setPlurifromBaseUrl(url: string): void {
+    this.updateGeneralSettings({ pluriformBaseUrl: url });
+  }
+
+  /**
    * Reset settings to defaults
    */
   resetSettings(): void {
@@ -217,6 +245,10 @@ export class SettingsService {
         return {
           ...DEFAULT_SETTINGS,
           ...parsed,
+          general: {
+            ...DEFAULT_SETTINGS.general,
+            ...parsed.general
+          },
           ui: {
             ...DEFAULT_SETTINGS.ui,
             ...parsed.ui

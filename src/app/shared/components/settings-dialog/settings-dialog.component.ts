@@ -42,7 +42,7 @@ export class SettingsDialogComponent implements OnInit {
 
   // Dialog state
   isOpen = signal(false);
-  activeTab = signal<'servers' | '2fa' | 'ui' | 'server'>('servers');
+  activeTab = signal<'general' | 'servers' | '2fa' | 'ui' | 'server'>('general');
 
   // Server Profiles
   readonly profiles = this.profileService.sortedProfiles;
@@ -56,6 +56,9 @@ export class SettingsDialogComponent implements OnInit {
   showQRCode = signal(false);
   verificationCode = signal('');
   twoFactorError = signal<string | null>(null);
+
+  // General Settings
+  pluriformBaseUrl = signal('');
 
   // UI Settings
   readonly theme = computed(() => this.themeService.currentTheme());
@@ -78,6 +81,7 @@ export class SettingsDialogComponent implements OnInit {
   async loadData() {
     const twoFactorEnabled = await this.authService.isTwoFactorEnabled();
     this.twoFactorEnabled.set(twoFactorEnabled);
+    this.pluriformBaseUrl.set(this.settingsService.pluriformBaseUrl());
   }
 
   /**
@@ -99,9 +103,27 @@ export class SettingsDialogComponent implements OnInit {
   /**
    * Switch tab
    */
-  switchTab(tab: 'servers' | '2fa' | 'ui' | 'server') {
+  switchTab(tab: 'general' | 'servers' | '2fa' | 'ui' | 'server') {
     this.activeTab.set(tab);
     this.resetForms();
+  }
+
+  // =============================================================================
+  // General Settings
+  // =============================================================================
+
+  /**
+   * Save Pluriform base URL
+   */
+  savePlurifromBaseUrl() {
+    const url = this.pluriformBaseUrl().trim();
+    if (!url) {
+      this.toastService.error('URL mag niet leeg zijn');
+      return;
+    }
+
+    this.settingsService.setPlurifromBaseUrl(url);
+    this.toastService.success('Pluriform URL opgeslagen');
   }
 
   // =============================================================================

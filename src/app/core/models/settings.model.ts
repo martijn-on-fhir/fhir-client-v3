@@ -5,6 +5,13 @@
  */
 
 /**
+ * General Settings - General application preferences
+ */
+export interface GeneralSettings {
+  pluriformBaseUrl: string;
+}
+
+/**
  * UI Settings - User interface preferences
  */
 export interface UISettings {
@@ -19,6 +26,7 @@ export interface UISettings {
  * Application Settings - Complete settings object
  */
 export interface AppSettings {
+  general: GeneralSettings;
   ui: UISettings;
   version: string;
   lastModified: number;
@@ -28,6 +36,9 @@ export interface AppSettings {
  * Default settings
  */
 export const DEFAULT_SETTINGS: AppSettings = {
+  general: {
+    pluriformBaseUrl: 'http://localhost:3030'
+  },
   ui: {
     theme: 'light',
     logViewerEnabled: false,

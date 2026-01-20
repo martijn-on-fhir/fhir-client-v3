@@ -1,14 +1,15 @@
-import { CommonModule } from '@angular/common';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { Component, OnInit, OnDestroy, signal, inject, ViewChild, effect } from '@angular/core';
-import { FormsModule } from '@angular/forms';
-import { firstValueFrom } from 'rxjs';
-import { LoggerService } from '../../core/services/logger.service';
-import { PluriformStateService } from '../../core/services/pluriform-state.service';
-import { ServerProfileService } from '../../core/services/server-profile.service';
-import { ThemeService } from '../../core/services/theme.service';
-import { ToastService } from '../../core/services/toast.service';
-import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import {CommonModule} from '@angular/common';
+import {HttpClient, HttpErrorResponse} from '@angular/common/http';
+import {Component, OnInit, OnDestroy, signal, inject, ViewChild, effect} from '@angular/core';
+import {FormsModule} from '@angular/forms';
+import {firstValueFrom} from 'rxjs';
+import {LoggerService} from '../../core/services/logger.service';
+import {PluriformStateService} from '../../core/services/pluriform-state.service';
+import {ServerProfileService} from '../../core/services/server-profile.service';
+import {SettingsService} from '../../core/services/settings.service';
+import {ThemeService} from '../../core/services/theme.service';
+import {ToastService} from '../../core/services/toast.service';
+import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 /**
@@ -82,6 +83,9 @@ export class PluriformComponent implements OnInit, OnDestroy {
   /** State service for persisting editor content across tab navigation */
   private stateService = inject(PluriformStateService);
 
+  /** Settings service for accessing application settings */
+  private settingsService = inject(SettingsService);
+
   /**
    * Creates an instance of PluriformComponent
    *
@@ -96,7 +100,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
       if (left || right) {
         this.stateService.setState(left, right);
       }
-    }, { allowSignalWrites: true });
+    }, {allowSignalWrites: true});
   }
 
   /**
@@ -175,8 +179,12 @@ export class PluriformComponent implements OnInit, OnDestroy {
       const activeProfile = this.serverProfileService.activeProfile();
       const customHeaders = activeProfile?.customHeaders ?? {};
 
+      // Get base URL from settings
+      const baseUrl = this.settingsService.pluriformBaseUrl();
+      const url = `${baseUrl}/pluriform`;
+
       const response = await firstValueFrom(
-        this.http.post('http://localhost:3030/pluriform', this.leftContent(), {
+        this.http.post(url, this.leftContent(), {
           headers: {
             'Content-Type': 'application/xml',
             ...customHeaders
@@ -187,11 +195,12 @@ export class PluriformComponent implements OnInit, OnDestroy {
       this.rightContent.set(JSON.stringify(response, null, 2));
     } catch (err) {
       if (err instanceof HttpErrorResponse && err.error) {
-        // Show the error response JSON in the right editor
+
         const errorJson = typeof err.error === 'string' ? err.error : JSON.stringify(err.error, null, 2);
         this.rightContent.set(errorJson);
+
       } else {
-        // Show other errors via toast notification
+
         const message = err instanceof Error ? err.message : 'Unknown error occurred';
         this.toastService.error(message, 'Transform Error');
       }
@@ -232,14 +241,14 @@ export class PluriformComponent implements OnInit, OnDestroy {
    */
   private resize(e: MouseEvent) {
     if (!this.isResizing()) {
-return;
-}
+      return;
+    }
 
     const container = document.getElementById('pluriform-results-container');
 
     if (!container) {
-return;
-}
+      return;
+    }
 
     const containerRect = container.getBoundingClientRect();
     const newWidth = ((e.clientX - containerRect.left) / containerRect.width) * 100;
@@ -273,6 +282,7 @@ return;
    * @private
    */
   private cleanup() {
+
     if (this.mouseMoveHandler) {
       document.removeEventListener('mousemove', this.mouseMoveHandler);
     }
