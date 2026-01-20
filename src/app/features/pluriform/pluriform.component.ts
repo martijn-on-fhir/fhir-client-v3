@@ -1,8 +1,13 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, inject, ViewChild } from '@angular/core';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Component, OnInit, OnDestroy, signal, inject, ViewChild, effect } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { firstValueFrom } from 'rxjs';
 import { LoggerService } from '../../core/services/logger.service';
+import { PluriformStateService } from '../../core/services/pluriform-state.service';
+import { ServerProfileService } from '../../core/services/server-profile.service';
 import { ThemeService } from '../../core/services/theme.service';
+import { ToastService } from '../../core/services/toast.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
@@ -35,9 +40,6 @@ export class PluriformComponent implements OnInit, OnDestroy {
   /** Reference to right Monaco editor component */
   @ViewChild('rightEditor') rightEditor?: MonacoEditorComponent;
 
-  /** Error message from file operations or transformation */
-  error = signal<string | null>(null);
-
   /** Loading state during transformation operations */
   loading = signal<boolean>(false);
 
@@ -68,12 +70,34 @@ export class PluriformComponent implements OnInit, OnDestroy {
   /** Component-specific logger instance */
   private logger = this.loggerService.component('PluriformComponent');
 
+  /** HTTP client for API requests */
+  private http = inject(HttpClient);
+
+  /** Server profile service for accessing active profile configuration */
+  private serverProfileService = inject(ServerProfileService);
+
+  /** Toast service for displaying notifications */
+  private toastService = inject(ToastService);
+
+  /** State service for persisting editor content across tab navigation */
+  private stateService = inject(PluriformStateService);
+
   /**
    * Creates an instance of PluriformComponent
    *
    * @param themeService - Service for managing application theme (light/dark mode)
    */
-  constructor(public themeService: ThemeService) {}
+  constructor(public themeService: ThemeService) {
+    // Auto-save state when editor content changes
+    effect(() => {
+      const left = this.leftContent();
+      const right = this.rightContent();
+
+      if (left || right) {
+        this.stateService.setState(left, right);
+      }
+    }, { allowSignalWrites: true });
+  }
 
   /**
    * Angular lifecycle hook called on component initialization
@@ -82,6 +106,13 @@ export class PluriformComponent implements OnInit, OnDestroy {
    * When a file open is triggered, delegates to handleOpenFile method.
    */
   ngOnInit() {
+    // Restore state from service (persists across tab navigation)
+    if (this.stateService.hasContent()) {
+      this.leftContent.set(this.stateService.leftContent());
+      this.rightContent.set(this.stateService.rightContent());
+      this.logger.debug('Restored Pluriform state from service');
+    }
+
     if (window.electronAPI?.onOpenFile) {
       this.fileOpenCleanup = window.electronAPI.onOpenFile(async () => {
         await this.handleOpenFile();
@@ -112,8 +143,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
    */
   async handleOpenFile() {
     if (!window.electronAPI?.file?.openFile) {
-      this.error.set('File API not available');
-
+      this.toastService.error('File API not available', 'Error');
       return;
     }
 
@@ -121,10 +151,9 @@ export class PluriformComponent implements OnInit, OnDestroy {
 
     if (result) {
       if ('error' in result) {
-        this.error.set(result.error);
+        this.toastService.error(result.error, 'File Error');
       } else {
         this.leftContent.set(result.content);
-        this.error.set(null);
       }
     }
   }
@@ -132,19 +161,39 @@ export class PluriformComponent implements OnInit, OnDestroy {
   /**
    * Executes transformation from left editor content to right editor
    *
-   * Placeholder implementation that currently copies left content to right editor.
-   * Sets loading state during operation and error state on failure.
+   * Sends the left editor content to the pluriform API endpoint and displays
+   * the JSON response in the right editor.
    *
    * @returns Promise that resolves when transformation completes
    */
   async transform() {
     this.loading.set(true);
-    this.error.set(null);
 
     try {
-      this.rightContent.set(this.leftContent());
+      // Get custom headers from active server profile
+      const activeProfile = this.serverProfileService.activeProfile();
+      const customHeaders = activeProfile?.customHeaders ?? {};
+
+      const response = await firstValueFrom(
+        this.http.post('http://localhost:3030/pluriform', this.leftContent(), {
+          headers: {
+            'Content-Type': 'application/xml',
+            ...customHeaders
+          },
+          responseType: 'json'
+        })
+      );
+      this.rightContent.set(JSON.stringify(response, null, 2));
     } catch (err) {
-      this.error.set(err instanceof Error ? err.message : 'Unknown error occurred');
+      if (err instanceof HttpErrorResponse && err.error) {
+        // Show the error response JSON in the right editor
+        const errorJson = typeof err.error === 'string' ? err.error : JSON.stringify(err.error, null, 2);
+        this.rightContent.set(errorJson);
+      } else {
+        // Show other errors via toast notification
+        const message = err instanceof Error ? err.message : 'Unknown error occurred';
+        this.toastService.error(message, 'Transform Error');
+      }
     } finally {
       this.loading.set(false);
     }
