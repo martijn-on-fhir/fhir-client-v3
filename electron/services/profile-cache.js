@@ -8,11 +8,12 @@
 const fs = require('fs').promises;
 const path = require('path');
 const { app } = require('electron');
+const log = require('electron-log/main');
 
 class ProfileCacheService {
 
   constructor() {
- s
+
     this.cacheDir = path.join(app.getPath('userData'), 'profile-cache');
     this.ensureCacheDir();
   }
@@ -25,7 +26,7 @@ class ProfileCacheService {
     try {
       await fs.mkdir(this.cacheDir, { recursive: true });
     } catch (error) {
-      console.error('[ProfileCache] Error creating cache directory:', error);
+      log.error('[ProfileCache] Error creating cache directory:', error);
     }
   }
 
@@ -53,11 +54,11 @@ class ProfileCacheService {
       const data = await fs.readFile(filePath, 'utf-8');
       const cached = JSON.parse(data);
 
-      console.log(`[ProfileCache] Cache hit: ${title}`);
+      log.info(`[ProfileCache] Cache hit: ${title}`);
       return cached;
     } catch (error) {
       if (error.code !== 'ENOENT') {
-        console.error(`[ProfileCache] Error reading cache for ${title}:`, error);
+        log.error(`[ProfileCache] Error reading cache for ${title}:`, error);
       }
       return null;
     }
@@ -85,7 +86,7 @@ class ProfileCacheService {
       await fs.writeFile(filePath, JSON.stringify(cacheData, null, 2), 'utf-8');
 
     } catch (error) {
-      console.error(`[ProfileCache] Error caching ${title}:`, error);
+      log.error(`[ProfileCache] Error caching ${title}:`, error);
       throw error;
     }
   }
@@ -103,9 +104,9 @@ class ProfileCacheService {
         files.map(file => fs.unlink(path.join(this.cacheDir, file)))
       );
 
-      console.log(`[ProfileCache] Cleared ${files.length} cached profiles`);
+      log.info(`[ProfileCache] Cleared ${files.length} cached profiles`);
     } catch (error) {
-      console.error('[ProfileCache] Error clearing cache:', error);
+      log.error('[ProfileCache] Error clearing cache:', error);
       throw error;
     }
   }
@@ -129,7 +130,7 @@ class ProfileCacheService {
           totalSize += stats.size;
         } catch (error) {
           // Skip files that can't be accessed
-          console.warn(`[ProfileCache] Could not stat file ${file}:`, error);
+          log.warn(`[ProfileCache] Could not stat file ${file}:`, error);
         }
       }
 
@@ -139,7 +140,7 @@ class ProfileCacheService {
       };
 
     } catch (error) {
-      console.error('[ProfileCache] Error getting cache stats:', error);
+      log.error('[ProfileCache] Error getting cache stats:', error);
       return {
         fileCount: 0,
         totalSize: 0,

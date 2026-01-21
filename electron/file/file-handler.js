@@ -1,5 +1,6 @@
 const { ipcMain, dialog } = require('electron');
 const fs = require('fs').promises;
+const log = require('electron-log/main');
 
 /**
  * Register file operation IPC handlers
@@ -33,7 +34,7 @@ function registerFileHandlers() {
       };
 
     } catch (error) {
-      console.error('Error opening file:', error);
+      log.error('Error opening file:', error);
       return { error: error.message };
     }
   });
@@ -63,7 +64,7 @@ function registerFileHandlers() {
         success: true
       };
     } catch (error) {
-      console.error('Error saving file:', error);
+      log.error('Error saving file:', error);
       return { error: error.message };
     }
   });

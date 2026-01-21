@@ -1,4 +1,5 @@
 const Store = require('electron-store').default || require('electron-store');
+const log = require('electron-log/main');
 
 /**
  * Secure Token Storage using electron-store with encryption
@@ -61,7 +62,7 @@ function saveToken(tokenResponse, fhirServer, clientId, clientSecret, environmen
   };
 
   tokenStore.set('token', storedToken);
-  console.log('[TokenStore] Token saved successfully');
+  log.info('[TokenStore] Token saved successfully');
 }
 
 /**
@@ -79,12 +80,12 @@ function getToken() {
   if (token.expires_at < Date.now()) {
     // If we have client credentials, return token for re-auth attempt
     if (token.client_id && token.client_secret && token.environment) {
-      console.log('[TokenStore] Token expired but credentials available for refresh');
+      log.info('[TokenStore] Token expired but credentials available for refresh');
       return token;
     }
 
     // No way to refresh, clear and return null
-    console.log('[TokenStore] Token expired and no refresh available');
+    log.info('[TokenStore] Token expired and no refresh available');
     clearToken();
     return null;
   }
@@ -113,7 +114,7 @@ function hasValidToken() {
  */
 function clearToken() {
   tokenStore.delete('token');
-  console.log('[TokenStore] Token cleared');
+  log.info('[TokenStore] Token cleared');
 }
 
 // =============================================================================
@@ -126,7 +127,7 @@ function clearToken() {
  */
 function setTwoFactorSecret(secret) {
   tokenStore.set('twoFactorSecret', secret);
-  console.log('[TokenStore] 2FA secret saved');
+  log.info('[TokenStore] 2FA secret saved');
 }
 
 /**
@@ -142,7 +143,7 @@ function getTwoFactorSecret() {
  */
 function removeTwoFactorSecret() {
   tokenStore.delete('twoFactorSecret');
-  console.log('[TokenStore] 2FA secret removed');
+  log.info('[TokenStore] 2FA secret removed');
 }
 
 // =============================================================================
@@ -155,7 +156,7 @@ function removeTwoFactorSecret() {
  */
 function setSavedAccounts(accounts) {
   accountsStore.set('savedAccounts', accounts);
-  console.log(`[TokenStore] Saved ${accounts.length} accounts`);
+  log.info(`[TokenStore] Saved ${accounts.length} accounts`);
 }
 
 /**
@@ -171,7 +172,7 @@ function getSavedAccounts() {
  */
 function clearSavedAccounts() {
   accountsStore.delete('savedAccounts');
-  console.log('[TokenStore] Saved accounts cleared');
+  log.info('[TokenStore] Saved accounts cleared');
 }
 
 // =============================================================================
@@ -192,7 +193,7 @@ function getProfiles() {
  */
 function setProfiles(profiles) {
   profileStore.set('profiles', profiles);
-  console.log(`[TokenStore] Saved ${profiles.length} server profiles`);
+  log.info(`[TokenStore] Saved ${profiles.length} server profiles`);
 }
 
 /**
@@ -213,7 +214,7 @@ function setActiveProfileId(id) {
   } else {
     profileStore.delete('activeProfileId');
   }
-  console.log(`[TokenStore] Active profile set to: ${id || 'none'}`);
+  log.info(`[TokenStore] Active profile set to: ${id || 'none'}`);
 }
 
 /**
@@ -222,7 +223,7 @@ function setActiveProfileId(id) {
 function clearProfiles() {
   profileStore.delete('profiles');
   profileStore.delete('activeProfileId');
-  console.log('[TokenStore] Server profiles cleared');
+  log.info('[TokenStore] Server profiles cleared');
 }
 
 // =============================================================================
@@ -248,7 +249,7 @@ function setSession(profileId, session) {
   const sessions = sessionStore.get('sessions', {});
   sessions[profileId] = session;
   sessionStore.set('sessions', sessions);
-  console.log(`[TokenStore] Session saved for profile: ${profileId}`);
+  log.info(`[TokenStore] Session saved for profile: ${profileId}`);
 }
 
 /**
@@ -259,7 +260,7 @@ function clearSession(profileId) {
   const sessions = sessionStore.get('sessions', {});
   delete sessions[profileId];
   sessionStore.set('sessions', sessions);
-  console.log(`[TokenStore] Session cleared for profile: ${profileId}`);
+  log.info(`[TokenStore] Session cleared for profile: ${profileId}`);
 }
 
 /**
@@ -276,7 +277,7 @@ function getAllSessions() {
  */
 function setAllSessions(sessions) {
   sessionStore.set('sessions', sessions);
-  console.log(`[TokenStore] Saved ${Object.keys(sessions).length} sessions`);
+  log.info(`[TokenStore] Saved ${Object.keys(sessions).length} sessions`);
 }
 
 /**
@@ -284,7 +285,7 @@ function setAllSessions(sessions) {
  */
 function clearAllSessions() {
   sessionStore.delete('sessions');
-  console.log('[TokenStore] All sessions cleared');
+  log.info('[TokenStore] All sessions cleared');
 }
 
 module.exports = {

@@ -1,6 +1,7 @@
 const { ipcMain, dialog } = require('electron');
 const https = require('https');
 const axios = require('axios');
+const log = require('electron-log/main');
 
 let certificateStore;
 let certificateUtils;
@@ -9,7 +10,7 @@ try {
   certificateStore = require('./certificate-store');
   certificateUtils = require('./certificate-utils');
 } catch (error) {
-  console.error('[CertificateHandler] Failed to load dependencies:', error);
+  log.error('[CertificateHandler] Failed to load dependencies:', error);
 }
 
 /**
@@ -20,10 +21,10 @@ try {
  */
 
 function registerCertificateHandlers() {
-  console.log('[CertificateHandler] Registering certificate IPC handlers');
+  log.info('[CertificateHandler] Registering certificate IPC handlers');
 
   if (!certificateStore || !certificateUtils) {
-    console.error('[CertificateHandler] Dependencies not loaded, skipping handler registration');
+    log.error('[CertificateHandler] Dependencies not loaded, skipping handler registration');
     return;
   }
 
@@ -39,7 +40,7 @@ function registerCertificateHandlers() {
       const certificates = certificateStore.getAllCertificates();
       return { success: true, certificates };
     } catch (error) {
-      console.error('[CertificateHandler] Error getting certificates:', error);
+      log.error('[CertificateHandler] Error getting certificates:', error);
       return { success: false, error: error.message };
     }
   });
@@ -65,7 +66,7 @@ function registerCertificateHandlers() {
       const savedCert = certificateStore.saveCertificate(entry);
       return { success: true, certificate: savedCert };
     } catch (error) {
-      console.error('[CertificateHandler] Error saving certificate:', error);
+      log.error('[CertificateHandler] Error saving certificate:', error);
       return { success: false, error: error.message };
     }
   });
@@ -95,7 +96,7 @@ function registerCertificateHandlers() {
 
       return { success: true, certificate: updatedCert };
     } catch (error) {
-      console.error('[CertificateHandler] Error updating certificate:', error);
+      log.error('[CertificateHandler] Error updating certificate:', error);
       return { success: false, error: error.message };
     }
   });
@@ -108,7 +109,7 @@ function registerCertificateHandlers() {
       const deleted = certificateStore.deleteCertificate(id);
       return { success: deleted, error: deleted ? null : 'Certificate not found' };
     } catch (error) {
-      console.error('[CertificateHandler] Error deleting certificate:', error);
+      log.error('[CertificateHandler] Error deleting certificate:', error);
       return { success: false, error: error.message };
     }
   });
@@ -159,7 +160,7 @@ function registerCertificateHandlers() {
         data: parsed
       };
     } catch (error) {
-      console.error('[CertificateHandler] Error importing certificate:', error);
+      log.error('[CertificateHandler] Error importing certificate:', error);
       return { success: false, error: error.message };
     }
   });
@@ -175,7 +176,7 @@ function registerCertificateHandlers() {
         data: parsed
       };
     } catch (error) {
-      console.error('[CertificateHandler] Error parsing PFX:', error);
+      log.error('[CertificateHandler] Error parsing PFX:', error);
       return { success: false, error: error.message };
     }
   });
@@ -237,7 +238,7 @@ function registerCertificateHandlers() {
         warnings: certValidation.errors // Expiry warnings
       };
     } catch (error) {
-      console.error('[CertificateHandler] Error validating certificate:', error);
+      log.error('[CertificateHandler] Error validating certificate:', error);
       return { success: false, valid: false, error: error.message };
     }
   });
@@ -302,7 +303,7 @@ function registerCertificateHandlers() {
         warnings: certValidation.errors // Expiry warnings
       };
     } catch (error) {
-      console.error('[CertificateHandler] Error validating stored certificate:', error);
+      log.error('[CertificateHandler] Error validating stored certificate:', error);
       return { success: false, valid: false, error: error.message };
     }
   });
@@ -361,7 +362,7 @@ function registerCertificateHandlers() {
         }
       };
     } catch (error) {
-      console.error('[CertificateHandler] Connection test failed:', error);
+      log.error('[CertificateHandler] Connection test failed:', error);
 
       // Parse common errors
       let errorMessage = error.message;
@@ -425,7 +426,7 @@ function registerCertificateHandlers() {
         }
       };
     } catch (error) {
-      console.error('[CertificateHandler] Connection test with data failed:', error);
+      log.error('[CertificateHandler] Connection test with data failed:', error);
 
       let errorMessage = error.message;
 
@@ -445,7 +446,7 @@ function registerCertificateHandlers() {
     }
   });
 
-  console.log('[CertificateHandler] Certificate handlers registered');
+  log.info('[CertificateHandler] Certificate handlers registered');
 }
 
 module.exports = { registerCertificateHandlers };

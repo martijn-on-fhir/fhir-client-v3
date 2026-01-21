@@ -2,6 +2,7 @@ const { ipcMain } = require('electron');
 const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
+const log = require('electron-log/main');
 
 /**
  * Terminology Service IPC Handler
@@ -10,7 +11,7 @@ const fs = require('fs');
  * Implements OAuth2 password grant authentication with automatic token management
  */
 
-/**s
+/**
  * Load terminology configuration from external JSON file
  * This keeps sensitive credentials out of the source code
  */
@@ -19,7 +20,7 @@ function loadTerminologyConfig() {
   const configPath = path.join(__dirname, '..', 'config', 'environments.json');
 
   if (!fs.existsSync(configPath)) {
-    console.error('[TerminologyHandler] ERROR: environments.json not found!');
+    log.error('[TerminologyHandler] ERROR: environments.json not found!');
     return null;
   }
 
@@ -28,14 +29,14 @@ function loadTerminologyConfig() {
     const config = JSON.parse(configContent);
 
     if (!config.terminology) {
-      console.error('[TerminologyHandler] ERROR: terminology section not found in config');
+      log.error('[TerminologyHandler] ERROR: terminology section not found in config');
       return null;
     }
 
     return config.terminology;
 
   } catch (error) {
-    console.error('[TerminologyHandler] ERROR: Failed to parse config:', error.message);
+    log.error('[TerminologyHandler] ERROR: Failed to parse config:', error.message);
     return null;
   }
 }
@@ -56,7 +57,7 @@ async function acquireToken() {
     throw new Error('Terminology configuration not loaded. Please check environments.json');
   }
 
-  console.log('[TerminologyHandler] Acquiring OAuth2 token...');
+  log.info('[TerminologyHandler] Acquiring OAuth2 token...');
 
   const params = new URLSearchParams({
     username: TERMINOLOGY_CONFIG.user,
@@ -79,7 +80,7 @@ async function acquireToken() {
     return accessToken;
 
   } catch (error) {
-    console.error('[TerminologyHandler] Token acquisition failed:', error.message);
+    log.error('[TerminologyHandler] Token acquisition failed:', error.message);
     throw new Error('Failed to authenticate with terminology server: ' + error.message);
   }
 }
@@ -118,12 +119,12 @@ async function makeRequest(path, params) {
     return response.data;
 
   } catch (error) {
-    console.error('[TerminologyHandler] Request failed:', error.message);
+    log.error('[TerminologyHandler] Request failed:', error.message);
 
     // If 401, try refreshing token once
     if (error.response?.status === 401) {
 
-      console.log('[TerminologyHandler] 401 error, refreshing token and retrying...');
+      log.info('[TerminologyHandler] 401 error, refreshing token and retrying...');
 
       accessToken = null;
       tokenExpiry = 0;
@@ -169,7 +170,7 @@ function registerTerminologyHandlers() {
       return await makeRequest('/CodeSystem/$lookup', queryParams);
 
     } catch (error) {
-      console.error('[TerminologyHandler] Lookup failed:', error.message);
+      log.error('[TerminologyHandler] Lookup failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Lookup operation failed');
     }
   });
@@ -194,7 +195,7 @@ function registerTerminologyHandlers() {
       return await makeRequest('/ValueSet/$expand', queryParams);
 
     } catch (error) {
-      console.error('[TerminologyHandler] Expand failed:', error.message);
+      log.error('[TerminologyHandler] Expand failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Expand operation failed');
     }
   });
@@ -218,7 +219,7 @@ function registerTerminologyHandlers() {
       return await makeRequest('/ValueSet/$validate-code', queryParams);
 
     } catch (error) {
-      console.error('[TerminologyHandler] Validate code failed:', error.message);
+      log.error('[TerminologyHandler] Validate code failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Validate operation failed');
     }
   });
@@ -229,7 +230,7 @@ function registerTerminologyHandlers() {
   ipcMain.handle('terminology:translate', async (event, params) => {
 
     try {
-      console.log('[TerminologyHandler] Translate:', params);
+      log.info('[TerminologyHandler] Translate:', params);
 
       const queryParams = {
         url: params.url,
@@ -243,7 +244,7 @@ function registerTerminologyHandlers() {
       return await makeRequest('/ConceptMap/$translate', queryParams);
 
     } catch (error) {
-      console.error('[TerminologyHandler] Translate failed:', error.message);
+      log.error('[TerminologyHandler] Translate failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Translate operation failed');
     }
   });
@@ -255,12 +256,12 @@ function registerTerminologyHandlers() {
     try {
       return await makeRequest('/metadata', {});
     } catch (error) {
-      console.error('[TerminologyHandler] Get metadata failed:', error.message);
+      log.error('[TerminologyHandler] Get metadata failed:', error.message);
       throw new Error(error.message || 'Failed to fetch metadata');
     }
   });
 
-  console.log('[TerminologyHandler] Terminology IPC handlers registered successfully');
+  log.info('[TerminologyHandler] Terminology IPC handlers registered successfully');
 }
 
 module.exports = { registerTerminologyHandlers };

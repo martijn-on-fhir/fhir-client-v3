@@ -1,4 +1,5 @@
 const { v4: uuidv4 } = require('uuid');
+const log = require('electron-log/main');
 
 /**
  * Secure Certificate Storage using electron-store with encryption
@@ -57,7 +58,7 @@ function saveCertificate(entry) {
   certificates.push(newEntry);
   getStore().set('certificates', certificates);
 
-  console.log(`[CertificateStore] Certificate saved: ${newEntry.name} (${newEntry.id})`);
+  log.info(`[CertificateStore] Certificate saved: ${newEntry.name} (${newEntry.id})`);
 
   // Return entry without sensitive data for UI
   return sanitizeForUI(newEntry);
@@ -111,7 +112,7 @@ function updateCertificate(id, updates) {
   const index = certificates.findIndex(cert => cert.id === id);
 
   if (index === -1) {
-    console.log(`[CertificateStore] Certificate not found for update: ${id}`);
+    log.info(`[CertificateStore] Certificate not found for update: ${id}`);
     return null;
   }
 
@@ -141,7 +142,7 @@ function updateCertificate(id, updates) {
   };
 
   getStore().set('certificates', certificates);
-  console.log(`[CertificateStore] Certificate updated: ${id}`);
+  log.info(`[CertificateStore] Certificate updated: ${id}`);
 
   return sanitizeForUI(certificates[index]);
 }
@@ -156,14 +157,14 @@ function deleteCertificate(id) {
   const index = certificates.findIndex(cert => cert.id === id);
 
   if (index === -1) {
-    console.log(`[CertificateStore] Certificate not found for deletion: ${id}`);
+    log.info(`[CertificateStore] Certificate not found for deletion: ${id}`);
     return false;
   }
 
   certificates.splice(index, 1);
   getStore().set('certificates', certificates);
 
-  console.log(`[CertificateStore] Certificate deleted: ${id}`);
+  log.info(`[CertificateStore] Certificate deleted: ${id}`);
   return true;
 }
 
@@ -172,7 +173,7 @@ function deleteCertificate(id) {
  */
 function clearAllCertificates() {
   getStore().delete('certificates');
-  console.log('[CertificateStore] All certificates cleared');
+  log.info('[CertificateStore] All certificates cleared');
 }
 
 // =============================================================================

@@ -2,13 +2,14 @@ const { ipcMain } = require('electron');
 const https = require('https');
 const http = require('http');
 const axios = require('axios');
+const log = require('electron-log/main');
 
 let certificateStore;
 
 try {
   certificateStore = require('../certificates/certificate-store');
 } catch (error) {
-  console.error('[MtlsHandler] Failed to load certificate store:', error);
+  log.error('[MtlsHandler] Failed to load certificate store:', error);
 }
 
 /**
@@ -20,10 +21,10 @@ try {
 
 function registerMtlsHandlers() {
 
-  console.log('[MtlsHandler] Registering mTLS IPC handlers');
+  log.info('[MtlsHandler] Registering mTLS IPC handlers');
 
   if (!certificateStore) {
-    console.error('[MtlsHandler] Certificate store not loaded, skipping handler registration');
+    log.error('[MtlsHandler] Certificate store not loaded, skipping handler registration');
     return;
   }
 
@@ -36,7 +37,7 @@ function registerMtlsHandlers() {
       const cert = certificateStore.getCertificateForDomain(hostname);
       return { hasCertificate: !!cert, enabled: cert?.enabled ?? false };
     } catch (error) {
-      console.error('[MtlsHandler] Error checking certificate:', error);
+      log.error('[MtlsHandler] Error checking certificate:', error);
       return { hasCertificate: false, enabled: false };
     }
   });
@@ -70,7 +71,7 @@ function registerMtlsHandlers() {
         };
       }
 
-      console.log(`[MtlsHandler] Making mTLS request to ${hostname} using certificate: ${cert.name}`);
+      log.info(`[MtlsHandler] Making mTLS request to ${hostname} using certificate: ${cert.name}`);
 
       // Create HTTPS agent with client certificate
       const agentOptions = {
@@ -113,7 +114,7 @@ function registerMtlsHandlers() {
         data: response.data
       };
     } catch (error) {
-      console.error('[MtlsHandler] Request failed:', error);
+      log.error('[MtlsHandler] Request failed:', error);
 
       // Parse common errors
       let errorMessage = error.message;
@@ -177,12 +178,12 @@ function registerMtlsHandlers() {
         }
       };
     } catch (error) {
-      console.error('[MtlsHandler] Error getting certificate info:', error);
+      log.error('[MtlsHandler] Error getting certificate info:', error);
       return { found: false, error: error.message };
     }
   });
 
-  console.log('[MtlsHandler] mTLS handlers registered');
+  log.info('[MtlsHandler] mTLS handlers registered');
 }
 
 module.exports = { registerMtlsHandlers };

@@ -1,4 +1,5 @@
 const { contextBridge, ipcRenderer } = require('electron');
+const log = require('electron-log/main');
 
 /**
  * Electron Preload Script
@@ -7,7 +8,7 @@ const { contextBridge, ipcRenderer } = require('electron');
  * Provides authentication, file, and platform APIs
  */
 
-console.log('[Preload] Loading preload script');
+log.info('[Preload] Loading preload script');
 
 // Expose Electron APIs to Angular app
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -548,4 +549,4 @@ contextBridge.exposeInMainWorld('electronAPI', {
   }
 });
 
-console.log('[Preload] electronAPI exposed to renderer process');
+log.info('[Preload] electronAPI exposed to renderer process');

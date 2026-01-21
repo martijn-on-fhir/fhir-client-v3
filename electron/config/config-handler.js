@@ -1,6 +1,7 @@
 const { ipcMain } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const log = require('electron-log/main');
 
 /**
  * Configuration IPC Handler
@@ -23,19 +24,19 @@ function loadConfig() {
   const examplePath = path.join(__dirname, 'environments.example.json');
 
   if (!fs.existsSync(configPath)) {
-    console.error('[ConfigHandler] ERROR: environments.json not found!');
-    console.error(`[ConfigHandler] Please create ${configPath}`);
-    console.error(`[ConfigHandler] You can copy from ${examplePath} and fill in your values`);
+    log.error('[ConfigHandler] ERROR: environments.json not found!');
+    log.error(`[ConfigHandler] Please create ${configPath}`);
+    log.error(`[ConfigHandler] You can copy from ${examplePath} and fill in your values`);
     return null;
   }
 
   try {
     const configContent = fs.readFileSync(configPath, 'utf8');
     cachedConfig = JSON.parse(configContent);
-    console.log('[ConfigHandler] Configuration loaded successfully');
+    log.info('[ConfigHandler] Configuration loaded successfully');
     return cachedConfig;
   } catch (error) {
-    console.error('[ConfigHandler] ERROR: Failed to parse environments.json:', error.message);
+    log.error('[ConfigHandler] ERROR: Failed to parse environments.json:', error.message);
     return null;
   }
 }
@@ -72,7 +73,7 @@ function getAvailableEnvironments() {
  * Register configuration IPC handlers
  */
 function registerConfigHandlers() {
-  console.log('[ConfigHandler] Registering configuration IPC handlers');
+  log.info('[ConfigHandler] Registering configuration IPC handlers');
 
   /**
    * Get all environment configurations
@@ -110,7 +111,7 @@ function registerConfigHandlers() {
     return { success: true, environment: envConfig };
   });
 
-  console.log('[ConfigHandler] Configuration IPC handlers registered successfully');
+  log.info('[ConfigHandler] Configuration IPC handlers registered successfully');
 }
 
 module.exports = { registerConfigHandlers, loadConfig };

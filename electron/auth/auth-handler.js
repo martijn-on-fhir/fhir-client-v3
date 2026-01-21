@@ -3,6 +3,7 @@ const axios = require('axios');
 const path = require('path');
 const fs = require('fs');
 const tokenStore = require('./token-store');
+const log = require('electron-log/main');
 
 /**
  * Authentication IPC Handlers
@@ -20,9 +21,9 @@ function loadEnvironments() {
   const examplePath = path.join(__dirname, '..', 'config', 'environments.example.json');
 
   if (!fs.existsSync(configPath)) {
-    console.error('[AuthHandler] ERROR: environments.json not found!');
-    console.error(`[AuthHandler] Please create ${configPath}`);
-    console.error(`[AuthHandler] You can copy from ${examplePath} and fill in your values`);
+    log.error('[AuthHandler] ERROR: environments.json not found!');
+    log.error(`[AuthHandler] Please create ${configPath}`);
+    log.error(`[AuthHandler] You can copy from ${examplePath} and fill in your values`);
 
     // Return empty object - app will show errors when trying to authenticate
     return {};
@@ -31,10 +32,10 @@ function loadEnvironments() {
   try {
     const configContent = fs.readFileSync(configPath, 'utf8');
     const environments = JSON.parse(configContent);
-    console.log(`[AuthHandler] Loaded ${Object.keys(environments).length} environment(s) from config`);
+    log.info(`[AuthHandler] Loaded ${Object.keys(environments).length} environment(s) from config`);
     return environments;
   } catch (error) {
-    console.error('[AuthHandler] ERROR: Failed to parse environments.json:', error.message);
+    log.error('[AuthHandler] ERROR: Failed to parse environments.json:', error.message);
     return {};
   }
 }
@@ -46,7 +47,7 @@ const ENVIRONMENTS = loadEnvironments();
  * Register all authentication IPC handlers
  */
 function registerAuthHandlers() {
-  console.log('[AuthHandler] Registering authentication IPC handlers');
+  log.info('[AuthHandler] Registering authentication IPC handlers');
 
   // =============================================================================
   // OAuth2 Authentication Handlers
@@ -57,7 +58,7 @@ function registerAuthHandlers() {
    */
   ipcMain.handle('auth:login', async (event, clientId, clientSecret, environment) => {
     try {
-      console.log(`[AuthHandler] Starting login for environment: ${environment}`);
+      log.info(`[AuthHandler] Starting login for environment: ${environment}`);
 
       const config = ENVIRONMENTS[environment];
       if (!config) {
@@ -88,11 +89,11 @@ function registerAuthHandlers() {
         environment
       );
 
-      console.log('[AuthHandler] Login successful');
+      log.info('[AuthHandler] Login successful');
       return { success: true };
 
     } catch (error) {
-      console.error('[AuthHandler] Login failed:', error.message);
+      log.error('[AuthHandler] Login failed:', error.message);
       throw new Error(error.response?.data?.error_description || 'Authentication failed');
     }
   });
@@ -305,7 +306,7 @@ function registerAuthHandlers() {
    */
   ipcMain.handle('auth:oauth2Login', async (event, tokenEndpoint, clientId, clientSecret, scope) => {
     try {
-      console.log(`[AuthHandler] OAuth2 login to: ${tokenEndpoint}${scope ? ` with scope: ${scope}` : ''}`);
+      log.info(`[AuthHandler] OAuth2 login to: ${tokenEndpoint}${scope ? ` with scope: ${scope}` : ''}`);
 
       const params = new URLSearchParams({
         grant_type: 'client_credentials',
@@ -323,16 +324,16 @@ function registerAuthHandlers() {
         }
       });
 
-      console.log('[AuthHandler] OAuth2 login successful');
+      log.info('[AuthHandler] OAuth2 login successful');
       return response.data;
 
     } catch (error) {
-      console.error('[AuthHandler] OAuth2 login failed:', error.message);
+      log.error('[AuthHandler] OAuth2 login failed:', error.message);
       throw new Error(error.response?.data?.error_description || 'OAuth2 authentication failed');
     }
   });
 
-  console.log('[AuthHandler] Authentication IPC handlers registered successfully');
+  log.info('[AuthHandler] Authentication IPC handlers registered successfully');
 }
 
 module.exports = { registerAuthHandlers };

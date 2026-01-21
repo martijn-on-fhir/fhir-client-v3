@@ -6,6 +6,7 @@
 
 const { ipcMain } = require('electron');
 const { ProfileCacheService } = require('../services/profile-cache');
+const log = require('electron-log/main');
 
 // Singleton instance
 const profileCache = new ProfileCacheService();
@@ -22,7 +23,7 @@ function registerProfileHandlers() {
     try {
       return await profileCache.getProfile(title);
     } catch (error) {
-      console.error(`[ProfileHandler] Error getting profile ${title}:`, error);
+      log.error(`[ProfileHandler] Error getting profile ${title}:`, error);
       return null;
     }
   });
@@ -36,7 +37,7 @@ function registerProfileHandlers() {
       await profileCache.setProfile(title, data);
       return { success: true };
     } catch (error) {
-      console.error(`[ProfileHandler] Error setting profile ${title}:`, error);
+      log.error(`[ProfileHandler] Error setting profile ${title}:`, error);
       throw error;
     }
   });
@@ -50,7 +51,7 @@ function registerProfileHandlers() {
       await profileCache.clearCache();
       return { success: true };
     } catch (error) {
-      console.error('[ProfileHandler] Error clearing cache:', error);
+      log.error('[ProfileHandler] Error clearing cache:', error);
       throw error;
     }
   });
@@ -63,7 +64,7 @@ function registerProfileHandlers() {
     try {
       return await profileCache.getCacheStats();
     } catch (error) {
-      console.error('[ProfileHandler] Error getting cache stats:', error);
+      log.error('[ProfileHandler] Error getting cache stats:', error);
       return {
         fileCount: 0,
         totalSize: 0,
@@ -71,7 +72,7 @@ function registerProfileHandlers() {
     }
   });
 
-  console.log('[ProfileHandler] Profile cache IPC handlers registered successfully');
+  log.info('[ProfileHandler] Profile cache IPC handlers registered successfully');
 }
 
 module.exports = { registerProfileHandlers };
