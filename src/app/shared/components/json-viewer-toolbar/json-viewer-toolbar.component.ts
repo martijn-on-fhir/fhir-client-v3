@@ -44,6 +44,17 @@ export class JsonViewerToolbarComponent {
   @Output() editClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the generate narrative button.
+   * @default false
+   */
+  @Input() generateNarrative = false;
+
+  /**
+   * Emitted when the generate narrative button is clicked.
+   */
+  @Output() generateNarrativeClicked = new EventEmitter<void>();
+
+  /**
    * Current fold level of the editor (1-7).
    * Level 2 = maximally collapsed, Level 7 = fully expanded.
    * @default 7

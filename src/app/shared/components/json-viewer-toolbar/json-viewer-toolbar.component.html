@@ -16,6 +16,12 @@
       </button>
     }
 
+    @if (generateNarrative) {
+      <button class="btn btn-sm btn-outline-secondary" title="Generate narrative" (click)="generateNarrativeClicked.emit()">
+        <i class="far fa-lightbulb"></i>
+      </button>
+    }
+
     <button class=" btn btn-sm btn-outline-secondary" title="Search" (click)="search()">
       <i class="fas fa-search"></i>
     </button>
