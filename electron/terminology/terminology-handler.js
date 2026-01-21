@@ -10,11 +10,12 @@ const fs = require('fs');
  * Implements OAuth2 password grant authentication with automatic token management
  */
 
-/**
+/**s
  * Load terminology configuration from external JSON file
  * This keeps sensitive credentials out of the source code
  */
 function loadTerminologyConfig() {
+
   const configPath = path.join(__dirname, '..', 'config', 'environments.json');
 
   if (!fs.existsSync(configPath)) {
@@ -31,8 +32,8 @@ function loadTerminologyConfig() {
       return null;
     }
 
-    console.log('[TerminologyHandler] Terminology config loaded successfully');
     return config.terminology;
+
   } catch (error) {
     console.error('[TerminologyHandler] ERROR: Failed to parse config:', error.message);
     return null;
@@ -50,6 +51,7 @@ let tokenExpiry = 0;
  * Acquire OAuth2 token using Resource Owner Password Credentials
  */
 async function acquireToken() {
+
   if (!TERMINOLOGY_CONFIG) {
     throw new Error('Terminology configuration not loaded. Please check environments.json');
   }
@@ -72,11 +74,10 @@ async function acquireToken() {
     });
 
     accessToken = response.data.access_token;
-    // Set expiry with 60-second buffer
     tokenExpiry = Date.now() + (response.data.expires_in - 60) * 1000;
 
-    console.log('[TerminologyHandler] Token acquired successfully, expires in', response.data.expires_in, 'seconds');
     return accessToken;
+
   } catch (error) {
     console.error('[TerminologyHandler] Token acquisition failed:', error.message);
     throw new Error('Failed to authenticate with terminology server: ' + error.message);
@@ -87,12 +88,11 @@ async function acquireToken() {
  * Ensure we have a valid token (auto-refresh if needed)
  */
 async function ensureValidToken() {
-  // Check if token is valid (exists and not expired)
+
   if (accessToken && Date.now() < tokenExpiry) {
     return accessToken;
   }
 
-  // Token is missing or expired, acquire new one
   return await acquireToken();
 }
 
@@ -116,12 +116,15 @@ async function makeRequest(path, params) {
     });
 
     return response.data;
+
   } catch (error) {
     console.error('[TerminologyHandler] Request failed:', error.message);
 
     // If 401, try refreshing token once
     if (error.response?.status === 401) {
+
       console.log('[TerminologyHandler] 401 error, refreshing token and retrying...');
+
       accessToken = null;
       tokenExpiry = 0;
       const newToken = await ensureValidToken();
@@ -146,14 +149,13 @@ async function makeRequest(path, params) {
  * Register all terminology IPC handlers
  */
 function registerTerminologyHandlers() {
-  console.log('[TerminologyHandler] Registering terminology IPC handlers');
 
   /**
    * CodeSystem/$lookup operation
    */
   ipcMain.handle('terminology:lookup', async (event, params) => {
+
     try {
-      console.log('[TerminologyHandler] Lookup:', params);
 
       const queryParams = {
         system: params.system,
@@ -164,8 +166,8 @@ function registerTerminologyHandlers() {
       if (params.displayLanguage) queryParams.displayLanguage = params.displayLanguage;
       if (params.property) queryParams.property = params.property;
 
-      const result = await makeRequest('/CodeSystem/$lookup', queryParams);
-      return result;
+      return await makeRequest('/CodeSystem/$lookup', queryParams);
+
     } catch (error) {
       console.error('[TerminologyHandler] Lookup failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Lookup operation failed');
@@ -176,8 +178,8 @@ function registerTerminologyHandlers() {
    * ValueSet/$expand operation
    */
   ipcMain.handle('terminology:expand', async (event, params) => {
+
     try {
-      console.log('[TerminologyHandler] Expand:', params);
 
       const queryParams = {
         url: params.url
@@ -189,8 +191,8 @@ function registerTerminologyHandlers() {
       if (params.includeDesignations !== undefined) queryParams.includeDesignations = params.includeDesignations;
       if (params.displayLanguage) queryParams.displayLanguage = params.displayLanguage;
 
-      const result = await makeRequest('/ValueSet/$expand', queryParams);
-      return result;
+      return await makeRequest('/ValueSet/$expand', queryParams);
+
     } catch (error) {
       console.error('[TerminologyHandler] Expand failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Expand operation failed');
@@ -201,8 +203,8 @@ function registerTerminologyHandlers() {
    * ValueSet/$validate-code operation
    */
   ipcMain.handle('terminology:validateCode', async (event, params) => {
+
     try {
-      console.log('[TerminologyHandler] Validate code:', params);
 
       const queryParams = {
         url: params.url,
@@ -213,8 +215,8 @@ function registerTerminologyHandlers() {
       if (params.display) queryParams.display = params.display;
       if (params.version) queryParams.version = params.version;
 
-      const result = await makeRequest('/ValueSet/$validate-code', queryParams);
-      return result;
+      return await makeRequest('/ValueSet/$validate-code', queryParams);
+
     } catch (error) {
       console.error('[TerminologyHandler] Validate code failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Validate operation failed');
@@ -225,6 +227,7 @@ function registerTerminologyHandlers() {
    * ConceptMap/$translate operation
    */
   ipcMain.handle('terminology:translate', async (event, params) => {
+
     try {
       console.log('[TerminologyHandler] Translate:', params);
 
@@ -237,8 +240,8 @@ function registerTerminologyHandlers() {
       if (params.source) queryParams.source = params.source;
       if (params.target) queryParams.target = params.target;
 
-      const result = await makeRequest('/ConceptMap/$translate', queryParams);
-      return result;
+      return await makeRequest('/ConceptMap/$translate', queryParams);
+
     } catch (error) {
       console.error('[TerminologyHandler] Translate failed:', error.message);
       throw new Error(error.response?.data?.issue?.[0]?.diagnostics || error.message || 'Translate operation failed');
@@ -250,9 +253,7 @@ function registerTerminologyHandlers() {
    */
   ipcMain.handle('terminology:getMetadata', async () => {
     try {
-      console.log('[TerminologyHandler] Getting metadata');
-      const result = await makeRequest('/metadata', {});
-      return result;
+      return await makeRequest('/metadata', {});
     } catch (error) {
       console.error('[TerminologyHandler] Get metadata failed:', error.message);
       throw new Error(error.message || 'Failed to fetch metadata');

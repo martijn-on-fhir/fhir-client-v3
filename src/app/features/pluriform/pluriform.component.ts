@@ -92,7 +92,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
    * @param themeService - Service for managing application theme (light/dark mode)
    */
   constructor(public themeService: ThemeService) {
-    // Auto-save state when editor content changes
+
     effect(() => {
       const left = this.leftContent();
       const right = this.rightContent();
@@ -175,11 +175,9 @@ export class PluriformComponent implements OnInit, OnDestroy {
     this.loading.set(true);
 
     try {
-      // Get custom headers from active server profile
+
       const activeProfile = this.serverProfileService.activeProfile();
       const customHeaders = activeProfile?.customHeaders ?? {};
-
-      // Get base URL from settings
       const baseUrl = this.settingsService.pluriformBaseUrl();
       const url = `${baseUrl}/pluriform`;
 
@@ -193,7 +191,9 @@ export class PluriformComponent implements OnInit, OnDestroy {
         })
       );
       this.rightContent.set(JSON.stringify(response, null, 2));
+
     } catch (err) {
+
       if (err instanceof HttpErrorResponse && err.error) {
 
         const errorJson = typeof err.error === 'string' ? err.error : JSON.stringify(err.error, null, 2);
@@ -218,9 +218,10 @@ export class PluriformComponent implements OnInit, OnDestroy {
    * @param event - Mouse down event on the resize divider
    */
   startResizing(event: MouseEvent) {
-    event.preventDefault();
-    this.isResizing.set(true);
 
+    event.preventDefault();
+
+    this.isResizing.set(true);
     this.mouseMoveHandler = (e: MouseEvent) => this.resize(e);
     this.mouseUpHandler = () => this.stopResizing();
 
@@ -240,6 +241,7 @@ export class PluriformComponent implements OnInit, OnDestroy {
    * @private
    */
   private resize(e: MouseEvent) {
+
     if (!this.isResizing()) {
       return;
     }
@@ -293,5 +295,4 @@ export class PluriformComponent implements OnInit, OnDestroy {
     document.body.style.cursor = '';
     document.body.style.userSelect = '';
   }
-
 }

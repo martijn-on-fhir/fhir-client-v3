@@ -12,7 +12,7 @@ const { app } = require('electron');
 class ProfileCacheService {
 
   constructor() {
-    // Cache directory in user data
+ s
     this.cacheDir = path.join(app.getPath('userData'), 'profile-cache');
     this.ensureCacheDir();
   }
@@ -21,6 +21,7 @@ class ProfileCacheService {
    * Ensure cache directory exists
    */
   async ensureCacheDir() {
+
     try {
       await fs.mkdir(this.cacheDir, { recursive: true });
     } catch (error) {
@@ -44,6 +45,7 @@ class ProfileCacheService {
    * @returns {Promise<Object|null>} Cached profile or null
    */
   async getProfile(title) {
+
     try {
       const filename = this.getSafeFilename(title);
       const filePath = path.join(this.cacheDir, filename);
@@ -81,7 +83,7 @@ class ProfileCacheService {
       };
 
       await fs.writeFile(filePath, JSON.stringify(cacheData, null, 2), 'utf-8');
-      console.log(`[ProfileCache] Cached: ${title}`);
+
     } catch (error) {
       console.error(`[ProfileCache] Error caching ${title}:`, error);
       throw error;
@@ -119,6 +121,7 @@ class ProfileCacheService {
       const files = await fs.readdir(this.cacheDir);
 
       let totalSize = 0;
+
       for (const file of files) {
         const filePath = path.join(this.cacheDir, file);
         try {
@@ -134,6 +137,7 @@ class ProfileCacheService {
         fileCount: files.length,
         totalSize: totalSize,
       };
+
     } catch (error) {
       console.error('[ProfileCache] Error getting cache stats:', error);
       return {

@@ -4,6 +4,7 @@ const { Menu, BrowserWindow, shell} = require('electron');
  * Create application menu
  */
 function createApplicationMenu() {
+
   const template = [];
 
   // Add macOS-specific menu items

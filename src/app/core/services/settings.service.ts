@@ -219,7 +219,7 @@ export class SettingsService {
    * Set Pluriform base URL
    * @param url Base URL for Pluriform API endpoint
    */
-  setPlurifromBaseUrl(url: string): void {
+  setPluriformBaseUrl(url: string): void {
     this.updateGeneralSettings({ pluriformBaseUrl: url });
   }
 

@@ -124,7 +124,7 @@ export class SettingsDialogComponent implements OnInit {
       return;
     }
 
-    this.settingsService.setPlurifromBaseUrl(url);
+    this.settingsService.setPluriformBaseUrl(url);
     this.toastService.success('Pluriform URL opgeslagen');
   }
 

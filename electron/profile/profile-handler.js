@@ -14,7 +14,6 @@ const profileCache = new ProfileCacheService();
  * Register profile cache IPC handlers
  */
 function registerProfileHandlers() {
-  console.log('[ProfileHandler] Registering profile cache IPC handlers');
 
   /**
    * Get cached profile by title
@@ -32,6 +31,7 @@ function registerProfileHandlers() {
    * Save profile to cache
    */
   ipcMain.handle('profile-cache:set-profile', async (event, title, data) => {
+
     try {
       await profileCache.setProfile(title, data);
       return { success: true };
@@ -45,6 +45,7 @@ function registerProfileHandlers() {
    * Clear all cached profiles
    */
   ipcMain.handle('profile-cache:clear', async () => {
+
     try {
       await profileCache.clearCache();
       return { success: true };
@@ -58,6 +59,7 @@ function registerProfileHandlers() {
    * Get cache statistics
    */
   ipcMain.handle('profile-cache:stats', async () => {
+
     try {
       return await profileCache.getCacheStats();
     } catch (error) {
