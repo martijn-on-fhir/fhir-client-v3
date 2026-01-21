@@ -54,6 +54,7 @@ export class NarrativesComponent implements OnInit {
   async loadTemplatesDir() {
     try {
       const dir = await window.electronAPI?.narrativeTemplates?.getDir();
+
       if (dir) {
         this.templatesDir.set(dir);
       }
@@ -71,6 +72,7 @@ export class NarrativesComponent implements OnInit {
 
     if (value) {
       const profile = this.nictizService.structureDefinitions().find(p => p.url === value);
+
       if (profile) {
         this.selectedProfileTitle.set(profile.title);
         await this.loadTemplate(profile.title);
@@ -114,6 +116,7 @@ export class NarrativesComponent implements OnInit {
       .sort((a, b) => {
         const titleA = this.formatTitle(a.title);
         const titleB = this.formatTitle(b.title);
+
         return titleA.localeCompare(titleB);
       });
   }
