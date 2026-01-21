@@ -1,7 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NictizService } from '../../core/services/nictiz.service';
+import { ToastService } from '../../core/services/toast.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import { NarrativeEditorDialogComponent } from '../../shared/components/narrative-editor-dialog/narrative-editor-dialog.component';
 import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
@@ -44,6 +45,8 @@ export class NarrativesComponent implements OnInit {
 
   /** Path to the templates directory */
   templatesDir = signal<string>('');
+
+  private toastService = inject(ToastService);
 
   constructor(public nictizService: NictizService) {}
 
@@ -102,8 +105,8 @@ export class NarrativesComponent implements OnInit {
       if (result) {
         this.editorContent.set(result.content);
       } else {
-        // No template found - show message but not as an error
-        this.templateError.set(`No template found for "${profileTitle}". Click Create to add one.`);
+        // No template found - show info toast
+        this.toastService.info(`No template found for "${profileTitle}". Click Create to add one.`);
       }
     } catch (err: any) {
       this.templateError.set(err.message || 'Failed to load template');
