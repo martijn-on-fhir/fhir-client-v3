@@ -9,6 +9,7 @@ import { ResultHeaderComponent } from '../../shared/components/result-header/res
  * Narratives Component
  *
  * Provides interface for viewing and managing FHIR resource narratives.
+ * Loads Handlebars templates based on selected Nictiz profiles.
  */
 @Component({
   selector: 'app-narratives',
@@ -28,19 +29,37 @@ export class NarrativesComponent implements OnInit {
   /** Title of currently selected profile */
   selectedProfileTitle = signal<string>('');
 
-  /** Loading state while fetching profile */
-  loadingProfile = signal<boolean>(false);
+  /** Loading state while fetching template */
+  loadingTemplate = signal<boolean>(false);
 
-  /** Error message from profile loading */
-  profileError = signal<string | null>(null);
+  /** Error message from template loading */
+  templateError = signal<string | null>(null);
 
   /** Content to display in the editor */
   editorContent = signal<string>('');
+
+  /** Path to the templates directory */
+  templatesDir = signal<string>('');
 
   constructor(public nictizService: NictizService) {}
 
   async ngOnInit() {
     await this.nictizService.fetchStructureDefinitions();
+    await this.loadTemplatesDir();
+  }
+
+  /**
+   * Load the templates directory path
+   */
+  async loadTemplatesDir() {
+    try {
+      const dir = await window.electronAPI?.narrativeTemplates?.getDir();
+      if (dir) {
+        this.templatesDir.set(dir);
+      }
+    } catch (error) {
+      console.error('Failed to get templates directory:', error);
+    }
   }
 
   /**
@@ -54,34 +73,36 @@ export class NarrativesComponent implements OnInit {
       const profile = this.nictizService.structureDefinitions().find(p => p.url === value);
       if (profile) {
         this.selectedProfileTitle.set(profile.title);
-        await this.fetchStructureDefinition(value);
+        await this.loadTemplate(profile.title);
       }
     } else {
       this.selectedProfileTitle.set('');
       this.editorContent.set('');
+      this.templateError.set(null);
     }
   }
 
   /**
-   * Fetches the StructureDefinition and displays it in the editor
+   * Loads the template for the selected profile
    */
-  async fetchStructureDefinition(profileUrl: string) {
-    this.loadingProfile.set(true);
-    this.profileError.set(null);
+  async loadTemplate(profileTitle: string) {
+    this.loadingTemplate.set(true);
+    this.templateError.set(null);
     this.editorContent.set('');
 
     try {
-      const sd = await this.nictizService.fetchSingleStructureDefinition(profileUrl);
+      const result = await window.electronAPI?.narrativeTemplates?.get(profileTitle);
 
-      if (sd) {
-        this.editorContent.set(JSON.stringify(sd, null, 2));
+      if (result) {
+        this.editorContent.set(result.content);
       } else {
-        this.profileError.set('StructureDefinition not available.');
+        // No template found - show message but not as an error
+        this.templateError.set(`No template found for "${profileTitle}". Click Create to add one.`);
       }
     } catch (err: any) {
-      this.profileError.set(err.message || 'Failed to fetch StructureDefinition');
+      this.templateError.set(err.message || 'Failed to load template');
     } finally {
-      this.loadingProfile.set(false);
+      this.loadingTemplate.set(false);
     }
   }
 

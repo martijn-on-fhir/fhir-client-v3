@@ -523,6 +523,48 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('mtls:getCertificateInfo', hostname)
   },
 
+  // Narrative Templates API
+  narrativeTemplates: {
+    /**
+     * Get template by name
+     * @param {string} name - Template name (profile name)
+     * @returns {Promise<{content: string, path: string}|null>}
+     */
+    get: (name) =>
+      ipcRenderer.invoke('narrative-templates:get', name),
+
+    /**
+     * Save template
+     * @param {string} name - Template name (profile name)
+     * @param {string} content - Template content
+     * @returns {Promise<{success: boolean, path: string}>}
+     */
+    set: (name, content) =>
+      ipcRenderer.invoke('narrative-templates:set', name, content),
+
+    /**
+     * Delete template
+     * @param {string} name - Template name (profile name)
+     * @returns {Promise<{success: boolean}>}
+     */
+    delete: (name) =>
+      ipcRenderer.invoke('narrative-templates:delete', name),
+
+    /**
+     * List all templates
+     * @returns {Promise<Array<{name: string, filename: string}>>}
+     */
+    list: () =>
+      ipcRenderer.invoke('narrative-templates:list'),
+
+    /**
+     * Get templates directory path
+     * @returns {Promise<string>}
+     */
+    getDir: () =>
+      ipcRenderer.invoke('narrative-templates:getDir')
+  },
+
   // Configuration API
   config: {
     /**

@@ -9,6 +9,7 @@ const { registerLogHandlers } = require('./logs/log-handler');
 const { registerCertificateHandlers } = require('./certificates/certificate-handler');
 const { registerMtlsHandlers } = require('./mtls/mtls-handler');
 const { registerConfigHandlers } = require('./config/config-handler');
+const { registerNarrativeHandlers } = require('./narratives/narrative-handler');
 const { createApplicationMenu } = require('./menu/menu-handler');
 
 // Initialize electron-log for IPC communication
@@ -213,6 +214,7 @@ app.whenReady().then(() => {
   registerProfileHandlers();
   registerCertificateHandlers();
   registerMtlsHandlers();
+  registerNarrativeHandlers();
   createApplicationMenu();
   createSplashWindow();
   createWindow();

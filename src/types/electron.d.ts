@@ -234,6 +234,13 @@ declare global {
           error?: string;
         }>;
       };
+      narrativeTemplates?: {
+        get: (name: string) => Promise<{ content: string; path: string } | null>;
+        set: (name: string, content: string) => Promise<{ success: boolean; path: string }>;
+        delete: (name: string) => Promise<{ success: boolean }>;
+        list: () => Promise<Array<{ name: string; filename: string }>>;
+        getDir: () => Promise<string>;
+      };
       config?: {
         getEnvironments: () => Promise<{
           success: boolean;

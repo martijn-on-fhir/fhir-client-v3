@@ -78,20 +78,20 @@
         </div>
       }
 
-      <!-- Loading profile overlay -->
-      @if (loadingProfile()) {
+      <!-- Loading template overlay -->
+      @if (loadingTemplate()) {
         <div class="loading-overlay">
           <div class="spinner-border text-primary" role="status"></div>
-          <p class="mt-2 text-muted">Loading StructureDefinition...</p>
+          <p class="mt-2 text-muted">Loading template...</p>
         </div>
       }
 
-      <!-- Profile error -->
-      @if (profileError()) {
+      <!-- Template info/error -->
+      @if (templateError()) {
         <div class="p-3">
-          <div class="alert alert-warning">
-            <i class="fas fa-exclamation-triangle me-2"></i>
-            {{ profileError() }}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle me-2"></i>
+            {{ templateError() }}
           </div>
         </div>
       }
@@ -101,7 +101,7 @@
         <app-monaco-editor #monacoEditor
           [value]="editorContent()"
           [readOnly]="true"
-          language="json">
+          language="handlebars">
         </app-monaco-editor>
       </div>
     </div>
