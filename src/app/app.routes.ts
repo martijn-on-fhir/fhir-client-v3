@@ -13,6 +13,7 @@ import { ResourceInfoComponent } from './features/resource-info/resource-info.co
 import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
 import { TerminologyComponent } from './features/terminology/terminology.component';
 import { ValidatorComponent } from './features/validator/validator.component';
+import { NarrativesComponent } from './features/narratives/narratives.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 
 /**
@@ -118,6 +119,12 @@ export const routes: Routes = [
       {
         path: 'subscriptions',
         component: SubscriptionsComponent
+      },
+
+      // Narratives Tab (DONE ✅)
+      {
+        path: 'narratives',
+        component: NarrativesComponent
       }
     ]
   },

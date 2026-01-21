@@ -44,7 +44,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
     logViewerEnabled: false,
     sidebarVisible: true,
     sidebarWidth: 250,
-    enabledTabs: ['query', 'predefined', 'terminology', 'validator', 'profiles', 'nictiz', 'fhirpath', 'pluriform', 'resource-info', 'logs', 'subscriptions']
+    enabledTabs: ['query', 'predefined', 'terminology', 'validator', 'profiles', 'nictiz', 'fhirpath', 'pluriform', 'resource-info', 'logs', 'subscriptions', 'narratives']
   },
   version: '3.0.0',
   lastModified: Date.now()

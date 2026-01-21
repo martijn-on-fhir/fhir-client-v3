@@ -129,7 +129,7 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
       if (subs.length > 0 && !selected) {
         this.selectedSubscription.set(subs[0]);
       }
-    });
+    }, { allowSignalWrites: true });
 
     // Register editor when subscription is selected
     effect(() => {
