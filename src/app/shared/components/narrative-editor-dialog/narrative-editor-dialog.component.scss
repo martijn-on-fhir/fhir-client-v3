@@ -1,0 +1,17 @@
+.modal-header {
+  background-color: var(--bs-tertiary-bg);
+  border-bottom: 1px solid var(--bs-border-color);
+}
+
+.modal-footer {
+  background-color: var(--bs-tertiary-bg);
+  border-top: 1px solid var(--bs-border-color);
+}
+
+.modal-body {
+  app-monaco-editor {
+    display: flex;
+    flex: 1;
+    height: 100%;
+  }
+}

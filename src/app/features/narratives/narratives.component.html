@@ -28,7 +28,7 @@
 
         <!-- Create Button (only when no content) -->
         @if (!editorContent()) {
-          <button class="btn btn-sm btn-success" [disabled]="!selectedProfileUrl()">
+          <button class="btn btn-sm btn-success" [disabled]="!selectedProfileUrl()" (click)="openNarrativeEditor()">
             <i class="fas fa-plus me-2"></i>
             Create
           </button>
@@ -36,7 +36,7 @@
 
         <!-- Update Button (only when content exists) -->
         @if (editorContent()) {
-          <button class="btn btn-sm btn-success" [disabled]="!selectedProfileUrl()">
+          <button class="btn btn-sm btn-success" [disabled]="!selectedProfileUrl()" (click)="openNarrativeEditor()">
             <i class="fas fa-edit me-2"></i>
             Update
           </button>
@@ -106,4 +106,9 @@
       </div>
     </div>
   </div>
+
+  <!-- Narrative Editor Dialog -->
+  <app-narrative-editor-dialog
+    (save)="onNarrativeSave($event)">
+  </app-narrative-editor-dialog>
 </div>

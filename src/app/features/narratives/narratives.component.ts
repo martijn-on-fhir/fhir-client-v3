@@ -3,6 +3,7 @@ import { Component, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NictizService } from '../../core/services/nictiz.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
+import { NarrativeEditorDialogComponent } from '../../shared/components/narrative-editor-dialog/narrative-editor-dialog.component';
 import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
 
 /**
@@ -14,7 +15,7 @@ import { ResultHeaderComponent } from '../../shared/components/result-header/res
 @Component({
   selector: 'app-narratives',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, NarrativeEditorDialogComponent, ResultHeaderComponent],
   templateUrl: './narratives.component.html',
   styleUrl: './narratives.component.scss'
 })
@@ -22,6 +23,9 @@ export class NarrativesComponent implements OnInit {
 
   /** Reference to Monaco editor component */
   @ViewChild('monacoEditor') monacoEditor!: MonacoEditorComponent;
+
+  /** Reference to Narrative Editor Dialog */
+  @ViewChild(NarrativeEditorDialogComponent) narrativeEditorDialog!: NarrativeEditorDialogComponent;
 
   /** URL of currently selected profile */
   selectedProfileUrl = signal<string>('');
@@ -144,5 +148,31 @@ export class NarrativesComponent implements OnInit {
     }
 
     return entity;
+  }
+
+  /**
+   * Opens the narrative editor dialog
+   */
+  openNarrativeEditor() {
+    this.narrativeEditorDialog.open(this.editorContent());
+  }
+
+  /**
+   * Handles save event from the narrative editor dialog
+   */
+  async onNarrativeSave(event: { narrative: string }) {
+    const profileTitle = this.selectedProfileTitle();
+
+    if (!profileTitle) {
+      return;
+    }
+
+    try {
+      await window.electronAPI?.narrativeTemplates?.set(profileTitle, event.narrative);
+      this.editorContent.set(event.narrative);
+      this.templateError.set(null);
+    } catch (err: any) {
+      this.templateError.set(err.message || 'Failed to save template');
+    }
   }
 }
