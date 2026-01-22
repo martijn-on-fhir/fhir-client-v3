@@ -5,6 +5,7 @@
  */
 
 const { ipcMain } = require('electron');
+const Handlebars = require('handlebars');
 const { NarrativeTemplatesService } = require('../services/narrative-templates');
 const log = require('electron-log/main');
 
@@ -73,6 +74,30 @@ function registerNarrativeHandlers() {
     } catch (error) {
       log.error('[NarrativeHandler] Error getting templates directory:', error);
       return null;
+    }
+  });
+
+  /**
+   * Compile template with data
+   * Performs Handlebars compilation in main process to avoid CSP issues
+   */
+  ipcMain.handle('narrative-templates:compile', async (event, name, data) => {
+    try {
+      // Get the template content
+      const result = await narrativeTemplates.getTemplate(name);
+
+      if (!result?.content) {
+        return { success: false, error: 'Template not found' };
+      }
+
+      // Compile and execute template with Handlebars
+      const template = Handlebars.compile(result.content);
+      const html = template(data);
+
+      return { success: true, html };
+    } catch (error) {
+      log.error(`[NarrativeHandler] Error compiling template ${name}:`, error);
+      return { success: false, error: error.message || 'Failed to compile template' };
     }
   });
 
