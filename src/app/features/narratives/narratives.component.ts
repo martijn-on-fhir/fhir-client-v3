@@ -59,6 +59,7 @@ export class NarrativesComponent implements OnInit {
    * Load the templates directory path
    */
   async loadTemplatesDir() {
+
     try {
       const dir = await window.electronAPI?.narrativeTemplates?.getDir();
 
@@ -74,10 +75,12 @@ export class NarrativesComponent implements OnInit {
    * Handles profile selection change from dropdown
    */
   async onProfileChange(event: Event) {
+
     const value = (event.target as HTMLSelectElement).value;
     this.selectedProfileUrl.set(value);
 
     if (value) {
+
       const profile = this.nictizService.structureDefinitions().find(p => p.url === value);
 
       if (profile) {
@@ -85,6 +88,7 @@ export class NarrativesComponent implements OnInit {
         await this.loadTemplate(profile.title);
       }
     } else {
+
       this.selectedProfileTitle.set('');
       this.editorContent.set('');
       this.templateError.set(null);
@@ -95,11 +99,13 @@ export class NarrativesComponent implements OnInit {
    * Loads the template for the selected profile
    */
   async loadTemplate(profileTitle: string) {
+
     this.loadingTemplate.set(true);
     this.templateError.set(null);
     this.editorContent.set('');
 
     try {
+
       const result = await window.electronAPI?.narrativeTemplates?.get(profileTitle);
 
       if (result) {
@@ -119,6 +125,7 @@ export class NarrativesComponent implements OnInit {
    * Returns sorted list of profiles by formatted title
    */
   getSortedProfiles() {
+
     return [...this.nictizService.structureDefinitions()]
       .sort((a, b) => {
         const titleA = this.formatTitle(a.title);
@@ -139,6 +146,7 @@ export class NarrativesComponent implements OnInit {
    * Formats profile title by removing Dutch healthcare standard prefixes
    */
   formatTitle(title: string): string {
+
     let entity = title;
 
     if (title.startsWith('HCIM')) {
@@ -171,9 +179,11 @@ export class NarrativesComponent implements OnInit {
     }
 
     try {
+
       await window.electronAPI?.narrativeTemplates?.set(profileTitle, event.narrative);
       this.editorContent.set(event.narrative);
       this.templateError.set(null);
+
     } catch (err: any) {
       this.templateError.set(err.message || 'Failed to save template');
     }

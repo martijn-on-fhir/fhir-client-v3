@@ -17,7 +17,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
   // Event listeners
   on: (channel, callback) => {
+
     const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'show-server-accounts', 'file-open', 'file-save'];
+
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, callback);
     }
