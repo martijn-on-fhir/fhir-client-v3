@@ -564,7 +564,16 @@ contextBridge.exposeInMainWorld('electronAPI', {
      * @returns {Promise<string>}
      */
     getDir: () =>
-      ipcRenderer.invoke('narrative-templates:getDir')
+      ipcRenderer.invoke('narrative-templates:getDir'),
+
+    /**
+     * Compile template with data (Handlebars compilation in main process)
+     * @param {string} name - Template name (profile name)
+     * @param {Object} data - Data to pass to the template
+     * @returns {Promise<{success: boolean, html?: string, error?: string}>}
+     */
+    compile: (name, data) =>
+      ipcRenderer.invoke('narrative-templates:compile', name, data)
   },
 
   // Configuration API

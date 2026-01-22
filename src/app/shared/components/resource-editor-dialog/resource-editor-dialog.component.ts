@@ -3,6 +3,7 @@ import {Component, OnInit, OnDestroy, Output, EventEmitter, signal, computed, Ho
 import {FormsModule} from '@angular/forms';
 import {FhirService} from '../../../core/services/fhir.service';
 import {LoggerService} from '../../../core/services/logger.service';
+import {ToastService} from '../../../core/services/toast.service';
 import {FHIR_TEMPLATES} from '../../../core/utils/fhir-templates';
 import {JsonViewerToolbarComponent} from '../json-viewer-toolbar/json-viewer-toolbar.component'
 import {MonacoEditorComponent, AutocompleteConfig} from '../monaco-editor/monaco-editor.component';
@@ -37,6 +38,7 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
 
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
+  private toastService = inject(ToastService);
 
   private get logger() {
     return this.loggerService.component('ResourceEditorDialog');
@@ -917,6 +919,59 @@ export class ResourceEditorDialogComponent implements OnInit, OnDestroy {
     }
 
     return result.issue.filter((issue: any) => issue.severity === severity);
+  }
+
+  /**
+   * Generate narrative for the current resource using Handlebars template
+   * Template compilation happens in Electron main process to avoid CSP issues
+   */
+  async generateNarrative() {
+    try {
+      // 1. Parse current resource
+      const resource = JSON.parse(this.editorContent());
+
+      // 2. Get profile title from StructureDefinition
+      const sd = this.structureDefinition();
+      const profileTitle = sd?.title;
+
+      if (!profileTitle) {
+        this.toastService.error('No profile title available');
+        this.logger.warn('Cannot generate narrative: no profile title');
+
+        return;
+      }
+
+      // 3. Compile template via Electron API (Handlebars runs in main process)
+      const result = await window.electronAPI?.narrativeTemplates?.compile(profileTitle, resource);
+
+      if (!result?.success) {
+        if (result?.error === 'Template not found') {
+          this.toastService.info(`No template found for "${profileTitle}".`);
+          this.logger.info('No narrative template found for profile:', profileTitle);
+        } else {
+          this.toastService.error('Failed to compile template: ' + (result?.error || 'Unknown error'));
+          this.logger.error('Template compilation failed:', result?.error);
+        }
+
+        return;
+      }
+
+      // 4. Update resource text
+      resource.text = {
+        status: 'generated',
+        div: result.html
+      };
+
+      // 5. Update editor content
+      this.editorContent.set(JSON.stringify(resource, null, 2));
+
+      this.toastService.success('Narrative generated successfully');
+      this.logger.info('Narrative generated for profile:', profileTitle);
+
+    } catch (err: any) {
+      this.toastService.error('Failed to generate narrative: ' + (err.message || 'Unknown error'));
+      this.logger.error('Failed to generate narrative:', err);
+    }
   }
 }
 

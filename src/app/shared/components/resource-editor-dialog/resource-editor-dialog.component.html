@@ -194,7 +194,8 @@
                   <app-json-viewer-toolbar
                     [editor]="this.component?.editor"
                     [generateNarrative]="true"
-                    [readOnly]="true">
+                    [readOnly]="true"
+                    (generateNarrativeClicked)="generateNarrative()">
                   </app-json-viewer-toolbar>
                 </div>
               </div>

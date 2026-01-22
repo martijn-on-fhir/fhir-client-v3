@@ -240,6 +240,7 @@ declare global {
         delete: (name: string) => Promise<{ success: boolean }>;
         list: () => Promise<Array<{ name: string; filename: string }>>;
         getDir: () => Promise<string>;
+        compile: (name: string, data: any) => Promise<{ success: boolean; html?: string; error?: string }>;
       };
       config?: {
         getEnvironments: () => Promise<{
