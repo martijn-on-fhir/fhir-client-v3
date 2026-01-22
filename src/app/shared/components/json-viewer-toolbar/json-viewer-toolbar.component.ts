@@ -44,6 +44,18 @@ export class JsonViewerToolbarComponent {
   @Output() editClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the delete button.
+   * Should be true for single FHIR resources, false for Bundles.
+   * @default false
+   */
+  @Input() showDeleteButton = false;
+
+  /**
+   * Emitted when the delete button is clicked.
+   */
+  @Output() deleteClicked = new EventEmitter<void>();
+
+  /**
    * Whether to show the generate narrative button.
    * @default false
    */

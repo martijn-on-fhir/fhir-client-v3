@@ -103,8 +103,10 @@
               [paginationLinks]="paginationLinks()"
               [total]="resultTotal()"
               [showEditButton]="isSingleResource()"
+              [showDeleteButton]="canDeleteResource()"
               (pageNavigate)="navigateToPage($event)"
-              (editClicked)="onEditClicked()">
+              (editClicked)="onEditClicked()"
+              (deleteClicked)="onDeleteClicked()">
             </app-result-header>
 
             @if (loading()) {
@@ -542,8 +544,10 @@
             [paginationLinks]="paginationLinks()"
             [total]="resultTotal()"
             [showEditButton]="isSingleResource()"
+            [showDeleteButton]="canDeleteResource()"
             (pageNavigate)="navigateToPage($event)"
-            (editClicked)="onEditClicked()">
+            (editClicked)="onEditClicked()"
+            (deleteClicked)="onDeleteClicked()">
           </app-result-header>
 
           @if (loading()) {

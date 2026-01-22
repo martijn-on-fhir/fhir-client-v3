@@ -11,6 +11,12 @@
       </button>
     }
 
+    @if (showDeleteButton) {
+      <button class="btn btn-sm btn-outline-danger" title="Delete resource" (click)="deleteClicked.emit()">
+        <i class="fas fa-trash"></i>
+      </button>
+    }
+
     @if (!readOnly) {
       <button class="btn btn-sm btn-outline-secondary" title="Open file..." (click)="load()">
         <i class="fas fa-folder-open"></i>

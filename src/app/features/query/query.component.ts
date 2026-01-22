@@ -287,6 +287,16 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   });
 
   /**
+   * Whether the delete button should be shown
+   * True when result is a single resource with an id
+   */
+  canDeleteResource = computed(() => {
+    const res = this.result();
+
+    return res?.resourceType && res.resourceType !== 'Bundle' && res.id;
+  });
+
+  /**
    * Metadata for the currently selected resource type
    */
   resourceMetadata = computed(() => {
@@ -1409,6 +1419,52 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
 
     if (res?.resourceType) {
       this.navigationService.openResourceEditor(res);
+    }
+  }
+
+  /**
+   * Handles delete button click for single resources
+   * Shows a confirmation dialog and deletes the resource if confirmed
+   * After successful deletion, navigates to the resource type level query
+   */
+  async onDeleteClicked(): Promise<void> {
+    const res = this.result();
+
+    if (!res?.resourceType || !res?.id) {
+      return;
+    }
+
+    const resourceType = res.resourceType;
+    const resourceId = res.id;
+
+    const confirmed = confirm(
+      `Are you sure you want to delete this ${resourceType}/${resourceId}?\n\nThis action cannot be undone.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    this.loading.set(true);
+
+    try {
+      await firstValueFrom(this.fhirService.delete(resourceType, resourceId));
+
+      this.toastService.success(
+        `${resourceType}/${resourceId} has been deleted successfully`,
+        'Resource Deleted'
+      );
+
+      // Navigate to resource type level query
+      this.textQuery.set(`/${resourceType}`);
+      this.queryMode.set('text');
+      await this.executeTextQuery();
+
+    } catch (err: any) {
+      this.logger.error('Delete failed:', err);
+      this.toastService.error(err.message || 'Failed to delete resource', 'Delete Error');
+    } finally {
+      this.loading.set(false);
     }
   }
 }

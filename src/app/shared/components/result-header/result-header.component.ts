@@ -130,6 +130,18 @@ export class ResultHeaderComponent {
   @Output() editClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the delete button in the toolbar
+   * Should be true for single FHIR resources, false for Bundles
+   * @default false
+   */
+  @Input() showDeleteButton = false;
+
+  /**
+   * Event emitted when the delete button is clicked
+   */
+  @Output() deleteClicked = new EventEmitter<void>();
+
+  /**
    * Check if a specific pagination link exists
    * Handles 'prev'/'previous' interchangeably
    */

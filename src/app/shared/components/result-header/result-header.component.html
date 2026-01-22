@@ -68,7 +68,9 @@
         [editor]="editor"
         [readOnly]="readOnly"
         [showEditButton]="showEditButton"
-        (editClicked)="editClicked.emit()">
+        [showDeleteButton]="showDeleteButton"
+        (editClicked)="editClicked.emit()"
+        (deleteClicked)="deleteClicked.emit()">
       </app-json-viewer-toolbar>
     }
   </div>
