@@ -30,6 +30,7 @@ Build and execute FHIR queries with ease using the visual query builder or text 
 - Query history and favorites
 - Pagination controls for navigating large result sets
 - Copy queries to clipboard or export results
+- Query validation with detailed error messages
 
 ### Predefined Templates
 
@@ -48,6 +49,7 @@ Explore and validate medical terminologies.
 - **ValueSet Expansion** - Expand ValueSets to see all included codes
 - **Code Validation** - Validate codes against CodeSystems or ValueSets
 - Full support for SNOMED CT, LOINC, and other terminologies
+- Ctrl+click on terminology URLs to perform quick lookups
 
 ### Resource Validator
 
@@ -59,6 +61,26 @@ Validate FHIR resources against schemas and profiles.
 - Detailed error messages with line numbers
 - Supports JSON and XML formats
 
+### Resource Editor
+
+Edit FHIR resources with profile-aware guidance.
+
+- Create new resources from StructureDefinition profiles
+- Edit existing resources with element guidance
+- Profile-based autocomplete and validation
+- Generate narrative text from Handlebars templates
+- Automatic profile loading based on `meta.profile`
+
+### Narrative Generator
+
+Generate human-readable narratives for FHIR resources.
+
+- Handlebars template-based narrative generation
+- Built-in templates for common resource types
+- Custom template editor with Monaco
+- Preview generated HTML narratives
+- Insert narratives directly into resources
+
 ### Profile Browser
 
 Explore FHIR StructureDefinitions and profiles.
@@ -67,6 +89,7 @@ Explore FHIR StructureDefinitions and profiles.
 - View element definitions with cardinality, types, and constraints
 - Snapshot and differential views
 - Search and filter by name or canonical URL
+- Ctrl+click on canonical URLs to navigate to StructureDefinitions
 
 ### Nictiz Profiles (Dutch Healthcare)
 
@@ -91,6 +114,15 @@ Evaluate FHIRPath expressions on FHIR resources.
 - Syntax highlighting with Monaco editor
 - Split-panel layout with resizable editor and result sections
 
+### Subscription Management
+
+Manage FHIR STU3 subscriptions for real-time notifications.
+
+- View and manage active subscriptions
+- Create new subscriptions with channel configuration
+- Monitor subscription status
+- Support for REST-hook channels
+
 ### Server Information
 
 View detailed information about connected FHIR servers.
@@ -98,6 +130,15 @@ View detailed information about connected FHIR servers.
 - CapabilityStatement viewer
 - Available search parameters per resource type
 - Supported includes and reverse includes
+
+### Certificate Manager
+
+Manage client certificates for mTLS authentication.
+
+- Import PFX/P12 certificates
+- Certificate validation and details view
+- Secure certificate storage
+- Per-server certificate assignment
 
 ### Application Logs
 
@@ -156,6 +197,7 @@ npm run build:prod
 - **Basic Auth** - Username and password
 - **Bearer Token** - Static access token
 - **OAuth2/SMART on FHIR** - Full OAuth2 flow with token refresh
+- **mTLS** - Mutual TLS with client certificates
 
 ### Running Your First Query
 
@@ -175,6 +217,7 @@ Access settings via the gear icon in the header.
 Manage your FHIR server connections. Each profile stores:
 - Server URL
 - Authentication configuration
+- Custom headers
 - Color coding for easy identification
 
 ### Two-Factor Authentication
@@ -194,6 +237,7 @@ Add an extra layer of security with TOTP-based 2FA.
 | `Ctrl+Enter` | Execute query |
 | `Ctrl+/` | Toggle comment in editors |
 | `Ctrl+F` | Find in editor |
+| `Ctrl+Click` | Navigate to URL (profiles, terminology, external links) |
 | `Escape` | Close dialogs |
 
 ## Technology
@@ -201,10 +245,11 @@ Add an extra layer of security with TOTP-based 2FA.
 Built with modern web technologies:
 
 - **Angular 18** - Frontend framework with signals and standalone components
-- **Electron** - Cross-platform desktop application
+- **Electron 39** - Cross-platform desktop application
 - **Monaco Editor** - VS Code's editor for syntax highlighting
 - **Bootstrap 5** - Responsive UI components
 - **FHIRPath.js** - FHIRPath expression evaluation
+- **Handlebars** - Template engine for narrative generation
 
 ## Support
 
