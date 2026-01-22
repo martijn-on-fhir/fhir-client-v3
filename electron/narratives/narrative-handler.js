@@ -92,7 +92,14 @@ function registerNarrativeHandlers() {
 
       // Compile and execute template with Handlebars
       const template = Handlebars.compile(result.content);
-      const html = template(data);
+      let html = template(data);
+
+      // Clean up HTML: remove \r\n and normalize whitespace for cleaner JSON output
+      html = html
+        .replace(/\r\n/g, '')      // Remove Windows line endings
+        .replace(/\n/g, '')        // Remove Unix line endings
+        .replace(/\s{2,}/g, ' ')   // Collapse multiple spaces to single space
+        .trim();                   // Trim leading/trailing whitespace
 
       return { success: true, html };
     } catch (error) {

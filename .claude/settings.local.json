@@ -14,7 +14,8 @@
       "mcp__filesystem-user__read_text_file",
       "Bash(npm run lint:*)",
       "Bash(findstr:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(npm run lint:fix:*)"
     ]
   }
 }

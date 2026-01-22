@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
+import { mergeProfileElements, extractConstraints, MergedElement, Constraint } from '../utils/profile-merge';
 import { LoggerService } from './logger.service';
 import { NictizService } from './nictiz.service';
-import { mergeProfileElements, extractConstraints, MergedElement, Constraint } from '../utils/profile-merge';
 
 /**
  * Result from loading a profile
@@ -32,7 +32,7 @@ interface CachedProfileData {
     baseDefinition?: string;
     version?: string;
   };
-  baseChain: Array<{ name: string; url: string }>;
+  baseChain: { name: string; url: string }[];
   mergedElements: MergedElement[];
   constraints: Constraint[];
 }
