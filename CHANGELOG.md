@@ -1,3 +1,10 @@
+## [1.32.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.0...v1.32.1) (2026-01-22)
+
+
+### Bug Fixes
+
+* **editor:** fetch and merge StructureDefinition from profile URL ([b8d3a2a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b8d3a2ac2a81d3ef04fe160cf89fa125fd51e3eb))
+
 # [1.32.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.31.0...v1.32.0) (2026-01-22)
 
 
