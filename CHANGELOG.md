@@ -1,3 +1,10 @@
+# [1.32.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.31.0...v1.32.0) (2026-01-22)
+
+
+### Features
+
+* **narratives:** add generate narrative to resource editor dialog ([36302ea](https://github.com/martijn-on-fhir/fhir-client-v3/commit/36302eaa28e09a499981d52ca08fd30c7fac22e6))
+
 # [1.31.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.30.0...v1.31.0) (2026-01-22)
 
 
