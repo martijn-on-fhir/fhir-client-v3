@@ -1,3 +1,10 @@
+# [1.33.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.3...v1.33.0) (2026-01-22)
+
+
+### Features
+
+* **query:** add delete button for single FHIR resources ([5ec6c0e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/5ec6c0eadbafa917c13beeb0f8e4d62661616580))
+
 ## [1.32.3](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.2...v1.32.3) (2026-01-22)
 
 
