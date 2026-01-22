@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ProfileInfo, StructureDefinition } from '../../core/models/profile.model';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
-import { mergeProfileElements, extractConstraints } from '../../core/utils/profile-merge';
+import { ProfileLoadingService } from '../../core/services/profile-loading.service';
 import { formatElementPath, renderElementType, getCardinalityBadgeClass, getSeverityBadgeClass, loadCacheStats } from '../../core/utils/profile-utils';
 import { ProfileCacheDropdownComponent } from '../../shared/components/profile-cache-dropdown/profile-cache-dropdown.component';
 import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
@@ -39,6 +39,9 @@ export class ProfilesComponent implements OnInit {
 
   /** Component-specific logger instance */
   private logger = this.loggerService.component('ProfilesComponent');
+
+  /** Service for loading profiles with caching */
+  private profileLoadingService = inject(ProfileLoadingService);
 
   /** Reference to resource editor dialog component */
   @ViewChild(ResourceEditorDialogComponent) editorDialog!: ResourceEditorDialogComponent;
@@ -182,13 +185,7 @@ export class ProfilesComponent implements OnInit {
   /**
    * Loads StructureDefinition for selected profile
    *
-   * Loading strategy:
-   * 1. First attempts to load from Electron disk cache
-   * 2. If not cached, fetches from FHIR server
-   * 3. Fetches entire base definition chain (inheritance)
-   * 4. Merges elements from profile and base definitions
-   * 5. Extracts constraints
-   * 6. Caches merged result to disk
+   * Uses ProfileLoadingService for unified loading with caching.
    *
    * @param url - Canonical URL of the StructureDefinition
    * @param profileTitle - Title/resource type for cache key
@@ -209,122 +206,26 @@ export class ProfilesComponent implements OnInit {
     this.constraints.set([]);
 
     try {
-      const cached = await window.electronAPI?.profileCache?.getProfile(profileTitle);
+      const result = await this.profileLoadingService.loadProfile(url, profileTitle);
 
-      if (cached) {
-        const fullSD = {
-          ...cached.profile,
-          snapshot: {
-            element: cached.mergedElements || []
-          }
-        };
-
-        this.structureDefinition.set(fullSD);
-        this.baseDefinitions.set(cached.baseChain || []);
-        this.mergedElements.set(cached.mergedElements || []);
-        this.constraints.set(cached.constraints || []);
+      if (!result) {
+        this.profileError.set('StructureDefinition not available on this server.');
         this.loadingProfile.set(false);
 
         return;
       }
 
-      this.fhirService.getStructureDefinition(url).subscribe({
-        next: async (sd) => {
-          this.structureDefinition.set(sd);
-
-          let baseChain: any[] = [];
-
-          if (sd.baseDefinition) {
-            baseChain = await this.fetchBaseDefinitionChain(sd.baseDefinition);
-            this.baseDefinitions.set(baseChain);
-          }
-
-          const merged = mergeProfileElements(sd, baseChain);
-          const extractedConstraints = extractConstraints(sd, baseChain);
-
-          this.mergedElements.set(merged);
-          this.constraints.set(extractedConstraints);
-
-          try {
-            await window.electronAPI?.profileCache?.setProfile(profileTitle, {
-              profile: {
-                id: sd.id,
-                url: sd.url,
-                name: sd.name,
-                type: sd.type,
-                title: sd.title || sd.name,
-                description: sd.description,
-                purpose: sd.purpose,
-                baseDefinition: sd.baseDefinition,
-                version: sd.version,
-              },
-              baseChain: baseChain.map((bd) => ({
-                name: bd.name,
-                url: bd.url,
-              })),
-              mergedElements: merged,
-              constraints: extractedConstraints,
-            });
-
-            await this.loadCacheStatsData();
-          } catch (cacheError) {
-            this.logger.error('Failed to cache profile:', cacheError);
-          }
-
-          this.loadingProfile.set(false);
-        },
-        error: (error) => {
-          this.profileError.set(error.message || 'Failed to load StructureDefinition');
-          this.loadingProfile.set(false);
-        }
-      });
+      this.structureDefinition.set(result.structureDefinition);
+      this.baseDefinitions.set(result.baseChain);
+      this.mergedElements.set(result.mergedElements);
+      this.constraints.set(result.constraints);
+      await this.loadCacheStatsData();
     } catch (err: any) {
       this.logger.error('Error fetching StructureDefinition:', err);
       this.profileError.set(err.message || 'Failed to fetch StructureDefinition');
+    } finally {
       this.loadingProfile.set(false);
     }
-  }
-
-  /**
-   * Recursively fetches base definition chain for profile inheritance
-   *
-   * Traverses the baseDefinition property recursively to build the complete
-   * inheritance chain. Stops when reaching base FHIR resources (hl7.org URLs)
-   * or when maximum depth is reached.
-   *
-   * @param baseDefUrl - URL of the base StructureDefinition
-   * @returns Promise resolving to array of base definitions (ordered from direct parent to root)
-   */
-  async fetchBaseDefinitionChain(baseDefUrl: string): Promise<any[]> {
-    const chain: any[] = [];
-    let currentUrl = baseDefUrl;
-    let depth = 0;
-    const maxDepth = 10;
-
-    while (currentUrl && depth < maxDepth) {
-      try {
-        const baseDef = await new Promise<any>((resolve, reject) => {
-          this.fhirService.getStructureDefinition(currentUrl).subscribe({
-            next: (sd) => resolve(sd),
-            error: (err) => reject(err)
-          });
-        });
-
-        chain.push(baseDef);
-
-        if (currentUrl.includes('http://hl7.org/fhir/StructureDefinition/')) {
-          break;
-        }
-
-        currentUrl = baseDef.baseDefinition;
-        depth++;
-      } catch (error) {
-        this.logger.error('Failed to fetch base definition:', currentUrl, error);
-        break;
-      }
-    }
-
-    return chain;
   }
 
   /**

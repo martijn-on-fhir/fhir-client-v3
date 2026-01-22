@@ -3,7 +3,7 @@ import { Component, OnInit, signal, ViewChild, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { LoggerService } from '../../core/services/logger.service';
 import { NictizService } from '../../core/services/nictiz.service';
-import { mergeProfileElements, extractConstraints } from '../../core/utils/profile-merge';
+import { ProfileLoadingService } from '../../core/services/profile-loading.service';
 import { formatElementPath, renderElementType, getCardinalityBadgeClass, getSeverityBadgeClass, loadCacheStats } from '../../core/utils/profile-utils';
 import { ProfileCacheDropdownComponent } from '../../shared/components/profile-cache-dropdown/profile-cache-dropdown.component';
 import { ResourceEditorDialogComponent } from '../../shared/components/resource-editor-dialog/resource-editor-dialog.component';
@@ -79,6 +79,9 @@ export class NictizComponent implements OnInit {
 
   /** Component-specific logger instance */
   private logger = this.loggerService.component('NictizComponent');
+
+  /** Service for loading profiles with caching */
+  private profileLoadingService = inject(ProfileLoadingService);
 
   /**
    * Creates an instance of NictizComponent
@@ -159,13 +162,7 @@ export class NictizComponent implements OnInit {
   /**
    * Fetches and loads a StructureDefinition profile
    *
-   * Loading strategy:
-   * 1. First attempts to load from Electron disk cache
-   * 2. If not cached, fetches from Nictiz/Simplifier.net via NictizService
-   * 3. Fetches entire base definition chain (inheritance)
-   * 4. Merges elements from profile and base definitions
-   * 5. Extracts constraints
-   * 6. Caches merged result to disk
+   * Uses ProfileLoadingService for unified loading with caching.
    *
    * @param profileUrl - Canonical URL of the StructureDefinition
    * @param profileTitle - Title/name for cache key
@@ -186,79 +183,20 @@ export class NictizComponent implements OnInit {
     this.constraints.set([]);
 
     try {
-      const cached = await window.electronAPI?.profileCache?.getProfile(profileTitle);
+      const result = await this.profileLoadingService.loadProfile(profileUrl, profileTitle);
 
-      if (cached) {
-        const fullSD = {
-          ...cached.profile,
-          snapshot: {
-            element: cached.mergedElements || []
-          }
-        };
-
-        this.structureDefinition.set(fullSD);
-        this.baseDefinitions.set(cached.baseChain || []);
-        this.mergedElements.set(cached.mergedElements || []);
-        this.constraints.set(cached.constraints || []);
-        this.loadingProfile.set(false);
-
-        return;
-      }
-
-      const sd = await this.nictizService.fetchSingleStructureDefinition(profileUrl);
-
-      if (!sd) {
+      if (!result) {
         this.profileError.set('StructureDefinition not available on this server.');
         this.loadingProfile.set(false);
 
         return;
       }
 
-      let baseChain: any[] = [];
-
-      if (sd.baseDefinition) {
-        baseChain = await this.nictizService.fetchBaseDefinitionChain(sd.baseDefinition);
-        this.baseDefinitions.set(baseChain);
-      }
-
-      const merged = mergeProfileElements(sd, baseChain);
-      const extractedConstraints = extractConstraints(sd, baseChain);
-
-      this.mergedElements.set(merged);
-      this.constraints.set(extractedConstraints);
-
-      const fullSD = {
-        ...sd,
-        snapshot: {
-          element: merged
-        }
-      };
-      this.structureDefinition.set(fullSD);
-
-      try {
-        await window.electronAPI?.profileCache?.setProfile(profileTitle, {
-          profile: {
-            id: sd.id,
-            url: sd.url,
-            name: sd.name,
-            type: sd.type,
-            title: sd.title || sd.name,
-            description: sd.description,
-            purpose: sd.purpose,
-            baseDefinition: sd.baseDefinition,
-          },
-          baseChain: baseChain.map((bd) => ({
-            name: bd.name,
-            url: bd.url,
-          })),
-          mergedElements: merged,
-          constraints: extractedConstraints,
-        });
-
-        await this.loadCacheStatsData();
-      } catch (cacheError) {
-        this.logger.error('Failed to cache profile:', cacheError);
-      }
+      this.structureDefinition.set(result.structureDefinition);
+      this.baseDefinitions.set(result.baseChain);
+      this.mergedElements.set(result.mergedElements);
+      this.constraints.set(result.constraints);
+      await this.loadCacheStatsData();
     } catch (err: any) {
       this.logger.error('Error fetching StructureDefinition:', err);
       this.profileError.set(err.message || 'Failed to fetch StructureDefinition');

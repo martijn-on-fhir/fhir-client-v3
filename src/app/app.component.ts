@@ -1,9 +1,8 @@
 import { Component, OnInit, ViewChild, inject, effect } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavigationService } from './core/services/navigation.service';
-import { NictizService } from './core/services/nictiz.service';
+import { ProfileLoadingService } from './core/services/profile-loading.service';
 import { ThemeService } from './core/services/theme.service';
-import { mergeProfileElements } from './core/utils/profile-merge';
 import { ResourceEditorDialogComponent } from './shared/components/resource-editor-dialog/resource-editor-dialog.component';
 import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
 
@@ -23,7 +22,7 @@ export class AppComponent implements OnInit {
 
   private themeService = inject(ThemeService);
   private navigationService = inject(NavigationService);
-  private nictizService = inject(NictizService);
+  private profileLoadingService = inject(ProfileLoadingService);
 
   constructor() {
     // Listen for edit resource events
@@ -62,67 +61,10 @@ export class AppComponent implements OnInit {
       // Extract profile title from URL for cache key
       const profileTitle = profileUrl.split('/').pop() || profileUrl;
 
-      // 1. Check cache first
-      const cached = await window.electronAPI?.profileCache?.getProfile(profileTitle);
+      const result = await this.profileLoadingService.loadProfile(profileUrl, profileTitle);
 
-      if (cached) {
-        const fullSD = {
-          ...cached.profile,
-          snapshot: {
-            element: cached.mergedElements || []
-          }
-        };
-        this.editorDialog.open(fullSD, resource);
-
-        return;
-      }
-
-      // 2. Fetch StructureDefinition from server
-      const sd = await this.nictizService.fetchSingleStructureDefinition(profileUrl);
-
-      if (sd) {
-        // 3. Fetch base definition chain and merge elements
-        let baseChain: any[] = [];
-
-        if (sd.baseDefinition) {
-          baseChain = await this.nictizService.fetchBaseDefinitionChain(sd.baseDefinition);
-        }
-
-        const mergedElements = mergeProfileElements(sd, baseChain);
-
-        // 4. Create full SD with merged elements
-        const fullSD = {
-          ...sd,
-          snapshot: {
-            element: mergedElements
-          }
-        };
-
-        // 5. Cache for future use
-        try {
-          await window.electronAPI?.profileCache?.setProfile(profileTitle, {
-            profile: {
-              id: sd.id,
-              url: sd.url,
-              name: sd.name,
-              type: sd.type,
-              title: sd.title || sd.name,
-              description: sd.description,
-              purpose: sd.purpose,
-              baseDefinition: sd.baseDefinition,
-            },
-            baseChain: baseChain.map((bd) => ({
-              name: bd.name,
-              url: bd.url,
-            })),
-            mergedElements,
-            constraints: [],
-          });
-        } catch {
-          // Caching failure is not critical
-        }
-
-        this.editorDialog.open(fullSD, resource);
+      if (result) {
+        this.editorDialog.open(result.structureDefinition, resource);
 
         return;
       }
