@@ -1,3 +1,10 @@
+## [1.32.3](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.2...v1.32.3) (2026-01-22)
+
+
+### Bug Fixes
+
+* **ui:** correct cache dropdown menu alignment ([3454fba](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3454fbae2ef2e38f7f9ad2d7e4c2b48cc213fac6))
+
 ## [1.32.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.1...v1.32.2) (2026-01-22)
 
 ## [1.32.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.0...v1.32.1) (2026-01-22)
