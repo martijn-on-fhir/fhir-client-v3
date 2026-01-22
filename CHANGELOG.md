@@ -1,3 +1,18 @@
+# [1.31.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.30.0...v1.31.0) (2026-01-22)
+
+
+### Bug Fixes
+
+* **narratives:** enhance tab with profile selector, editor and actions ([34dab69](https://github.com/martijn-on-fhir/fhir-client-v3/commit/34dab69975c6dcbadd6b3a246846a611b5ac9b9b))
+
+
+### Features
+
+* **toolbar:** add generate narrative button to json-viewer-toolbar ([fd4f58f](https://github.com/martijn-on-fhir/fhir-client-v3/commit/fd4f58f5328d23d98ab47db1277b352b4cf8dfe4))
+* **narratives:** add Handlebars template loading system ([aba8f36](https://github.com/martijn-on-fhir/fhir-client-v3/commit/aba8f3603c5ed0d342d887f406c100ae6e67e7f5))
+* **narratives:** add narrative editor dialog with Monaco editor ([5138232](https://github.com/martijn-on-fhir/fhir-client-v3/commit/5138232fdd6deb46a6513de7bc6b6326344a3de0))
+* **narratives:** add Narratives tab ([3265bbe](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3265bbe0809faa797f2b372bcde030080a25ef75))
+
 # [1.30.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.29.4...v1.30.0) (2026-01-20)
 
 
