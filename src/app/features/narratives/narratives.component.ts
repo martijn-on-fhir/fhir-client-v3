@@ -1,8 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, OnInit, signal, ViewChild } from '@angular/core';
+import { Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { NictizService } from '../../core/services/nictiz.service';
 import { ToastService } from '../../core/services/toast.service';
+import { NarrativeStateService } from '../../core/services/narrative-state.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import { NarrativeEditorDialogComponent } from '../../shared/components/narrative-editor-dialog/narrative-editor-dialog.component';
 import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';
@@ -46,13 +47,53 @@ export class NarrativesComponent implements OnInit {
   /** Path to the templates directory */
   templatesDir = signal<string>('');
 
-  private toastService = inject(ToastService);
+  /** Flag to prevent saving state during initialization */
+  private isInitialized = false;
 
-  constructor(public nictizService: NictizService) {}
+  private toastService = inject(ToastService);
+  private narrativeStateService = inject(NarrativeStateService);
+
+  constructor(public nictizService: NictizService) {
+    // Auto-save state whenever signals change (but only after initialization)
+    effect(() => {
+      const profileUrl = this.selectedProfileUrl();
+      const profileTitle = this.selectedProfileTitle();
+      const content = this.editorContent();
+      const error = this.templateError();
+
+      // Only save state after component is fully initialized
+      if (this.isInitialized) {
+        this.narrativeStateService.setState(profileUrl, profileTitle, content, error);
+      }
+    }, {allowSignalWrites: true});
+  }
 
   async ngOnInit() {
+    // First load profiles and templates directory
     await this.nictizService.fetchStructureDefinitions();
     await this.loadTemplatesDir();
+
+    // Then restore state if it exists (after profiles are loaded)
+    if (this.narrativeStateService.hasContent()) {
+      const savedProfileUrl = this.narrativeStateService.selectedProfileUrl();
+      const savedProfileTitle = this.narrativeStateService.selectedProfileTitle();
+      const savedContent = this.narrativeStateService.editorContent();
+      const savedError = this.narrativeStateService.templateError();
+
+      // Verify the saved profile still exists in the loaded profiles
+      const profileExists = this.nictizService.structureDefinitions().some(p => p.url === savedProfileUrl);
+
+      if (profileExists && savedProfileUrl) {
+        // Restore all state
+        this.selectedProfileUrl.set(savedProfileUrl);
+        this.selectedProfileTitle.set(savedProfileTitle);
+        this.editorContent.set(savedContent);
+        this.templateError.set(savedError);
+      }
+    }
+
+    // Mark initialization as complete - now effects can save state
+    this.isInitialized = true;
   }
 
   /**
