@@ -18,9 +18,19 @@ import {MonacoEditorComponent} from '../monaco-editor/monaco-editor.component';
 })
 export class NarrativeEditorDialogComponent {
 
+  /**
+   * Reference to the Monaco editor component.
+   */
   @ViewChild('monacoEditor') monacoEditor!: MonacoEditorComponent;
 
+  /**
+   * Event emitter for closing the dialog.
+   */
   @Output() close = new EventEmitter<void>();
+
+  /**
+   * Event emitter for saving the narrative.
+   */
   @Output() save = new EventEmitter<{ narrative: string }>();
 
   // Dialog state

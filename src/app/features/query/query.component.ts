@@ -790,7 +790,7 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
       this.queryHistoryService.addQuery(query, this.queryMode());
 
     } catch (err: any) {
-      this.logger.error('Query execution failed:', err);
+      this.logger.error('Query execution failed:', err || query);
       this.toastService.error(err.message || 'Query execution failed', 'Query Error');
     } finally {
       this.loading.set(false);
