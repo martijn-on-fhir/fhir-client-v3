@@ -1,9 +1,9 @@
 import { CommonModule } from '@angular/common';
 import { Component, effect, inject, OnInit, signal, ViewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { NarrativeStateService } from '../../core/services/narrative-state.service';
 import { NictizService } from '../../core/services/nictiz.service';
 import { ToastService } from '../../core/services/toast.service';
-import { NarrativeStateService } from '../../core/services/narrative-state.service';
 import { MonacoEditorComponent } from '../../shared/components/monaco-editor/monaco-editor.component';
 import { NarrativeEditorDialogComponent } from '../../shared/components/narrative-editor-dialog/narrative-editor-dialog.component';
 import { ResultHeaderComponent } from '../../shared/components/result-header/result-header.component';

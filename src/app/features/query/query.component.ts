@@ -8,8 +8,8 @@
 
 import {CommonModule} from '@angular/common';
 import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectionStrategy, DestroyRef} from '@angular/core';
-import {FormsModule} from '@angular/forms';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
+import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
 import {firstValueFrom, Subject} from 'rxjs';
 import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
