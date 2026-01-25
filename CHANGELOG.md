@@ -1,3 +1,11 @@
+## [1.33.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.33.0...v1.33.1) (2026-01-25)
+
+
+### Bug Fixes
+
+* **narratives:** preserve tab state across navigation ([8725b7e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/8725b7e7499f37e933c5ef99d79e2a25422ae55e))
+* **security:** replace hardcoded encryption keys with OS-level secure storage ([7c1a3f5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/7c1a3f5143b231533fb00cb7f6f5ced006385946))
+
 # [1.33.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.32.3...v1.33.0) (2026-01-22)
 
 
