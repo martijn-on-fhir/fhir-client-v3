@@ -125,6 +125,13 @@ export const routes: Routes = [
         path: 'narratives',
         loadComponent: () => import('./features/narratives/narratives.component')
           .then(m => m.NarrativesComponent)
+      },
+
+      // Reference Graph Tab
+      {
+        path: 'reference-graph',
+        loadComponent: () => import('./features/reference-graph/reference-graph.component')
+          .then(m => m.ReferenceGraphComponent)
       }
     ]
   },

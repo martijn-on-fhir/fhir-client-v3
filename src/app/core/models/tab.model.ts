@@ -102,5 +102,12 @@ export const APP_TABS: Tab[] = [
     icon: 'book-open',
     route: '/app/narratives',
     active: true
+  },
+  {
+    id: 'reference-graph',
+    label: 'Reference Graph',
+    icon: 'project-diagram',
+    route: '/app/reference-graph',
+    active: true
   }
 ];

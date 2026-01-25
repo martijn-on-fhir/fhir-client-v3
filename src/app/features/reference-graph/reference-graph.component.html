@@ -1,0 +1,221 @@
+<div class="reference-graph-container">
+  <!-- Input Bar -->
+  <div class="card border-0 mb-2" style="flex-shrink: 0">
+    <div class="card-body p-2">
+      <div class="d-flex gap-2 align-items-center">
+        <!-- Reference Input -->
+        <div class="input-group" style="flex: 1; max-width: 400px">
+          <span class="input-group-text">
+            <i class="fas fa-link"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control"
+            [ngModel]="rootReference()"
+            (ngModelChange)="onRootReferenceChange($event)"
+            placeholder="Patient/123 or Observation/456"
+            spellcheck="false"
+            (keydown.enter)="executeGraph()">
+        </div>
+
+        <!-- Depth Selector -->
+        <div class="input-group" style="width: 140px">
+          <span class="input-group-text">Depth</span>
+          <select
+            class="form-select"
+            [ngModel]="maxDepth()"
+            (ngModelChange)="onMaxDepthChange($event)">
+            @for (depth of depthOptions; track depth) {
+              <option [value]="depth">{{ depth }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Execute Button -->
+        <button
+          class="btn btn-primary"
+          (click)="executeGraph()"
+          [disabled]="loading() || !rootReference()">
+          @if (loading()) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="fas fa-project-diagram me-1"></i>
+          }
+          Build Graph
+        </button>
+
+        <!-- Clear Button -->
+        <button
+          class="btn btn-outline-secondary"
+          (click)="clearGraph()"
+          [disabled]="graphNodes().length === 0"
+          title="Clear graph">
+          <i class="fas fa-trash"></i>
+        </button>
+
+        <!-- Statistics Badge -->
+        @if (nodeCount() > 0) {
+          <span class="badge bg-secondary">
+            {{ nodeCount() }} nodes, {{ edgeCount() }} edges
+          </span>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="alert alert-danger alert-dismissible mx-2 mb-2" role="alert">
+      <i class="fas fa-exclamation-triangle me-2"></i>
+      {{ error() }}
+      <button type="button" class="btn-close" (click)="error.set(null)"></button>
+    </div>
+  }
+
+  <!-- Main Content -->
+  <div class="content-area">
+    <!-- Graph Panel -->
+    <div class="graph-panel">
+      <div class="card h-100 border-0">
+        <div class="card-header d-flex justify-content-between align-items-center py-2">
+          <span>
+            <i class="fas fa-project-diagram me-2"></i>
+            Reference Graph
+          </span>
+          <div class="btn-group btn-group-sm">
+            <button
+              class="btn btn-outline-secondary"
+              (click)="fitToView()"
+              [disabled]="graphNodes().length === 0"
+              title="Fit to view">
+              <i class="fas fa-expand"></i>
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              (click)="focusOnSelected()"
+              [disabled]="!selectedNodeId()"
+              title="Focus on selected">
+              <i class="fas fa-crosshairs"></i>
+            </button>
+            <button
+              class="btn btn-outline-secondary"
+              (click)="expandAll()"
+              [disabled]="loading() || graphNodes().length === 0"
+              title="Expand all nodes">
+              <i class="fas fa-expand-arrows-alt"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="card-body p-0 position-relative">
+          @if (graphNodes().length > 0) {
+            <app-vis-network
+              #visNetwork
+              [nodes]="visNodes()"
+              [edges]="visEdges()"
+              [loading]="loading()"
+              (nodeClick)="onNodeClick($event)"
+              (nodeDoubleClick)="onNodeDoubleClick($event)">
+            </app-vis-network>
+          } @else if (!loading()) {
+            <div class="empty-state">
+              <i class="fas fa-project-diagram fa-3x mb-3 text-muted" style="opacity: 0.3"></i>
+              <p class="text-muted">
+                Enter a FHIR resource reference and click "Build Graph" to visualize relationships.
+              </p>
+              <p class="text-muted small">
+                <strong>Tip:</strong> Double-click a node to expand its references.
+              </p>
+            </div>
+          }
+
+          @if (loading() && graphNodes().length === 0) {
+            <div class="loading-state">
+              <div class="spinner-border text-primary mb-3"></div>
+              <p class="text-muted">Building reference graph...</p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail Panel -->
+    <div class="detail-panel">
+      <div class="card h-100 border-0">
+        <div class="card-header d-flex justify-content-between align-items-center py-2">
+          <span>
+            <i class="fas fa-file-code me-2"></i>
+            @if (selectedNodeId()) {
+              {{ selectedNodeId() }}
+            } @else {
+              Resource Details
+            }
+          </span>
+          @if (selectedNodeId()) {
+            <button
+              class="btn btn-sm btn-outline-primary"
+              (click)="openInQuery()"
+              title="Open in Query tab">
+              <i class="fas fa-external-link-alt me-1"></i>
+              Query
+            </button>
+          }
+        </div>
+
+        <div class="card-body p-0">
+          @if (selectedResource()) {
+            <app-monaco-editor
+              #monacoEditor
+              [value]="selectedResourceJson()"
+              [language]="'json'"
+              [readOnly]="true"
+              (editorReady)="onEditorReady($event)">
+            </app-monaco-editor>
+          } @else {
+            <div class="empty-state small-empty">
+              <i class="fas fa-mouse-pointer fa-2x mb-2 text-muted" style="opacity: 0.3"></i>
+              <p class="text-muted small">
+                Click a node in the graph to view its details.
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Legend -->
+  @if (graphNodes().length > 0) {
+    <div class="legend-bar">
+      <span class="legend-title">Resource Types:</span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #4CAF50"></span>
+        Patient
+      </span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #2196F3"></span>
+        Practitioner
+      </span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #9C27B0"></span>
+        Observation
+      </span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #FF9800"></span>
+        Organization
+      </span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #00BCD4"></span>
+        Encounter
+      </span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #F44336"></span>
+        Condition
+      </span>
+      <span class="legend-item">
+        <span class="legend-color" style="background: #BDBDBD"></span>
+        Other
+      </span>
+    </div>
+  }
+</div>
