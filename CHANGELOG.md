@@ -1,3 +1,10 @@
+## [1.33.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.33.1...v1.33.2) (2026-01-25)
+
+
+### Bug Fixes
+
+* **query:** toolbar buttons not working due to async Monaco loading ([5b32a2b](https://github.com/martijn-on-fhir/fhir-client-v3/commit/5b32a2bc85aa4d79dd55f1a5ac10cb3d878350c9))
+
 ## [1.33.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.33.0...v1.33.1) (2026-01-25)
 
 
