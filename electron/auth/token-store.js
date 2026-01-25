@@ -1,35 +1,82 @@
-const Store = require('electron-store').default || require('electron-store');
 const log = require('electron-log/main');
+const secureKeyManager = require('../security/secure-key-manager');
 
 /**
- * Secure Token Storage using electron-store with encryption
+ * Secure Token Storage using electron-store with OS-level encrypted keys
  *
- * Manages OAuth2 tokens, 2FA secrets, and saved accounts with encrypted persistence
+ * Manages OAuth2 tokens, 2FA secrets, and saved accounts with encrypted persistence.
+ * Encryption keys are secured using Electron's safeStorage API (OS credential storage).
  */
 
-// Encrypted store for sensitive authentication data
-const tokenStore = new Store({
-  name: 'fhir-tokens',
-  encryptionKey: 'fhir-client-v3-encryption-key-change-in-production'
-});
+// Lazy-loaded stores (initialized after secureKeyManager is ready)
+let tokenStore = null;
+let accountsStore = null;
+let profileStore = null;
+let sessionStore = null;
 
-// Separate store for saved accounts (less sensitive)
-const accountsStore = new Store({
-  name: 'fhir-accounts',
-  encryptionKey: 'fhir-client-v3-accounts-key-change-in-production'
-});
+/**
+ * Get or initialize the token store
+ * @returns {Store} Token store instance
+ */
+function getTokenStore() {
+  if (!tokenStore) {
+    const Store = require('electron-store').default || require('electron-store');
+    tokenStore = new Store({
+      name: 'fhir-tokens',
+      encryptionKey: secureKeyManager.getTokensKey()
+    });
+    log.info('[TokenStore] Token store initialized with secure key');
+  }
+  return tokenStore;
+}
 
-// Store for server profiles (encrypted - contains credentials)
-const profileStore = new Store({
-  name: 'fhir-profiles',
-  encryptionKey: 'fhir-client-v3-profiles-key-change-in-production'
-});
+/**
+ * Get or initialize the accounts store
+ * @returns {Store} Accounts store instance
+ */
+function getAccountsStore() {
+  if (!accountsStore) {
+    const Store = require('electron-store').default || require('electron-store');
+    accountsStore = new Store({
+      name: 'fhir-accounts',
+      encryptionKey: secureKeyManager.getAccountsKey()
+    });
+    log.info('[TokenStore] Accounts store initialized with secure key');
+  }
+  return accountsStore;
+}
 
-// Store for profile sessions (encrypted - contains tokens)
-const sessionStore = new Store({
-  name: 'fhir-sessions',
-  encryptionKey: 'fhir-client-v3-sessions-key-change-in-production'
-});
+/**
+ * Get or initialize the profile store
+ * @returns {Store} Profile store instance
+ */
+function getProfileStore() {
+  if (!profileStore) {
+    const Store = require('electron-store').default || require('electron-store');
+    profileStore = new Store({
+      name: 'fhir-profiles',
+      encryptionKey: secureKeyManager.getProfilesKey()
+    });
+    log.info('[TokenStore] Profile store initialized with secure key');
+  }
+  return profileStore;
+}
+
+/**
+ * Get or initialize the session store
+ * @returns {Store} Session store instance
+ */
+function getSessionStore() {
+  if (!sessionStore) {
+    const Store = require('electron-store').default || require('electron-store');
+    sessionStore = new Store({
+      name: 'fhir-sessions',
+      encryptionKey: secureKeyManager.getSessionsKey()
+    });
+    log.info('[TokenStore] Session store initialized with secure key');
+  }
+  return sessionStore;
+}
 
 /**
  * Save OAuth2 token with metadata
@@ -61,7 +108,7 @@ function saveToken(tokenResponse, fhirServer, clientId, clientSecret, environmen
     id_token: tokenResponse.id_token
   };
 
-  tokenStore.set('token', storedToken);
+  getTokenStore().set('token', storedToken);
   log.info('[TokenStore] Token saved successfully');
 }
 
@@ -70,7 +117,7 @@ function saveToken(tokenResponse, fhirServer, clientId, clientSecret, environmen
  * @returns {Object|null} Stored token or null if not found/expired
  */
 function getToken() {
-  const token = tokenStore.get('token');
+  const token = getTokenStore().get('token');
 
   if (!token) {
     return null;
@@ -98,7 +145,7 @@ function getToken() {
  * @returns {boolean} True if valid token exists
  */
 function hasValidToken() {
-  const token = tokenStore.get('token');
+  const token = getTokenStore().get('token');
 
   if (!token) {
     return false;
@@ -113,7 +160,7 @@ function hasValidToken() {
  * Clear stored token
  */
 function clearToken() {
-  tokenStore.delete('token');
+  getTokenStore().delete('token');
   log.info('[TokenStore] Token cleared');
 }
 
@@ -126,7 +173,7 @@ function clearToken() {
  * @param {string} secret - TOTP secret
  */
 function setTwoFactorSecret(secret) {
-  tokenStore.set('twoFactorSecret', secret);
+  getTokenStore().set('twoFactorSecret', secret);
   log.info('[TokenStore] 2FA secret saved');
 }
 
@@ -135,14 +182,14 @@ function setTwoFactorSecret(secret) {
  * @returns {string|null} TOTP secret or null
  */
 function getTwoFactorSecret() {
-  return tokenStore.get('twoFactorSecret', null);
+  return getTokenStore().get('twoFactorSecret', null);
 }
 
 /**
  * Remove 2FA secret
  */
 function removeTwoFactorSecret() {
-  tokenStore.delete('twoFactorSecret');
+  getTokenStore().delete('twoFactorSecret');
   log.info('[TokenStore] 2FA secret removed');
 }
 
@@ -155,7 +202,7 @@ function removeTwoFactorSecret() {
  * @param {Array} accounts - Array of saved account objects
  */
 function setSavedAccounts(accounts) {
-  accountsStore.set('savedAccounts', accounts);
+  getAccountsStore().set('savedAccounts', accounts);
   log.info(`[TokenStore] Saved ${accounts.length} accounts`);
 }
 
@@ -164,14 +211,14 @@ function setSavedAccounts(accounts) {
  * @returns {Array} Array of saved accounts
  */
 function getSavedAccounts() {
-  return accountsStore.get('savedAccounts', []);
+  return getAccountsStore().get('savedAccounts', []);
 }
 
 /**
  * Clear all saved accounts
  */
 function clearSavedAccounts() {
-  accountsStore.delete('savedAccounts');
+  getAccountsStore().delete('savedAccounts');
   log.info('[TokenStore] Saved accounts cleared');
 }
 
@@ -184,7 +231,7 @@ function clearSavedAccounts() {
  * @returns {Array} Array of server profile objects
  */
 function getProfiles() {
-  return profileStore.get('profiles', []);
+  return getProfileStore().get('profiles', []);
 }
 
 /**
@@ -192,7 +239,7 @@ function getProfiles() {
  * @param {Array} profiles - Array of server profile objects
  */
 function setProfiles(profiles) {
-  profileStore.set('profiles', profiles);
+  getProfileStore().set('profiles', profiles);
   log.info(`[TokenStore] Saved ${profiles.length} server profiles`);
 }
 
@@ -201,7 +248,7 @@ function setProfiles(profiles) {
  * @returns {string|null} Active profile ID or null
  */
 function getActiveProfileId() {
-  return profileStore.get('activeProfileId', null);
+  return getProfileStore().get('activeProfileId', null);
 }
 
 /**
@@ -210,9 +257,9 @@ function getActiveProfileId() {
  */
 function setActiveProfileId(id) {
   if (id) {
-    profileStore.set('activeProfileId', id);
+    getProfileStore().set('activeProfileId', id);
   } else {
-    profileStore.delete('activeProfileId');
+    getProfileStore().delete('activeProfileId');
   }
   log.info(`[TokenStore] Active profile set to: ${id || 'none'}`);
 }
@@ -221,8 +268,8 @@ function setActiveProfileId(id) {
  * Clear all profiles
  */
 function clearProfiles() {
-  profileStore.delete('profiles');
-  profileStore.delete('activeProfileId');
+  getProfileStore().delete('profiles');
+  getProfileStore().delete('activeProfileId');
   log.info('[TokenStore] Server profiles cleared');
 }
 
@@ -236,7 +283,7 @@ function clearProfiles() {
  * @returns {Object|null} Session object or null
  */
 function getSession(profileId) {
-  const sessions = sessionStore.get('sessions', {});
+  const sessions = getSessionStore().get('sessions', {});
   return sessions[profileId] || null;
 }
 
@@ -246,9 +293,9 @@ function getSession(profileId) {
  * @param {Object} session - Session object
  */
 function setSession(profileId, session) {
-  const sessions = sessionStore.get('sessions', {});
+  const sessions = getSessionStore().get('sessions', {});
   sessions[profileId] = session;
-  sessionStore.set('sessions', sessions);
+  getSessionStore().set('sessions', sessions);
   log.info(`[TokenStore] Session saved for profile: ${profileId}`);
 }
 
@@ -257,9 +304,9 @@ function setSession(profileId, session) {
  * @param {string} profileId - Profile ID
  */
 function clearSession(profileId) {
-  const sessions = sessionStore.get('sessions', {});
+  const sessions = getSessionStore().get('sessions', {});
   delete sessions[profileId];
-  sessionStore.set('sessions', sessions);
+  getSessionStore().set('sessions', sessions);
   log.info(`[TokenStore] Session cleared for profile: ${profileId}`);
 }
 
@@ -268,7 +315,7 @@ function clearSession(profileId) {
  * @returns {Object} Map of profileId -> session
  */
 function getAllSessions() {
-  return sessionStore.get('sessions', {});
+  return getSessionStore().get('sessions', {});
 }
 
 /**
@@ -276,7 +323,7 @@ function getAllSessions() {
  * @param {Object} sessions - Map of profileId -> session
  */
 function setAllSessions(sessions) {
-  sessionStore.set('sessions', sessions);
+  getSessionStore().set('sessions', sessions);
   log.info(`[TokenStore] Saved ${Object.keys(sessions).length} sessions`);
 }
 
@@ -284,8 +331,20 @@ function setAllSessions(sessions) {
  * Clear all sessions
  */
 function clearAllSessions() {
-  sessionStore.delete('sessions');
+  getSessionStore().delete('sessions');
   log.info('[TokenStore] All sessions cleared');
+}
+
+/**
+ * Reset all stores (for migration or complete reset)
+ * Clears the lazy-loaded store instances so they reinitialize with new keys
+ */
+function resetStores() {
+  tokenStore = null;
+  accountsStore = null;
+  profileStore = null;
+  sessionStore = null;
+  log.info('[TokenStore] All store instances reset');
 }
 
 module.exports = {
@@ -314,5 +373,7 @@ module.exports = {
   clearSession,
   getAllSessions,
   setAllSessions,
-  clearAllSessions
+  clearAllSessions,
+  // Store management
+  resetStores
 };

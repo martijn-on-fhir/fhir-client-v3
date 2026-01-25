@@ -599,6 +599,18 @@ contextBridge.exposeInMainWorld('electronAPI', {
      */
     getEnvironment: (envName) =>
       ipcRenderer.invoke('config:getEnvironment', envName)
+  },
+
+  // Security API
+  security: {
+    /**
+     * Check if OS-level secure storage is available
+     * Returns true if using Windows DPAPI, macOS Keychain, or Linux Secret Service
+     * Returns false if using fallback encryption (less secure)
+     * @returns {Promise<boolean>}
+     */
+    isSecureStorageAvailable: () =>
+      ipcRenderer.invoke('security:isSecureStorageAvailable')
   }
 });
 

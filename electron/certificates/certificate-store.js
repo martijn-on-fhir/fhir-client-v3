@@ -1,23 +1,30 @@
 const { v4: uuidv4 } = require('uuid');
 const log = require('electron-log/main');
+const secureKeyManager = require('../security/secure-key-manager');
 
 /**
- * Secure Certificate Storage using electron-store with encryption
+ * Secure Certificate Storage using electron-store with OS-level encrypted keys
  *
  * Manages client certificates for mTLS connections with encrypted persistence.
- * Private keys and passphrases are stored encrypted and never exposed to renderer.
+ * Private keys and passphrases are stored encrypted using keys secured by
+ * Electron's safeStorage API (OS credential storage).
  */
 
 // Lazy-load electron-store to ensure it's loaded in proper Electron context
 let certificateStore = null;
 
+/**
+ * Get or initialize the certificate store
+ * @returns {Store} Certificate store instance
+ */
 function getStore() {
   if (!certificateStore) {
     const Store = require('electron-store').default || require('electron-store');
     certificateStore = new Store({
       name: 'fhir-certificates',
-      encryptionKey: 'fhir-client-v3-certs-key-change-in-production'
+      encryptionKey: secureKeyManager.getCertificatesKey()
     });
+    log.info('[CertificateStore] Certificate store initialized with secure key');
   }
   return certificateStore;
 }
@@ -176,6 +183,14 @@ function clearAllCertificates() {
   log.info('[CertificateStore] All certificates cleared');
 }
 
+/**
+ * Reset the store instance (for migration or complete reset)
+ */
+function resetStore() {
+  certificateStore = null;
+  log.info('[CertificateStore] Store instance reset');
+}
+
 // =============================================================================
 // Helper Functions
 // =============================================================================
@@ -236,5 +251,6 @@ module.exports = {
   getCertificateForDomain,
   updateCertificate,
   deleteCertificate,
-  clearAllCertificates
+  clearAllCertificates,
+  resetStore
 };

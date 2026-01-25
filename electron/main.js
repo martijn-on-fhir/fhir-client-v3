@@ -1,6 +1,7 @@
 const { app, BrowserWindow, session, ipcMain, shell } = require('electron');
 const path = require('path');
 const log = require('electron-log/main');
+const secureKeyManager = require('./security/secure-key-manager');
 const { registerAuthHandlers } = require('./auth/auth-handler');
 const { registerTerminologyHandlers } = require('./terminology/terminology-handler');
 const { registerFileHandlers } = require('./file/file-handler');
@@ -40,6 +41,11 @@ ipcMain.handle('log:debug', (event, ...args) => {
 
 ipcMain.handle('log:verbose', (event, ...args) => {
   log.verbose('[Renderer]', ...args);
+});
+
+// Security status handler - check if OS-level secure storage is available
+ipcMain.handle('security:isSecureStorageAvailable', () => {
+  return secureKeyManager.isSecureStorageAvailable();
 });
 
 // Shell API handler - open URLs in external browser
@@ -206,6 +212,15 @@ function createWindow() {
 // Initialize app
 // Register IPC handlers before creating window
 app.whenReady().then(() => {
+  // Initialize secure key manager with user data path
+  // This must happen before any handlers that use encrypted stores
+  secureKeyManager.initialize(app.getPath('userData'));
+
+  if (secureKeyManager.isSecureStorageAvailable()) {
+    log.info('[Main] OS-level secure storage available (using DPAPI/Keychain/SecretService)');
+  } else {
+    log.warn('[Main] OS-level secure storage NOT available - using fallback encryption');
+  }
 
   registerConfigHandlers();
   registerAuthHandlers();
@@ -222,6 +237,8 @@ app.whenReady().then(() => {
 });
 
 app.on('window-all-closed', () => {
+  // Clear encryption key cache on app close for security
+  secureKeyManager.clearCache();
 
   if (process.platform !== 'darwin') {
     app.quit();
