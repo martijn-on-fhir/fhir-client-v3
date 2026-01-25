@@ -16,7 +16,8 @@
     "test": "ng test",
     "lint": "eslint \"src/**/*.ts\"",
     "lint:fix": "eslint \"src/**/*.ts\" --fix",
-    "semantic-release": "semantic-release"
+    "semantic-release": "semantic-release",
+    "analyze": "ng build --configuration production --source-map && npx source-map-explorer dist/fhir-client/browser/*.js"
   },
   "repository": {
     "type": "git",

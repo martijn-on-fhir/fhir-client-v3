@@ -4,7 +4,6 @@ import {
   Input,
   Output,
   EventEmitter,
-  OnInit,
   OnChanges,
   SimpleChanges,
   AfterViewInit,
@@ -15,11 +14,11 @@ import {
   OnDestroy,
   effect
 } from '@angular/core';
-import loader from '@monaco-editor/loader';
 // eslint-disable-next-line @typescript-eslint/naming-convention
 import type * as Monaco from 'monaco-editor';
 import { AutocompleteService } from '../../../core/services/autocomplete.service';
 import { LoggerService } from '../../../core/services/logger.service';
+import { MonacoLoaderService } from '../../../core/services/monaco-loader.service';
 import { ThemeService } from '../../../core/services/theme.service';
 
 /**
@@ -70,7 +69,7 @@ export interface AutocompleteConfig {
     }
   `]
 })
-export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, OnDestroy {
+export class MonacoEditorComponent implements AfterViewInit, OnChanges, OnDestroy {
   @ViewChild('editorContainer', { static: false }) editorContainer!: ElementRef;
 
   @Input() value: string = '';
@@ -87,10 +86,11 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   private themeService = inject(ThemeService);
   private autocompleteService = inject(AutocompleteService);
   private loggerService = inject(LoggerService);
+  private monacoLoaderService = inject(MonacoLoaderService);
   private logger = this.loggerService.component('MonacoEditorComponent');
   public editor: Monaco.editor.IStandaloneCodeEditor | null = null;
   public monaco: typeof Monaco | null = null;
-  private initInterval: any = null;
+  private isDestroyed = false;
   private completionProvider: Monaco.IDisposable | null = null;
   private linkOpener: Monaco.IDisposable | null = null;
   private isInitializing = true;
@@ -110,41 +110,19 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
     });
   }
 
-  async ngOnInit() {
-    // Configure Monaco to load from local assets
-    loader.config({
-      paths: {
-        vs: 'assets/monaco/vs'
-      }
-    });
-
+  async ngAfterViewInit() {
+    // Use shared Monaco loader service (singleton)
     try {
-      this.monaco = await loader.init();
+      this.monaco = await this.monacoLoaderService.loadMonaco();
+
+      // Check if component was destroyed while loading
+      if (this.isDestroyed) {
+        return;
+      }
+
+      this.initMonaco();
     } catch (error) {
       this.logger.error('Monaco failed to load:', error);
-    }
-  }
-
-  ngAfterViewInit() {
-    // Wait for Monaco to load, then initialize editor
-    if (this.monaco) {
-      this.initMonaco();
-    } else {
-      // Monaco not loaded yet, wait for it (max 10 seconds)
-      let attempts = 0;
-      this.initInterval = setInterval(() => {
-        attempts++;
-
-        if (this.monaco) {
-          clearInterval(this.initInterval);
-          this.initInterval = null;
-          this.initMonaco();
-        } else if (attempts > 100) { // 10 seconds
-          clearInterval(this.initInterval);
-          this.initInterval = null;
-          this.logger.error('Monaco failed to load after 10 seconds');
-        }
-      }, 100);
     }
   }
 
@@ -172,11 +150,7 @@ export class MonacoEditorComponent implements OnInit, AfterViewInit, OnChanges, 
   }
 
   ngOnDestroy() {
-    // Clear init interval if still running
-    if (this.initInterval) {
-      clearInterval(this.initInterval);
-      this.initInterval = null;
-    }
+    this.isDestroyed = true;
 
     // Dispose completion provider
     if (this.completionProvider) {

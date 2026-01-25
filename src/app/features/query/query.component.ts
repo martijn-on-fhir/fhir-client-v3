@@ -7,10 +7,12 @@
  */
 
 import {CommonModule} from '@angular/common';
-import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef, AfterViewChecked} from '@angular/core';
+import {Component, signal, computed, effect, inject, OnInit, OnDestroy, ViewChild, ElementRef, ChangeDetectionStrategy, DestroyRef} from '@angular/core';
 import {FormsModule} from '@angular/forms';
+import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {Router} from '@angular/router';
-import {firstValueFrom} from 'rxjs';
+import {firstValueFrom, Subject} from 'rxjs';
+import {debounceTime, distinctUntilChanged} from 'rxjs/operators';
 import {
   QueryParameter,
   SearchParameter,
@@ -33,8 +35,9 @@ import {ResultHeaderComponent} from '../../shared/components/result-header/resul
   imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
+export class QueryComponent implements OnInit, OnDestroy {
   /**
    * Injected FHIR service for executing queries
    */
@@ -81,6 +84,11 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   private queryStateService = inject(QueryStateService);
 
   /**
+   * DestroyRef for managing subscriptions
+   */
+  private destroyRef = inject(DestroyRef);
+
+  /**
    * Logger instance for this component
    */
   private get logger() {
@@ -88,14 +96,50 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   /**
+   * Cache for filtered JSON results to avoid redundant processing
+   */
+  private filterCache = new Map<string, any>();
+
+  /**
+   * Subject for debouncing search term input
+   */
+  private searchTermSubject = new Subject<string>();
+
+  /**
    * Reference to Monaco Editor component in text mode
    */
-  @ViewChild('component') component?: MonacoEditorComponent;
+  private _component?: MonacoEditorComponent;
+
+  @ViewChild('component')
+  set component(ref: MonacoEditorComponent | undefined) {
+    this._component = ref;
+
+    if (ref?.editor && this.textModeEditor() !== ref.editor) {
+      this.textModeEditor.set(ref.editor);
+    }
+  }
+
+  get component(): MonacoEditorComponent | undefined {
+    return this._component;
+  }
 
   /**
    * Reference to Monaco Editor component in visual builder mode
    */
-  @ViewChild('componentVisual') componentVisual?: MonacoEditorComponent;
+  private _componentVisual?: MonacoEditorComponent;
+
+  @ViewChild('componentVisual')
+  set componentVisual(ref: MonacoEditorComponent | undefined) {
+    this._componentVisual = ref;
+
+    if (ref?.editor && this.visualModeEditor() !== ref.editor) {
+      this.visualModeEditor.set(ref.editor);
+    }
+  }
+
+  get componentVisual(): MonacoEditorComponent | undefined {
+    return this._componentVisual;
+  }
 
   /**
    * Signal for text mode editor (avoids ExpressionChangedAfterItHasBeenCheckedError)
@@ -426,6 +470,15 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    * (with retry mechanism for async Monaco loading, tracking both query mode and results)
    */
   constructor() {
+    // Debounce search term input for better performance
+    this.searchTermSubject.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntilDestroyed(this.destroyRef)
+    ).subscribe(term => {
+      this.searchTerm.set(term);
+    });
+
     effect(() => {
       localStorage.setItem('fhir-query-mode', this.queryMode());
     });
@@ -563,24 +616,6 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
    */
   ngOnDestroy() {
     this.editorStateService.unregisterEditor('/app/query');
-  }
-
-  /**
-   * View checked lifecycle hook
-   * Updates editor signals after view changes are stable
-   */
-  ngAfterViewChecked() {
-    const textEditor = this.component?.editor ?? null;
-    const visualEditor = this.componentVisual?.editor ?? null;
-
-    // Only update if value actually changed to avoid unnecessary change detection
-    if (this.textModeEditor() !== textEditor) {
-      this.textModeEditor.set(textEditor);
-    }
-
-    if (this.visualModeEditor() !== visualEditor) {
-      this.visualModeEditor.set(visualEditor);
-    }
   }
 
   /**
@@ -1043,17 +1078,57 @@ export class QueryComponent implements OnInit, OnDestroy, AfterViewChecked {
   }
 
   /**
+   * Handles search input with debouncing
+   * @param event The input event
+   */
+  onSearchInput(event: Event): void {
+    const term = (event.target as HTMLInputElement).value;
+
+    this.searchTermSubject.next(term);
+  }
+
+  /**
    * Recursively filters JSON object based on search term
-   * Matches keys and values against the search term
+   * Uses memoization to avoid redundant processing
    * @param obj The JSON object to filter
    * @param term The search term to filter by
    * @returns Filtered JSON object containing only matching keys/values
    */
   private filterJSON(obj: any, term: string): any {
-
     if (!term) {
       return obj;
     }
+
+    // Create cache key based on object identity and search term
+    const cacheKey = `${JSON.stringify(obj).substring(0, 100)}_${term}`;
+
+    if (this.filterCache.has(cacheKey)) {
+      return this.filterCache.get(cacheKey);
+    }
+
+    const result = this.performFilter(obj, term);
+
+    // Limit cache size to 10 entries
+    if (this.filterCache.size > 10) {
+      const firstKey = this.filterCache.keys().next().value;
+
+      if (firstKey) {
+        this.filterCache.delete(firstKey);
+      }
+    }
+
+    this.filterCache.set(cacheKey, result);
+
+    return result;
+  }
+
+  /**
+   * Performs the actual JSON filtering
+   * @param obj The JSON object to filter
+   * @param term The search term to filter by
+   * @returns Filtered JSON object
+   */
+  private performFilter(obj: any, term: string): any {
     const searchLower = term.toLowerCase();
 
     const filter = (data: any): any => {

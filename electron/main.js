@@ -182,9 +182,9 @@ function createWindow() {
 
   // Show main window when ready and close splash
   mainWindow.once('ready-to-show', () => {
-    // Ensure splash screen is visible for at least 5 seconds
+    // Ensure splash screen is visible for at least 2 seconds
     const elapsedTime = Date.now() - splashStartTime;
-    const remainingTime = Math.max(0, 4000 - elapsedTime);
+    const remainingTime = Math.max(0, 2000 - elapsedTime);
 
     setTimeout(() => {
       // Close splash window
