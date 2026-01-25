@@ -1,19 +1,5 @@
 import { Routes } from '@angular/router';
 import { authGuard, loginGuard } from './core/guards/auth.guard';
-import { LoginComponent } from './features/auth/login/login.component';
-import { TwoFactorSetupComponent } from './features/auth/two-factor-setup/two-factor-setup.component';
-import { FhirpathComponent } from './features/fhirpath/fhirpath.component';
-import { LogsComponent } from './features/logs/logs.component';
-import { NarrativesComponent } from './features/narratives/narratives.component';
-import { NictizComponent } from './features/nictiz/nictiz.component';
-import { PluriformComponent } from './features/pluriform/pluriform.component';
-import { PredefinedComponent } from './features/predefined/predefined.component';
-import { ProfilesComponent } from './features/profiles/profiles.component';
-import { QueryComponent } from './features/query/query.component';
-import { ResourceInfoComponent } from './features/resource-info/resource-info.component';
-import { SubscriptionsComponent } from './features/subscriptions/subscriptions.component';
-import { TerminologyComponent } from './features/terminology/terminology.component';
-import { ValidatorComponent } from './features/validator/validator.component';
 import { MainLayoutComponent } from './layout/main-layout/main-layout.component';
 
 /**
@@ -21,7 +7,7 @@ import { MainLayoutComponent } from './layout/main-layout/main-layout.component'
  *
  * Login routes are separate from main app.
  * Main app routes are wrapped in MainLayoutComponent and protected by authGuard.
- * This prevents loading header, sidebar, tabs until user is authenticated.
+ * Feature routes are lazy-loaded for optimal bundle size.
  */
 export const routes: Routes = [
   // Default route - redirect to login
@@ -34,12 +20,14 @@ export const routes: Routes = [
   // Authentication Routes (NOT protected, NO layout)
   {
     path: 'login',
-    component: LoginComponent,
+    loadComponent: () => import('./features/auth/login/login.component')
+      .then(m => m.LoginComponent),
     canActivate: [loginGuard] // Redirect to app if already authenticated
   },
   {
     path: 'auth/2fa-setup',
-    component: TwoFactorSetupComponent
+    loadComponent: () => import('./features/auth/two-factor-setup/two-factor-setup.component')
+      .then(m => m.TwoFactorSetupComponent)
   },
 
   // Main Application (wrapped in layout, protected by auth guard)
@@ -55,76 +43,88 @@ export const routes: Routes = [
         pathMatch: 'full'
       },
 
-      // Profiles Tab (DONE ✅)
+      // Profiles Tab
       {
         path: 'profiles',
-        component: ProfilesComponent
+        loadComponent: () => import('./features/profiles/profiles.component')
+          .then(m => m.ProfilesComponent)
       },
 
-      // FHIR Query Tab (DONE ✅)
+      // FHIR Query Tab
       {
         path: 'query',
-        component: QueryComponent
+        loadComponent: () => import('./features/query/query.component')
+          .then(m => m.QueryComponent)
       },
 
-      // Validator Tab (DONE ✅)
+      // Validator Tab
       {
         path: 'validator',
-        component: ValidatorComponent
+        loadComponent: () => import('./features/validator/validator.component')
+          .then(m => m.ValidatorComponent)
       },
 
-      // Terminology Tab (DONE ✅)
+      // Terminology Tab
       {
         path: 'terminology',
-        component: TerminologyComponent
+        loadComponent: () => import('./features/terminology/terminology.component')
+          .then(m => m.TerminologyComponent)
       },
 
-      // FHIRPath Tab (DONE ✅)
+      // FHIRPath Tab
       {
         path: 'fhirpath',
-        component: FhirpathComponent
+        loadComponent: () => import('./features/fhirpath/fhirpath.component')
+          .then(m => m.FhirpathComponent)
       },
 
-      // Predefined Templates Tab (DONE ✅)
+      // Predefined Templates Tab
       {
         path: 'predefined',
-        component: PredefinedComponent
+        loadComponent: () => import('./features/predefined/predefined.component')
+          .then(m => m.PredefinedComponent)
       },
 
-      // Log Viewer Tab (DONE ✅)
+      // Log Viewer Tab
       {
         path: 'logs',
-        component: LogsComponent
+        loadComponent: () => import('./features/logs/logs.component')
+          .then(m => m.LogsComponent)
       },
 
-      // Nictiz Tab (DONE ✅)
+      // Nictiz Tab
       {
         path: 'nictiz',
-        component: NictizComponent
+        loadComponent: () => import('./features/nictiz/nictiz.component')
+          .then(m => m.NictizComponent)
       },
 
-      // Pluriform Tab (DONE ✅)
+      // Pluriform Tab
       {
         path: 'pluriform',
-        component: PluriformComponent
+        loadComponent: () => import('./features/pluriform/pluriform.component')
+          .then(m => m.PluriformComponent)
       },
 
-      // Resource Info Tab (DONE ✅)
+      // Resource Info Tab
       {
         path: 'resource-info',
-        component: ResourceInfoComponent
+        loadComponent: () => import('./features/resource-info/resource-info.component')
+          .then(m => m.ResourceInfoComponent)
       },
 
-      // Subscriptions Tab (DONE ✅)
+      // Subscriptions Tab
       {
         path: 'subscriptions',
-        component: SubscriptionsComponent
+        loadComponent: () => import('./features/subscriptions/subscriptions.component')
+          .then(m => m.SubscriptionsComponent)
       },
 
-      // Narratives Tab (DONE ✅)
+      // Narratives Tab
       {
         path: 'narratives',
-        component: NarrativesComponent
+        loadComponent: () => import('./features/narratives/narratives.component')
+          .then(m => m.NarrativesComponent)
       }
     ]
   },
