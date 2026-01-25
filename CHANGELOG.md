@@ -1,3 +1,10 @@
+# [1.34.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.33.2...v1.34.0) (2026-01-25)
+
+
+### Features
+
+* **reference-graph:** add interactive FHIR reference graph visualization ([739efcd](https://github.com/martijn-on-fhir/fhir-client-v3/commit/739efcd9d0f1dfcfc08fcaf7fc68f39229690bd4))
+
 ## [1.33.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.33.1...v1.33.2) (2026-01-25)
 
 
