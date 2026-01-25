@@ -108,38 +108,12 @@ export class QueryComponent implements OnInit, OnDestroy {
   /**
    * Reference to Monaco Editor component in text mode
    */
-  private _component?: MonacoEditorComponent;
-
-  @ViewChild('component')
-  set component(ref: MonacoEditorComponent | undefined) {
-    this._component = ref;
-
-    if (ref?.editor && this.textModeEditor() !== ref.editor) {
-      this.textModeEditor.set(ref.editor);
-    }
-  }
-
-  get component(): MonacoEditorComponent | undefined {
-    return this._component;
-  }
+  @ViewChild('component') component?: MonacoEditorComponent;
 
   /**
    * Reference to Monaco Editor component in visual builder mode
    */
-  private _componentVisual?: MonacoEditorComponent;
-
-  @ViewChild('componentVisual')
-  set componentVisual(ref: MonacoEditorComponent | undefined) {
-    this._componentVisual = ref;
-
-    if (ref?.editor && this.visualModeEditor() !== ref.editor) {
-      this.visualModeEditor.set(ref.editor);
-    }
-  }
-
-  get componentVisual(): MonacoEditorComponent | undefined {
-    return this._componentVisual;
-  }
+  @ViewChild('componentVisual') componentVisual?: MonacoEditorComponent;
 
   /**
    * Signal for text mode editor (avoids ExpressionChangedAfterItHasBeenCheckedError)

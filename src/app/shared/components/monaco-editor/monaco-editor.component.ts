@@ -82,6 +82,7 @@ export class MonacoEditorComponent implements AfterViewInit, OnChanges, OnDestro
   @Output() altEnterPressed = new EventEmitter<{ propertyName: string; lineNumber: number }>();
   @Output() linkClicked = new EventEmitter<string>();
   @Output() codingClicked = new EventEmitter<{ system: string; code: string; display?: string }>();
+  @Output() editorReady = new EventEmitter<Monaco.editor.IStandaloneCodeEditor>();
 
   private themeService = inject(ThemeService);
   private autocompleteService = inject(AutocompleteService);
@@ -233,6 +234,9 @@ export class MonacoEditorComponent implements AfterViewInit, OnChanges, OnDestro
 
     // Register custom link opener
     this.registerLinkOpener();
+
+    // Emit editor ready event
+    this.editorReady.emit(this.editor);
   }
 
   /**

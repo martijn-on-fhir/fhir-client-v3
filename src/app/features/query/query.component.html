@@ -125,6 +125,7 @@
                   [theme]="'light'"
                   (linkClicked)="onLinkClicked($event)"
                   (codingClicked)="onCodingClicked($event)"
+                  (editorReady)="textModeEditor.set($event)"
                 />
               </div>
 
@@ -566,6 +567,7 @@
                 [theme]="'light'"
                 (linkClicked)="onLinkClicked($event)"
                 (codingClicked)="onCodingClicked($event)"
+                (editorReady)="visualModeEditor.set($event)"
               />
             </div>
 
