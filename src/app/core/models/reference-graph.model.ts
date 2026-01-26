@@ -48,6 +48,8 @@ export interface GraphEdge {
   label: string;
   /** Full property path (e.g., "Observation.subject") */
   propertyPath?: string;
+  /** Whether this is a reverse reference (another resource referencing this one) */
+  isReverse?: boolean;
 }
 
 /**
@@ -119,6 +121,66 @@ export const RESOURCE_TYPE_COLORS: Record<string, ResourceTypeColor> = {
 };
 
 /**
+ * Configuration for a reverse reference search
+ */
+export interface ReverseReferenceConfig {
+  /** Resource type to search for */
+  resourceType: string;
+  /** Search parameter that references the target resource */
+  searchParam: string;
+}
+
+/**
+ * Mapping of resource types to the resource types that commonly reference them
+ * Used for finding reverse references (resources that point TO a given resource)
+ */
+export const REVERSE_REFERENCE_MAP: Record<string, ReverseReferenceConfig[]> = {
+  Patient: [
+    { resourceType: 'Observation', searchParam: 'subject' },
+    { resourceType: 'Condition', searchParam: 'subject' },
+    { resourceType: 'Encounter', searchParam: 'subject' },
+    { resourceType: 'MedicationRequest', searchParam: 'subject' },
+    { resourceType: 'Procedure', searchParam: 'subject' },
+    { resourceType: 'DiagnosticReport', searchParam: 'subject' },
+    { resourceType: 'AllergyIntolerance', searchParam: 'patient' },
+    { resourceType: 'Immunization', searchParam: 'patient' },
+    { resourceType: 'CarePlan', searchParam: 'subject' },
+    { resourceType: 'DocumentReference', searchParam: 'subject' },
+    { resourceType: 'Consent', searchParam: 'patient' },
+  ],
+  Practitioner: [
+    { resourceType: 'Observation', searchParam: 'performer' },
+    { resourceType: 'Encounter', searchParam: 'participant' },
+    { resourceType: 'MedicationRequest', searchParam: 'requester' },
+    { resourceType: 'Procedure', searchParam: 'performer' },
+    { resourceType: 'DiagnosticReport', searchParam: 'performer' },
+    { resourceType: 'PractitionerRole', searchParam: 'practitioner' },
+  ],
+  Organization: [
+    { resourceType: 'Patient', searchParam: 'organization' },
+    { resourceType: 'Practitioner', searchParam: 'organization' },
+    { resourceType: 'Location', searchParam: 'organization' },
+    { resourceType: 'PractitionerRole', searchParam: 'organization' },
+    { resourceType: 'Encounter', searchParam: 'service-provider' },
+  ],
+  Encounter: [
+    { resourceType: 'Observation', searchParam: 'encounter' },
+    { resourceType: 'Condition', searchParam: 'encounter' },
+    { resourceType: 'Procedure', searchParam: 'encounter' },
+    { resourceType: 'MedicationRequest', searchParam: 'encounter' },
+    { resourceType: 'DiagnosticReport', searchParam: 'encounter' },
+    { resourceType: 'DocumentReference', searchParam: 'encounter' },
+  ],
+  Location: [
+    { resourceType: 'Encounter', searchParam: 'location' },
+    { resourceType: 'PractitionerRole', searchParam: 'location' },
+  ],
+  Medication: [
+    { resourceType: 'MedicationRequest', searchParam: 'medication' },
+  ],
+};
+
+/**
  * vis-network node format (for conversion)
  */
 export interface VisNode {
@@ -161,4 +223,6 @@ export interface VisEdge {
     strokeWidth: number;
     strokeColor: string;
   };
+  dashes?: boolean | number[];
+  width?: number;
 }

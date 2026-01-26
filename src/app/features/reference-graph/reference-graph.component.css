@@ -113,6 +113,20 @@
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
+.legend-separator {
+  color: var(--bs-secondary-color);
+  opacity: 0.5;
+}
+
+.legend-edge {
+  width: 20px;
+  height: 3px;
+  border-radius: 1px;
+}
+.legend-edge.legend-edge-dashed {
+  background: repeating-linear-gradient(90deg, #E91E63, #E91E63 4px, transparent 4px, transparent 8px) !important;
+}
+
 .card-header {
   font-size: 0.875rem;
   font-weight: 500;
@@ -141,6 +155,9 @@
   background: var(--bs-dark);
 }
 :host-context(.dark-mode) .legend-color {
+  border-color: rgba(255, 255, 255, 0.2);
+}
+:host-context(.dark-mode) .legend-edge {
   border-color: rgba(255, 255, 255, 0.2);
 }
 
