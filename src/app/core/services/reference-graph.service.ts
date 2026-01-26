@@ -34,7 +34,7 @@ export class ReferenceGraphService {
   private logger = this.loggerService.component('ReferenceGraphService');
 
   /** Regex for relative references (ResourceType/id) */
-  private readonly relativeRefPattern = /^([A-Z][a-zA-Z]+)\/([A-Za-z0-9\-.]+)$/;
+  private readonly relativeRefPattern = /^\/?([A-Z][a-zA-Z]+)\/([A-Za-z0-9\-.]+)$/;
 
   /** Regex for absolute URL references */
   private readonly absoluteUrlPattern = /^https?:\/\/.+\/([A-Z][a-zA-Z]+)\/([A-Za-z0-9\-.]+)$/;

@@ -142,6 +142,18 @@ export class ResultHeaderComponent {
   @Output() deleteClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the compare button in the toolbar
+   * Should be true for single FHIR resources, false for Bundles
+   * @default false
+   */
+  @Input() showCompareButton = false;
+
+  /**
+   * Event emitted when the compare button is clicked
+   */
+  @Output() compareClicked = new EventEmitter<void>();
+
+  /**
    * Check if a specific pagination link exists
    * Handles 'prev'/'previous' interchangeably
    */

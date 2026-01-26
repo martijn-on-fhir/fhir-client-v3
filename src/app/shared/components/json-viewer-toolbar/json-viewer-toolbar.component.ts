@@ -56,6 +56,18 @@ export class JsonViewerToolbarComponent {
   @Output() deleteClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the compare button.
+   * Should be true for single FHIR resources, false for Bundles.
+   * @default false
+   */
+  @Input() showCompareButton = false;
+
+  /**
+   * Emitted when the compare button is clicked.
+   */
+  @Output() compareClicked = new EventEmitter<void>();
+
+  /**
    * Whether to show the generate narrative button.
    * @default false
    */

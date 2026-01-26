@@ -104,9 +104,11 @@
               [total]="resultTotal()"
               [showEditButton]="isSingleResource()"
               [showDeleteButton]="canDeleteResource()"
+              [showCompareButton]="isSingleResource()"
               (pageNavigate)="navigateToPage($event)"
               (editClicked)="onEditClicked()"
-              (deleteClicked)="onDeleteClicked()">
+              (deleteClicked)="onDeleteClicked()"
+              (compareClicked)="openDiffDialog()">
             </app-result-header>
 
             @if (loading()) {
@@ -546,9 +548,11 @@
             [total]="resultTotal()"
             [showEditButton]="isSingleResource()"
             [showDeleteButton]="canDeleteResource()"
+            [showCompareButton]="isSingleResource()"
             (pageNavigate)="navigateToPage($event)"
             (editClicked)="onEditClicked()"
-            (deleteClicked)="onDeleteClicked()">
+            (deleteClicked)="onDeleteClicked()"
+            (compareClicked)="openDiffDialog()">
           </app-result-header>
 
           @if (loading()) {
@@ -609,3 +613,6 @@
 }
   </div>
 </div>
+
+<!-- Resource Diff Dialog -->
+<app-resource-diff-dialog #diffDialog></app-resource-diff-dialog>

@@ -13,7 +13,7 @@
             class="form-control form-control-sm"
             [ngModel]="rootReference()"
             (ngModelChange)="onRootReferenceChange($event)"
-            placeholder="Patient/123 or Observation/456"
+            placeholder="/Patient/123 or /Observation/456"
             spellcheck="false"
             (keydown.enter)="executeGraph()">
         </div>
@@ -69,15 +69,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Error Alert -->
-  @if (error()) {
-    <div class="alert alert-danger alert-dismissible mx-2 mb-2" role="alert">
-      <i class="fas fa-exclamation-triangle me-2"></i>
-      {{ error() }}
-      <button type="button" class="btn-close" (click)="error.set(null)"></button>
-    </div>
-  }
 
   <!-- Main Content -->
   <div class="content-area">
