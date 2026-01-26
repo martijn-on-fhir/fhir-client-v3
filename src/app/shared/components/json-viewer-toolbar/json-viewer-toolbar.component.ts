@@ -68,6 +68,18 @@ export class JsonViewerToolbarComponent {
   @Output() compareClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the copy as cURL button.
+   * Should be true when a query has been executed.
+   * @default false
+   */
+  @Input() showCopyAsCurl = false;
+
+  /**
+   * Emitted when the copy as cURL button is clicked.
+   */
+  @Output() copyAsCurlClicked = new EventEmitter<void>();
+
+  /**
    * Whether to show the generate narrative button.
    * @default false
    */

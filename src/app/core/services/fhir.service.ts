@@ -88,6 +88,62 @@ export class FhirService {
   }
 
   /**
+   * Generate a cURL command for a FHIR query
+   * @param query The query string (e.g., '/Patient/123')
+   * @param method HTTP method (default: GET)
+   * @param body Optional request body for POST/PUT
+   * @param redactAuth Whether to redact auth tokens (default: true)
+   * @returns Promise<string> The cURL command
+   */
+  async generateCurl(
+    query: string,
+    method: string = 'GET',
+    body?: any,
+    redactAuth: boolean = true
+  ): Promise<string> {
+    const url = query.startsWith('http') ? query : `${this.baseUrl}${query}`;
+    const authHeaders = await this.getProfileAuthHeaders();
+
+    const parts: string[] = ['curl'];
+
+    // Add method if not GET
+    if (method !== 'GET') {
+      parts.push(`-X ${method}`);
+    }
+
+    // Add headers
+    parts.push("-H 'Accept: application/fhir+json'");
+
+    if (body) {
+      parts.push("-H 'Content-Type: application/fhir+json'");
+    }
+
+    // Add auth headers (redacted or full)
+    for (const [key, value] of Object.entries(authHeaders)) {
+      if (redactAuth && key.toLowerCase() === 'authorization') {
+        // Redact the token but show the auth type
+        const authType = value.split(' ')[0] || 'Bearer';
+        parts.push(`-H '${key}: ${authType} [REDACTED]'`);
+      } else {
+        parts.push(`-H '${key}: ${value}'`);
+      }
+    }
+
+    // Add body for POST/PUT
+    if (body) {
+      const jsonBody = typeof body === 'string' ? body : JSON.stringify(body);
+      // Escape single quotes in JSON
+      const escapedBody = jsonBody.replace(/'/g, "'\\''");
+      parts.push(`-d '${escapedBody}'`);
+    }
+
+    // Add URL (quoted to handle special characters)
+    parts.push(`'${url}'`);
+
+    return parts.join(' \\\n  ');
+  }
+
+  /**
    * Execute a FHIR query
    * Automatically routes through mTLS when a certificate is configured for the domain
    * Uses auth headers from the active server profile

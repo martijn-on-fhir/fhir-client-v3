@@ -279,6 +279,11 @@ export class QueryComponent implements OnInit, OnDestroy {
   result = signal<any>(null);
 
   /**
+   * Last executed query string (for cURL generation)
+   */
+  lastExecutedQuery = signal<string | null>(null);
+
+  /**
    * Pagination links from Bundle result
    */
   paginationLinks = computed(() => {
@@ -319,6 +324,12 @@ export class QueryComponent implements OnInit, OnDestroy {
 
     return res?.resourceType && res.resourceType !== 'Bundle' && res.id;
   });
+
+  /**
+   * Whether the copy as cURL button should be shown
+   * True when a query has been executed
+   */
+  canCopyAsCurl = computed(() => !!this.lastExecutedQuery());
 
   /**
    * Metadata for the currently selected resource type
@@ -816,6 +827,7 @@ export class QueryComponent implements OnInit, OnDestroy {
       }
 
       this.result.set(result);
+      this.lastExecutedQuery.set(query);
       this.queryStateService.setResult(result);
       this.queryStateService.setQueryMode(this.queryMode());
       this.queryHistoryService.addQuery(query, this.queryMode());
@@ -1554,5 +1566,29 @@ export class QueryComponent implements OnInit, OnDestroy {
     }
 
     this.diffDialog?.open(options);
+  }
+
+  /**
+   * Copies the last executed query as a cURL command
+   * Uses redacted auth tokens by default
+   */
+  async onCopyAsCurlClicked(): Promise<void> {
+    const query = this.lastExecutedQuery();
+
+    if (!query) {
+      this.toastService.warning('No query to copy', 'Copy as cURL');
+
+      return;
+    }
+
+    try {
+      const curlCommand = await this.fhirService.generateCurl(query);
+      await navigator.clipboard.writeText(curlCommand);
+      this.toastService.success('cURL command copied to clipboard', 'Copy as cURL');
+      this.logger.info('cURL command copied to clipboard');
+    } catch (err) {
+      this.logger.error('Failed to copy cURL command:', err);
+      this.toastService.error('Failed to copy cURL command', 'Copy as cURL');
+    }
   }
 }

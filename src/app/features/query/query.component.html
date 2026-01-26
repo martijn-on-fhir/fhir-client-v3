@@ -105,10 +105,12 @@
               [showEditButton]="isSingleResource()"
               [showDeleteButton]="canDeleteResource()"
               [showCompareButton]="isSingleResource()"
+              [showCopyAsCurl]="canCopyAsCurl()"
               (pageNavigate)="navigateToPage($event)"
               (editClicked)="onEditClicked()"
               (deleteClicked)="onDeleteClicked()"
-              (compareClicked)="openDiffDialog()">
+              (compareClicked)="openDiffDialog()"
+              (copyAsCurlClicked)="onCopyAsCurlClicked()">
             </app-result-header>
 
             @if (loading()) {
@@ -549,10 +551,12 @@
             [showEditButton]="isSingleResource()"
             [showDeleteButton]="canDeleteResource()"
             [showCompareButton]="isSingleResource()"
+            [showCopyAsCurl]="canCopyAsCurl()"
             (pageNavigate)="navigateToPage($event)"
             (editClicked)="onEditClicked()"
             (deleteClicked)="onDeleteClicked()"
-            (compareClicked)="openDiffDialog()">
+            (compareClicked)="openDiffDialog()"
+            (copyAsCurlClicked)="onCopyAsCurlClicked()">
           </app-result-header>
 
           @if (loading()) {

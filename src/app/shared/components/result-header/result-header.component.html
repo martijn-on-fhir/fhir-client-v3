@@ -70,9 +70,11 @@
         [showEditButton]="showEditButton"
         [showDeleteButton]="showDeleteButton"
         [showCompareButton]="showCompareButton"
+        [showCopyAsCurl]="showCopyAsCurl"
         (editClicked)="editClicked.emit()"
         (deleteClicked)="deleteClicked.emit()"
-        (compareClicked)="compareClicked.emit()">
+        (compareClicked)="compareClicked.emit()"
+        (copyAsCurlClicked)="copyAsCurlClicked.emit()">
       </app-json-viewer-toolbar>
     }
   </div>

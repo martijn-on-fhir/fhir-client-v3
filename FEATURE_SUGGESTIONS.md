@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-26
+> Last Updated: 2026-01-26 (Copy as cURL implemented)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -55,15 +55,20 @@ View historical versions of any resource:
 
 ---
 
-### 1.3 Copy as cURL
+### 1.3 Copy as cURL ✅ IMPLEMENTED
 **Effort:** Low | **Impact:** Medium
 
 Export any executed query as a cURL command for sharing/debugging.
 
-**Implementation:**
-- Add toolbar button "Copy as cURL"
-- Include headers, auth token (redacted option)
-- Support POST/PUT/DELETE operations
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Toolbar button with terminal icon appears after query execution
+- Generates complete cURL command with headers
+- Auth tokens are redacted by default for security
+- Supports GET queries (POST/PUT/DELETE via direct FhirService usage)
+- Copies to clipboard with toast notification
+- Added `FhirService.generateCurl()` method
 
 ---
 
@@ -466,7 +471,7 @@ ipcMain.handle('webhook:getNotifications', ...)
 
 ### Phase 1: Quick Wins (1-2 weeks)
 1. Query execution time display
-2. Copy as cURL
+2. ~~Copy as cURL~~ ✅ Done
 3. $everything operation
 4. Recent resources list
 

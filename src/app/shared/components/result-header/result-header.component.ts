@@ -154,6 +154,18 @@ export class ResultHeaderComponent {
   @Output() compareClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the copy as cURL button in the toolbar
+   * Should be true when a query has been executed
+   * @default false
+   */
+  @Input() showCopyAsCurl = false;
+
+  /**
+   * Event emitted when the copy as cURL button is clicked
+   */
+  @Output() copyAsCurlClicked = new EventEmitter<void>();
+
+  /**
    * Check if a specific pagination link exists
    * Handles 'prev'/'previous' interchangeably
    */

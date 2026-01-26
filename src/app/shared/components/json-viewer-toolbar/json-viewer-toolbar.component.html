@@ -17,6 +17,12 @@
       </button>
     }
 
+    @if (showCopyAsCurl) {
+      <button class="btn btn-sm btn-outline-secondary" title="Copy as cURL" (click)="copyAsCurlClicked.emit()">
+        <i class="fas fa-terminal"></i>
+      </button>
+    }
+
     @if (showDeleteButton) {
       <button class="btn btn-sm btn-outline-danger" title="Delete resource" (click)="deleteClicked.emit()">
         <i class="fas fa-trash"></i>
