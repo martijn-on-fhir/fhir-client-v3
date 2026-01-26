@@ -1,3 +1,10 @@
+# [1.37.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.36.0...v1.37.0) (2026-01-26)
+
+
+### Features
+
+* **validator:** add server-side $validate with profile selection ([cd0a99e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/cd0a99e5a4f6427d85e85428ec77f1af4028b15c))
+
 # [1.36.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.35.1...v1.36.0) (2026-01-26)
 
 
