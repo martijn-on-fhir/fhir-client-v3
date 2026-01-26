@@ -1,3 +1,10 @@
+## [1.35.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.35.0...v1.35.1) (2026-01-26)
+
+
+### Bug Fixes
+
+* **reference-graph:** navigate to Query tab and auto-execute on Query button click ([99a86d0](https://github.com/martijn-on-fhir/fhir-client-v3/commit/99a86d0d4700b5f4c62a544cd2147af7dcfbcf03))
+
 # [1.35.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.34.0...v1.35.0) (2026-01-26)
 
 
