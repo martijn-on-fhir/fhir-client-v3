@@ -654,6 +654,8 @@ export class QueryComponent implements OnInit, OnDestroy {
       this.result.set(this.queryStateService.result());
       this.queryMode.set(this.queryStateService.queryMode());
       this.currentPage.set(this.queryStateService.currentPage());
+      this.executionTime.set(this.queryStateService.executionTime());
+      this.responseSize.set(this.queryStateService.responseSize());
       this.logger.debug('Restored query state from service');
     }
   }
