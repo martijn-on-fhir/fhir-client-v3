@@ -110,6 +110,7 @@
               [showCopyAsCurl]="canCopyAsCurl()"
               [showEverythingButton]="canExecuteEverything()"
               (pageNavigate)="navigateToPage($event)"
+              (timingClicked)="openInspectorDialog()"
               (editClicked)="onEditClicked()"
               (deleteClicked)="onDeleteClicked()"
               (compareClicked)="openDiffDialog()"
@@ -538,6 +539,7 @@
             [showCopyAsCurl]="canCopyAsCurl()"
             [showEverythingButton]="canExecuteEverything()"
             (pageNavigate)="navigateToPage($event)"
+            (timingClicked)="openInspectorDialog()"
             (editClicked)="onEditClicked()"
             (deleteClicked)="onDeleteClicked()"
             (compareClicked)="openDiffDialog()"
@@ -580,3 +582,6 @@
 
 <!-- Resource Diff Dialog -->
 <app-resource-diff-dialog #diffDialog></app-resource-diff-dialog>
+
+<!-- Request Inspector Dialog -->
+<app-request-inspector-dialog #inspectorDialog></app-request-inspector-dialog>

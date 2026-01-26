@@ -7,13 +7,14 @@
     <i class="fas {{ icon }} me-2"></i>
     {{ title }}
 
-    <!-- Execution time badge -->
+    <!-- Execution time badge (clickable to open inspector) -->
     @if (executionTime !== null && executionTime !== undefined) {
       <span
         class="badge rounded-pill ms-2"
         [class]="getTimingBadgeClass()"
-        style="font-size: 0.75rem; padding: 0.35em 0.6em;"
-        [title]="responseSize ? executionTime + 'ms | ' + formatResponseSize() : executionTime + 'ms'">
+        style="font-size: 0.75rem; padding: 0.35em 0.6em; cursor: pointer;"
+        [title]="'Click for request details | ' + (responseSize ? executionTime + 'ms | ' + formatResponseSize() : executionTime + 'ms')"
+        (click)="timingClicked.emit()">
         <i class="fas fa-clock me-1"></i>{{ executionTime }}ms
         @if (responseSize) {
           <span class="ms-1 opacity-75">| {{ formatResponseSize() }}</span>

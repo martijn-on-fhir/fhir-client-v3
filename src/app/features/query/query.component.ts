@@ -27,13 +27,14 @@ import {QueryStateService} from '../../core/services/query-state.service';
 import {ToastService} from '../../core/services/toast.service';
 import {FhirQueryValidator} from '../../core/utils/fhir-query-string-validator'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
+import {RequestInspectorDialogComponent} from '../../shared/components/request-inspector-dialog/request-inspector-dialog.component';
 import {ResourceDiffDialogComponent} from '../../shared/components/resource-diff-dialog/resource-diff-dialog.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 @Component({
   selector: 'app-query',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent, ResourceDiffDialogComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent, ResourceDiffDialogComponent, RequestInspectorDialogComponent],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -135,6 +136,11 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Reference to resource diff dialog
    */
   @ViewChild('diffDialog') diffDialog?: ResourceDiffDialogComponent;
+
+  /**
+   * Reference to request inspector dialog
+   */
+  @ViewChild('inspectorDialog') inspectorDialog?: RequestInspectorDialogComponent;
 
   /**
    * Autocomplete suggestions for text mode
@@ -1628,6 +1634,14 @@ export class QueryComponent implements OnInit, OnDestroy {
     }
 
     this.diffDialog?.open(options);
+  }
+
+  /**
+   * Opens the request inspector dialog
+   * Shows HTTP request/response details for debugging
+   */
+  openInspectorDialog(): void {
+    this.inspectorDialog?.open();
   }
 
   /**

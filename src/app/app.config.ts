@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { loadEnvironments } from './core/config/environments';
 import { authInterceptor } from './core/interceptors/auth.interceptor';
+import { httpInspectorInterceptor } from './core/interceptors/http-inspector.interceptor';
 
 /**
  * Initialize app by loading environment configuration from Electron
@@ -15,7 +16,7 @@ export const appConfig: ApplicationConfig = {
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
     provideHttpClient(
-      withInterceptors([authInterceptor])
+      withInterceptors([authInterceptor, httpInspectorInterceptor])
     ),
     {
       provide: APP_INITIALIZER,

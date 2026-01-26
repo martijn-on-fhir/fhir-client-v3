@@ -1,0 +1,193 @@
+@if (isOpen()) {
+  <div class="modal-backdrop" (click)="close()"></div>
+
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Header -->
+      <div class="modal-header">
+        <h2 class="modal-title">
+          <i class="fas fa-exchange-alt me-2"></i>
+          Request Inspector
+        </h2>
+        <button type="button" class="btn-close" (click)="close()">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <!-- Body -->
+      <div class="modal-body">
+        @if (!inspection()) {
+          <div class="text-center py-4">
+            <i class="fas fa-inbox fa-3x text-muted mb-3"></i>
+            <p class="text-muted">No request data available.<br>Execute a query first.</p>
+          </div>
+        } @else {
+          <!-- Summary Bar -->
+          <div class="summary-bar">
+            <span class="method-badge" [class.get]="inspection()?.request?.method === 'GET'"
+                                       [class.post]="inspection()?.request?.method === 'POST'"
+                                       [class.put]="inspection()?.request?.method === 'PUT'"
+                                       [class.delete]="inspection()?.request?.method === 'DELETE'">
+              {{ inspection()?.request?.method }}
+            </span>
+            <span class="badge" [class]="getStatusBadgeClass()">
+              {{ inspection()?.response?.status }} {{ inspection()?.response?.statusText }}
+            </span>
+            <span class="badge" [class]="getTimingBadgeClass()">
+              <i class="fas fa-clock me-1"></i>{{ inspection()?.timing?.duration }}ms
+            </span>
+            <span class="badge bg-secondary">
+              <i class="fas fa-download me-1"></i>{{ formatSize(inspection()?.size?.responseSize) }}
+            </span>
+            <span class="timestamp text-muted">
+              {{ formatTimestamp() }}
+            </span>
+          </div>
+
+          <!-- URL Display -->
+          <div class="url-display">
+            <span class="url-origin">{{ getUrlOrigin() }}</span>
+            <span class="url-path">{{ getUrlPath() }}</span>
+          </div>
+
+          <!-- Tabs -->
+          <ul class="nav nav-tabs">
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab() === 'request'" (click)="setTab('request')">
+                <i class="fas fa-arrow-up me-1"></i>Request
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab() === 'response'" (click)="setTab('response')">
+                <i class="fas fa-arrow-down me-1"></i>Response
+              </button>
+            </li>
+            <li class="nav-item">
+              <button class="nav-link" [class.active]="activeTab() === 'timing'" (click)="setTab('timing')">
+                <i class="fas fa-stopwatch me-1"></i>Timing
+              </button>
+            </li>
+          </ul>
+
+          <!-- Tab Content -->
+          <div class="tab-content">
+            <!-- Request Tab -->
+            @if (activeTab() === 'request') {
+              <div class="tab-pane">
+                <h6 class="section-title">
+                  <i class="fas fa-heading me-2"></i>Request Headers
+                </h6>
+                @if (getRequestHeaders().length > 0) {
+                  <table class="headers-table">
+                    @for (header of getRequestHeaders(); track header.key) {
+                      <tr>
+                        <td class="header-key">{{ header.key }}</td>
+                        <td class="header-value">{{ header.value }}</td>
+                      </tr>
+                    }
+                  </table>
+                } @else {
+                  <p class="text-muted">No request headers captured</p>
+                }
+
+                @if (inspection()?.request?.body) {
+                  <h6 class="section-title mt-3">
+                    <i class="fas fa-file-code me-2"></i>Request Body
+                    <span class="badge bg-secondary ms-2">{{ formatSize(inspection()?.size?.requestSize) }}</span>
+                  </h6>
+                  <pre class="body-content">{{ inspection()?.request?.body | json }}</pre>
+                }
+              </div>
+            }
+
+            <!-- Response Tab -->
+            @if (activeTab() === 'response') {
+              <div class="tab-pane">
+                <h6 class="section-title">
+                  <i class="fas fa-heading me-2"></i>Response Headers
+                </h6>
+                @if (getResponseHeaders().length > 0) {
+                  <table class="headers-table">
+                    @for (header of getResponseHeaders(); track header.key) {
+                      <tr>
+                        <td class="header-key">{{ header.key }}</td>
+                        <td class="header-value">{{ header.value }}</td>
+                      </tr>
+                    }
+                  </table>
+                } @else {
+                  <p class="text-muted">No response headers captured</p>
+                }
+              </div>
+            }
+
+            <!-- Timing Tab -->
+            @if (activeTab() === 'timing') {
+              <div class="tab-pane">
+                <div class="timing-details">
+                  <div class="timing-row">
+                    <span class="timing-label">Total Duration</span>
+                    <div class="timing-bar-container">
+                      <div class="timing-bar" [class]="getTimingBadgeClass()" style="width: 100%"></div>
+                    </div>
+                    <span class="timing-value">{{ inspection()?.timing?.duration }}ms</span>
+                  </div>
+
+                  <div class="timing-stats">
+                    <div class="stat-card">
+                      <div class="stat-icon">
+                        <i class="fas fa-upload"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Request Size</span>
+                        <span class="stat-value">{{ formatSize(inspection()?.size?.requestSize) }}</span>
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-icon">
+                        <i class="fas fa-download"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Response Size</span>
+                        <span class="stat-value">{{ formatSize(inspection()?.size?.responseSize) }}</span>
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-icon">
+                        <i class="fas fa-clock"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Execution Time</span>
+                        <span class="stat-value">{{ inspection()?.timing?.duration }}ms</span>
+                      </div>
+                    </div>
+
+                    <div class="stat-card">
+                      <div class="stat-icon" [class.text-success]="!inspection()?.error" [class.text-danger]="inspection()?.error">
+                        <i class="fas" [class.fa-check-circle]="!inspection()?.error" [class.fa-times-circle]="inspection()?.error"></i>
+                      </div>
+                      <div class="stat-content">
+                        <span class="stat-label">Status</span>
+                        <span class="stat-value">{{ inspection()?.response?.status }} {{ inspection()?.response?.statusText }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="close()">
+          <i class="fas fa-times me-2"></i>
+          Close
+        </button>
+      </div>
+    </div>
+  </div>
+}

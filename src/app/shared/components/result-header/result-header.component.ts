@@ -122,6 +122,12 @@ export class ResultHeaderComponent {
   @Input() responseSize?: number | null;
 
   /**
+   * Event emitted when the timing badge is clicked
+   * Opens the request inspector dialog
+   */
+  @Output() timingClicked = new EventEmitter<void>();
+
+  /**
    * Event emitted when user navigates to a page via pagination
    * Emits the URL to navigate to
    */
