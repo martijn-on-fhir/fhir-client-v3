@@ -114,6 +114,38 @@ Evaluate FHIRPath expressions on FHIR resources.
 - Syntax highlighting with Monaco editor
 - Split-panel layout with resizable editor and result sections
 
+### Reference Graph
+
+Visualize relationships between FHIR resources in an interactive network graph.
+
+- **Interactive visualization** - Explore resource references as a visual network
+- **Forward references** - See all resources that a resource references
+- **Reverse references** - Discover resources that reference your target resource
+- **Configurable depth** - Control how many levels of references to traverse (1-5)
+- **Double-click to expand** - Explore nodes deeper by double-clicking
+- **Resource details** - Click nodes to view full resource JSON
+- **Quick navigation** - Jump directly to Query tab to explore a resource
+- **Visual differentiation** - Different colors for resource types, dashed lines for reverse references
+- **Root node highlighting** - Easily identify the starting resource with distinct border
+
+### Resource Diff Viewer
+
+Compare FHIR resources side-by-side with visual diff highlighting.
+
+- **Compare History** - Compare different versions of the same resource
+  - Auto-load resource history from FHIR server
+  - Select any two versions to compare
+  - See version timestamps and IDs
+- **Compare Resources** - Compare two different resources
+  - Fetch resources by reference
+  - Paste JSON directly
+  - Swap left and right sides
+- **Visual diff** - Monaco-powered diff editor with:
+  - Side-by-side or inline view modes
+  - Addition/deletion highlighting
+  - Diff statistics (additions, deletions)
+- **Full-screen dialog** - Maximum space for comparing large resources
+
 ### Subscription Management
 
 Manage FHIR STU3 subscriptions for real-time notifications.

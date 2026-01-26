@@ -54,13 +54,12 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   private logger = this.loggerService.component('ReferenceGraphComponent');
 
   // Input state
-  rootReference = signal<string>(localStorage.getItem('reference-graph-root') || '');
+  rootReference = signal<string>('');
   maxDepth = signal<number>(parseInt(localStorage.getItem('reference-graph-depth') || '2', 10));
   includeReverseRefs = signal<boolean>(localStorage.getItem('reference-graph-reverse') === 'true');
 
   // Loading state
   loading = signal<boolean>(false);
-  error = signal<string | null>(null);
 
   // Graph data
   graphNodes = signal<GraphNode[]>([]);
@@ -100,6 +99,16 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.logger.info('Reference Graph component initialized');
 
+    // Load and normalize saved reference from localStorage
+    const savedRef = localStorage.getItem('reference-graph-root') || '';
+    const normalizedRef = this.normalizeReference(savedRef);
+    this.rootReference.set(normalizedRef);
+
+    // Update localStorage with normalized value
+    if (normalizedRef && normalizedRef !== savedRef) {
+      localStorage.setItem('reference-graph-root', normalizedRef);
+    }
+
     // Auto-execute if there's a saved reference
     if (this.rootReference()) {
       this.executeGraph();
@@ -108,6 +117,19 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.editorStateService.unregisterEditor('/app/reference-graph');
+  }
+
+  /**
+   * Normalize reference to always have leading slash
+   */
+  private normalizeReference(ref: string): string {
+    if (!ref || ref.trim() === '') {
+      return '';
+    }
+
+    const trimmed = ref.trim();
+
+    return trimmed.startsWith('/') ? trimmed : `/${trimmed}`;
   }
 
   /**
@@ -142,7 +164,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
     const reference = this.rootReference().trim();
 
     if (!reference) {
-      this.error.set('Please enter a resource reference (e.g., Patient/123)');
+      this.toastService.warning('Please enter a resource reference (e.g., /Patient/123)');
 
       return;
     }
@@ -151,13 +173,12 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
     const parsed = this.graphService['parseReference'](reference);
 
     if (!parsed) {
-      this.error.set('Invalid reference format. Use ResourceType/id (e.g., Patient/123)');
+      this.toastService.error('Invalid reference format. Use /ResourceType/id (e.g., /Patient/123)');
 
       return;
     }
 
     this.loading.set(true);
-    this.error.set(null);
     this.selectedNodeId.set(null);
     this.selectedResource.set(null);
 
@@ -172,7 +193,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
       );
 
       if (result.nodes.length === 0) {
-        this.error.set(`Resource not found: ${reference}`);
+        this.toastService.error(`Resource not found: ${reference}`);
         this.graphNodes.set([]);
         this.graphEdges.set([]);
       } else {
@@ -194,7 +215,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
       }
     } catch (err: any) {
       this.logger.error('Failed to build graph:', err);
-      this.error.set(err.message || 'Failed to build graph');
+      this.toastService.error(err.message || 'Failed to build graph');
     } finally {
       this.loading.set(false);
     }
@@ -271,7 +292,6 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
     this.fetchedResources.set(new Map());
     this.selectedNodeId.set(null);
     this.selectedResource.set(null);
-    this.error.set(null);
   }
 
   /**
@@ -319,7 +339,8 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
 
     if (nodeId) {
       // Store the query and set flag to auto-execute
-      localStorage.setItem('fhir-text-query', `/${nodeId}`);
+      const query = nodeId.startsWith('/') ? nodeId : `/${nodeId}`;
+      localStorage.setItem('fhir-text-query', query);
       localStorage.setItem('fhir-query-mode', 'text');
       localStorage.setItem('fhir-execute-on-load', 'true');
       this.router.navigate(['/app/query']);
@@ -338,7 +359,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (unexpandedNodes.length > 10) {
+    if (unexpandedNodes.length > 20) {
       this.toastService.warning(
         `Expanding ${unexpandedNodes.length} nodes may take a while...`,
         'Warning'

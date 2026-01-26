@@ -27,12 +27,13 @@ import {QueryStateService} from '../../core/services/query-state.service';
 import {ToastService} from '../../core/services/toast.service';
 import {FhirQueryValidator} from '../../core/utils/fhir-query-string-validator'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
+import {ResourceDiffDialogComponent} from '../../shared/components/resource-diff-dialog/resource-diff-dialog.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
 @Component({
   selector: 'app-query',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent, ResourceDiffDialogComponent],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -129,6 +130,11 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Reference to text query input element
    */
   @ViewChild('textQueryInput') textQueryInput?: ElementRef<HTMLInputElement>;
+
+  /**
+   * Reference to resource diff dialog
+   */
+  @ViewChild('diffDialog') diffDialog?: ResourceDiffDialogComponent;
 
   /**
    * Autocomplete suggestions for text mode
@@ -585,7 +591,7 @@ export class QueryComponent implements OnInit, OnDestroy {
 
       if (query) {
         this.textQuery.set(query);
-        this.executeQuery();
+        this.executeTextQuery();
 
         return;
       }
@@ -1531,5 +1537,22 @@ export class QueryComponent implements OnInit, OnDestroy {
     } finally {
       this.loading.set(false);
     }
+  }
+
+  /**
+   * Opens the resource diff dialog
+   * If a single resource is loaded, it will be pre-filled as the left side
+   */
+  openDiffDialog(): void {
+    const res = this.result();
+    const options: { leftResource?: any; reference?: string } = {};
+
+    // If we have a single resource (not a Bundle), pre-fill it
+    if (res?.resourceType && res.resourceType !== 'Bundle' && res.id) {
+      options.leftResource = res;
+      options.reference = `/${res.resourceType}/${res.id}`;
+    }
+
+    this.diffDialog?.open(options);
   }
 }

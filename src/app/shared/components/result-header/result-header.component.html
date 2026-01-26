@@ -69,8 +69,10 @@
         [readOnly]="readOnly"
         [showEditButton]="showEditButton"
         [showDeleteButton]="showDeleteButton"
+        [showCompareButton]="showCompareButton"
         (editClicked)="editClicked.emit()"
-        (deleteClicked)="deleteClicked.emit()">
+        (deleteClicked)="deleteClicked.emit()"
+        (compareClicked)="compareClicked.emit()">
       </app-json-viewer-toolbar>
     }
   </div>

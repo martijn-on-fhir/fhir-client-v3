@@ -213,6 +213,14 @@ export class FhirService {
   }
 
   /**
+   * Get the history of a specific resource
+   * Returns a Bundle containing all versions of the resource
+   */
+  history(resourceType: string, id: string): Observable<any> {
+    return this.executeQuery(`/${resourceType}/${id}/_history`);
+  }
+
+  /**
    * Create a new resource
    * Automatically routes through mTLS when a certificate is configured for the domain
    */

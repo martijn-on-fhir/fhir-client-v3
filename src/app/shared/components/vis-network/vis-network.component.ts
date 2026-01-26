@@ -136,11 +136,7 @@ export class VisNetworkComponent implements AfterViewInit, OnChanges, OnDestroy 
           scaleFactor: 0.5
         }
       },
-      smooth: {
-        enabled: true,
-        type: 'cubicBezier',
-        roundness: 0.5
-      },
+      smooth: false,
       font: {
         size: 10,
         align: 'middle'
@@ -153,14 +149,18 @@ export class VisNetworkComponent implements AfterViewInit, OnChanges, OnDestroy 
         gravitationalConstant: -50,
         centralGravity: 0.01,
         springLength: 150,
-        springConstant: 0.08,
-        damping: 0.4
+        springConstant: 0.05,
+        damping: 0.7,
+        avoidOverlap: 0.5
       },
       stabilization: {
         enabled: true,
-        iterations: 200,
-        updateInterval: 25
-      }
+        iterations: 300,
+        updateInterval: 25,
+        fit: true
+      },
+      maxVelocity: 30,
+      minVelocity: 0.75
     },
     interaction: {
       hover: true,
@@ -281,6 +281,14 @@ return;
       this.stabilized.emit();
       // Disable physics after stabilization for better performance
       this.network?.setOptions({ physics: { enabled: false } });
+    });
+
+    // Fix node position after dragging to prevent jumping
+    this.network.on('dragEnd', (params) => {
+      if (params.nodes.length > 0) {
+        // Disable physics after dragging to stabilize the graph
+        this.network?.setOptions({ physics: { enabled: false } });
+      }
     });
   }
 

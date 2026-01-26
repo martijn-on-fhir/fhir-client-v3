@@ -1,0 +1,279 @@
+@if (show()) {
+  <div class="modal-backdrop fade show" (click)="closeDialog()"></div>
+  <div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-fullscreen">
+      <div class="modal-content">
+        <!-- Header -->
+        <div class="modal-header py-2">
+          <div class="d-flex align-items-center gap-3 flex-grow-1">
+            <h5 class="modal-title mb-0">
+              <i class="fas fa-code-compare me-2"></i>
+            </h5>
+
+            <!-- Mode Toggle -->
+            <div class="btn-group btn-group-sm">
+              <button
+                type="button"
+                class="btn"
+                [class.btn-primary]="comparisonMode() === 'history'"
+                [class.btn-outline-secondary]="comparisonMode() !== 'history'"
+                (click)="setComparisonMode('history')">
+                <i class="fas fa-history me-1"></i>
+                Compare History
+              </button>
+              <button
+                type="button"
+                class="btn"
+                [class.btn-primary]="comparisonMode() === 'resources'"
+                [class.btn-outline-secondary]="comparisonMode() !== 'resources'"
+                (click)="setComparisonMode('resources')">
+                <i class="fas fa-exchange-alt me-1"></i>
+                Compare Resources
+              </button>
+
+              <!-- View Mode Toggle -->
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="toggleViewMode()"
+                [title]="viewMode() === 'side-by-side' ? 'Switch to inline view' : 'Switch to side-by-side view'">
+                @if (viewMode() === 'side-by-side') {
+                  <i class="fas fa-columns"></i>
+                } @else {
+                  <i class="fas fa-bars"></i>
+                }
+              </button>
+            </div>
+
+            <!-- Diff Stats -->
+            @if (diffStats()) {
+              <div class="diff-stats">
+                <span class="badge bg-success me-1">
+                  <i class="fas fa-plus"></i> {{ diffStats()!.additions }}
+                </span>
+                <span class="badge bg-danger">
+                  <i class="fas fa-minus"></i> {{ diffStats()!.deletions }}
+                </span>
+              </div>
+            }
+
+
+          </div>
+
+          <!-- Close Button -->
+          <button type="button" class="btn-close" (click)="closeDialog()"></button>
+        </div>
+
+        <!-- Body -->
+        <div class="modal-body p-0 d-flex flex-column">
+          <!-- Input Section -->
+          <div class="input-section p-3 border-bottom">
+            @if (comparisonMode() === 'resources') {
+              <!-- Compare Two Resources Mode -->
+              <div class="row g-3">
+                <!-- Left Resource -->
+                <div class="col-md-6">
+                  <div class="card h-100">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                      <span class="fw-semibold">
+                        <i class="fas fa-file-code me-1 text-primary"></i>
+                        Original (Left)
+                      </span>
+                    </div>
+                    <div class="card-body p-2">
+                      <div class="input-group input-group-sm mb-2">
+                        <span class="input-group-text">Reference</span>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="/Patient/123"
+                          [ngModel]="leftReference()"
+                          (ngModelChange)="leftReference.set($event)"
+                          (keydown.enter)="fetchResource('left')">
+                        <button
+                          class="btn btn-outline-primary"
+                          type="button"
+                          (click)="fetchResource('left')"
+                          [disabled]="leftLoading()">
+                          @if (leftLoading()) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <i class="fas fa-download"></i>
+                          }
+                          Fetch
+                        </button>
+                      </div>
+                      <textarea
+                        class="form-control code-input"
+                        rows="4"
+                        placeholder="Or paste JSON here..."
+                        [value]="leftJson()"
+                        (input)="onLeftJsonChange($event)"></textarea>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Swap Button (center) -->
+                <div class="col-auto d-flex align-items-center swap-column">
+                  <button
+                    class="btn btn-sm btn-outline-secondary"
+                    (click)="swapSides()"
+                    title="Swap left and right">
+                    <i class="fas fa-exchange-alt"></i>
+                  </button>
+                </div>
+
+                <!-- Right Resource -->
+                <div class="col">
+                  <div class="card h-100">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                      <span class="fw-semibold">
+                        <i class="fas fa-file-code me-1 text-success"></i>
+                        Modified (Right)
+                      </span>
+                    </div>
+                    <div class="card-body p-2">
+                      <div class="input-group input-group-sm mb-2">
+                        <span class="input-group-text">Reference</span>
+                        <input
+                          type="text"
+                          class="form-control"
+                          placeholder="/Patient/456"
+                          [ngModel]="rightReference()"
+                          (ngModelChange)="rightReference.set($event)"
+                          (keydown.enter)="fetchResource('right')">
+                        <button
+                          class="btn btn-outline-primary"
+                          type="button"
+                          (click)="fetchResource('right')"
+                          [disabled]="rightLoading()">
+                          @if (rightLoading()) {
+                            <span class="spinner-border spinner-border-sm"></span>
+                          } @else {
+                            <i class="fas fa-download"></i>
+                          }
+                          Fetch
+                        </button>
+                      </div>
+                      <textarea
+                        class="form-control code-input"
+                        rows="4"
+                        placeholder="Or paste JSON here..."
+                        [value]="rightJson()"
+                        (input)="onRightJsonChange($event)"></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <!-- Compare History Mode -->
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">
+                      <i class="fas fa-link me-1"></i>
+                      Resource
+                    </span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      placeholder="/Patient/123"
+                      [ngModel]="historyReference()"
+                      (ngModelChange)="historyReference.set($event)"
+                      (keydown.enter)="fetchHistory()">
+                    <button
+                      class="btn btn-outline-primary"
+                      type="button"
+                      (click)="fetchHistory()"
+                      [disabled]="historyLoading()">
+                      @if (historyLoading()) {
+                        <span class="spinner-border spinner-border-sm"></span>
+                      } @else {
+                        <i class="fas fa-history"></i>
+                      }
+                      Load History
+                    </button>
+                  </div>
+                </div>
+
+                @if (historyVersions().length > 0) {
+                  <div class="col-md-3">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">Left (Older)</span>
+                      <select
+                        class="form-select"
+                        [ngModel]="selectedLeftVersion()"
+                        (ngModelChange)="selectedLeftVersion.set($event); loadHistoryVersions()">
+                        <option value="">Select version...</option>
+                        @for (version of historyVersions(); track version.versionId) {
+                          <option [value]="version.versionId">
+                            v{{ version.versionId }} - {{ formatDate(version.lastUpdated) }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                  <div class="col-md-3">
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">Right (Newer)</span>
+                      <select
+                        class="form-select"
+                        [ngModel]="selectedRightVersion()"
+                        (ngModelChange)="selectedRightVersion.set($event); loadHistoryVersions()">
+                        <option value="">Select version...</option>
+                        @for (version of historyVersions(); track version.versionId) {
+                          <option [value]="version.versionId">
+                            v{{ version.versionId }} - {{ formatDate(version.lastUpdated) }}
+                          </option>
+                        }
+                      </select>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              @if (historyVersions().length > 0) {
+                <div class="mt-2">
+                  <small class="text-muted">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Found {{ historyVersions().length }} version(s). Select two versions to compare.
+                  </small>
+                </div>
+              }
+            }
+          </div>
+
+          <!-- Diff Editor Section -->
+          <div class="diff-section flex-grow-1">
+            <div #diffContainer class="diff-container"></div>
+
+            @if (!leftJson() && !rightJson()) {
+              <div class="empty-state">
+                <i class="fas fa-code-compare fa-3x mb-3 text-muted"></i>
+                <p class="text-muted">
+                  @if (comparisonMode() === 'resources') {
+                    Enter resource references or paste JSON to compare
+                  } @else {
+                    Enter a resource reference and load its history to compare versions
+                  }
+                </p>
+              </div>
+            }
+          </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="modal-footer py-2">
+          <button type="button" class="btn btn-sm btn-outline-secondary" (click)="clearAll()">
+            <i class="fas fa-trash me-1"></i>
+            Clear All
+          </button>
+          <button type="button" class="btn btn-sm btn-secondary" (click)="closeDialog()">
+            <i class="fas fa-times me-1"></i>
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
