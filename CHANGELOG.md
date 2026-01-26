@@ -1,3 +1,16 @@
+# [1.40.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.39.1...v1.40.0) (2026-01-26)
+
+
+### Bug Fixes
+
+* **query:** restore execution time badge on tab navigation ([dfb1bb5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/dfb1bb58440256c81f6807ed262d7a77777e8c76))
+
+
+### Features
+
+* **query:** add $everything operation support ([0b730ee](https://github.com/martijn-on-fhir/fhir-client-v3/commit/0b730ee3df2a0809bf40677046161f3537b0f0d6))
+* **query:** add query execution time metrics display ([55e55c3](https://github.com/martijn-on-fhir/fhir-client-v3/commit/55e55c38a2f348d62c7be95246472443956a5cf6))
+
 ## [1.39.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.39.0...v1.39.1) (2026-01-26)
 
 
