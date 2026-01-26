@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-26 (Copy as cURL implemented)
+> Last Updated: 2026-01-26 (Query Execution Time implemented)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -91,7 +91,7 @@ Show raw HTTP details for debugging:
 
 ---
 
-### 1.5 Query Execution Time
+### 1.5 Query Execution Time ✅ IMPLEMENTED
 **Effort:** Low | **Impact:** Medium
 
 Display query performance metrics:
@@ -99,9 +99,15 @@ Display query performance metrics:
 - Network time vs processing time
 - Response size
 
-**Implementation:**
-- Add timing badge in result header
-- Store in query history for comparison
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Timing badge in result header with clock icon
+- Color-coded performance indicator (green <500ms, yellow <2s, red >=2s)
+- Response size displayed in human-readable format (B/KB/MB)
+- Metrics stored in query history for comparison
+- Works for both text mode and visual query builder
+- Pagination navigation also tracks timing
 
 ---
 
@@ -474,7 +480,7 @@ ipcMain.handle('webhook:getNotifications', ...)
 ## Suggested Development Order
 
 ### Phase 1: Quick Wins (1-2 weeks)
-1. Query execution time display
+1. ~~Query execution time display~~ ✅ Done
 2. ~~Copy as cURL~~ ✅ Done
 3. ~~$everything operation~~ ✅ Done
 4. Recent resources list
