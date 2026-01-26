@@ -1,3 +1,10 @@
+# [1.38.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.37.0...v1.38.0) (2026-01-26)
+
+
+### Features
+
+* **query:** add copy as cURL functionality ([91a14ce](https://github.com/martijn-on-fhir/fhir-client-v3/commit/91a14ceba5cab6a8e98357d0022d04b294af5644))
+
 # [1.37.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.36.0...v1.37.0) (2026-01-26)
 
 
