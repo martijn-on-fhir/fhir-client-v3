@@ -154,7 +154,8 @@
 
 // Tab Content
 .tab-content {
-  .tab-pane {
+  .inspector-tab-pane {
+    display: block;
     animation: fadeIn 0.2s ease-in-out;
   }
 }
