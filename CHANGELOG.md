@@ -1,3 +1,10 @@
+## [1.41.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.41.0...v1.41.1) (2026-01-26)
+
+
+### Bug Fixes
+
+* **inspector:** capture auth headers and fix tab display ([b17f699](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b17f699e2c2e8b97865b2833b491fe3c0de69d39))
+
 # [1.41.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.40.0...v1.41.0) (2026-01-26)
 
 
