@@ -6,6 +6,7 @@ import {R3TypesService} from './r3-types.service';
  */
 export type QueryContext =
   | 'resource_type'      // After / - expecting resource type
+  | 'resource_operation' // After /ResourceType/id/ - expecting _history or other operations
   | 'parameter_name'     // After ? or & - expecting parameter name
   | 'modifier'           // After : - expecting modifier
   | 'parameter_value'    // After = - expecting value
@@ -137,6 +138,15 @@ export class QueryAutocompleteService {
       return result;
     }
 
+    // Check if we're typing an operation after resource/id/ (e.g., /Patient/123/_history)
+    const operationMatch = textBeforeCursor.match(/^\/([A-Z][a-zA-Z]+)\/([^/?]+)\/(_[a-zA-Z]*)?$/);
+    if (operationMatch) {
+      result.context = 'resource_operation';
+      result.resourceType = operationMatch[1];
+      result.prefix = operationMatch[3] || '';
+      return result;
+    }
+
     // Check if we're typing a chained parameter (after :ResourceType.)
     // This must come BEFORE the modifier check as it's more specific
     const chainedMatch = textBeforeCursor.match(/[?&]([a-zA-Z_][a-zA-Z0-9_.-]*):([A-Z][a-zA-Z]+)\.([a-zA-Z]*)$/);
@@ -217,6 +227,9 @@ export class QueryAutocompleteService {
       case 'resource_type':
         return this.getResourceSuggestions(parsedQuery.prefix);
 
+      case 'resource_operation':
+        return this.getOperationSuggestions(parsedQuery.prefix);
+
       case 'parameter_name':
         return this.getParameterSuggestions(
           parsedQuery.resourceType,
@@ -277,6 +290,25 @@ export class QueryAutocompleteService {
       category: 'resource' as const,
       description: `FHIR ${type} resource`
     }));
+  }
+
+  /**
+   * Get operation suggestions for resource instances (e.g., _history)
+   */
+  private getOperationSuggestions(prefix: string): Suggestion[] {
+    const operations = [
+      { name: '_history', description: 'Get version history of this resource' }
+    ];
+
+    const lowerPrefix = prefix.toLowerCase();
+    return operations
+      .filter(op => op.name.toLowerCase().startsWith(lowerPrefix))
+      .map(op => ({
+        label: op.name,
+        insertText: op.name,
+        category: 'global' as const,
+        description: op.description
+      }));
   }
 
   /**
@@ -589,6 +621,15 @@ return 1;
         const beforeSlash = textBeforeCursor.substring(0, textBeforeCursor.lastIndexOf('/') + 1);
         newQuery = beforeSlash + suggestion.insertText + textAfterCursor;
         newCursorPosition = beforeSlash.length + suggestion.insertText.length;
+        break;
+      }
+
+      case 'resource_operation': {
+        // Replace from last / to cursor (e.g., /Patient/123/_ → /Patient/123/_history)
+        const lastSlashPos = textBeforeCursor.lastIndexOf('/');
+        const beforeOperation = textBeforeCursor.substring(0, lastSlashPos + 1);
+        newQuery = beforeOperation + suggestion.insertText + textAfterCursor;
+        newCursorPosition = beforeOperation.length + suggestion.insertText.length;
         break;
       }
 
