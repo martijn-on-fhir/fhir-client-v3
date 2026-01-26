@@ -1,3 +1,10 @@
+# [1.39.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.38.0...v1.39.0) (2026-01-26)
+
+
+### Features
+
+* **query:** add _history autocomplete support ([5bfc51e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/5bfc51e96368f85663c6684fd512e020c32ee9e2))
+
 # [1.38.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.37.0...v1.38.0) (2026-01-26)
 
 
