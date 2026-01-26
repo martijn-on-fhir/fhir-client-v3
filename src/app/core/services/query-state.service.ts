@@ -16,6 +16,7 @@ export class QueryStateService {
   private resultSignal = signal<any>(null);
   private resultTimestampSignal = signal<Date | null>(null);
   private executionTimeSignal = signal<number | null>(null);
+  private responseSizeSignal = signal<number | null>(null);
 
   // Query mode state
   private queryModeSignal = signal<'text' | 'visual'>('text');
@@ -39,6 +40,11 @@ export class QueryStateService {
   readonly executionTime = computed(() => this.executionTimeSignal());
 
   /**
+   * Read-only computed for response size in bytes
+   */
+  readonly responseSize = computed(() => this.responseSizeSignal());
+
+  /**
    * Read-only computed for query mode
    */
   readonly queryMode = computed(() => this.queryModeSignal());
@@ -51,12 +57,16 @@ export class QueryStateService {
   /**
    * Store query result with metadata
    */
-  setResult(result: any, executionTime?: number) {
+  setResult(result: any, executionTime?: number, responseSize?: number) {
     this.resultSignal.set(result);
     this.resultTimestampSignal.set(new Date());
 
     if (executionTime !== undefined) {
       this.executionTimeSignal.set(executionTime);
+    }
+
+    if (responseSize !== undefined) {
+      this.responseSizeSignal.set(responseSize);
     }
   }
 
@@ -67,6 +77,7 @@ export class QueryStateService {
     this.resultSignal.set(null);
     this.resultTimestampSignal.set(null);
     this.executionTimeSignal.set(null);
+    this.responseSizeSignal.set(null);
   }
 
   /**

@@ -16,6 +16,20 @@
       </span>
     }
 
+    <!-- Execution time badge -->
+    @if (executionTime !== null && executionTime !== undefined) {
+      <span
+        class="badge rounded-pill ms-2"
+        [class]="getTimingBadgeClass()"
+        style="font-size: 0.75rem; padding: 0.35em 0.6em;"
+        [title]="responseSize ? executionTime + 'ms | ' + formatResponseSize() : executionTime + 'ms'">
+        <i class="fas fa-clock me-1"></i>{{ executionTime }}ms
+        @if (responseSize) {
+          <span class="ms-1 opacity-75">| {{ formatResponseSize() }}</span>
+        }
+      </span>
+    }
+
     <!-- Content projection for badges or other content after title -->
     <ng-content select="[slot='title-suffix']"></ng-content>
   </span>

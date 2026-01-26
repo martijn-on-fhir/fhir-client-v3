@@ -284,6 +284,16 @@ export class QueryComponent implements OnInit, OnDestroy {
   lastExecutedQuery = signal<string | null>(null);
 
   /**
+   * Query execution time in milliseconds
+   */
+  executionTime = signal<number | null>(null);
+
+  /**
+   * Response size in bytes
+   */
+  responseSize = signal<number | null>(null);
+
+  /**
    * Pagination links from Bundle result
    */
   paginationLinks = computed(() => {
@@ -850,6 +860,7 @@ export class QueryComponent implements OnInit, OnDestroy {
     }
 
     try {
+      const startTime = performance.now();
 
       let result = await this.fhirService.executeQuery(query);
 
@@ -857,11 +868,20 @@ export class QueryComponent implements OnInit, OnDestroy {
         result = await firstValueFrom(result as any);
       }
 
+      const endTime = performance.now();
+      const execTime = Math.round(endTime - startTime);
+
+      // Calculate response size from JSON string
+      const responseStr = JSON.stringify(result);
+      const respSize = new Blob([responseStr]).size;
+
       this.result.set(result);
       this.lastExecutedQuery.set(query);
-      this.queryStateService.setResult(result);
+      this.executionTime.set(execTime);
+      this.responseSize.set(respSize);
+      this.queryStateService.setResult(result, execTime, respSize);
       this.queryStateService.setQueryMode(this.queryMode());
-      this.queryHistoryService.addQuery(query, this.queryMode());
+      this.queryHistoryService.addQuery(query, this.queryMode(), { executionTime: execTime, responseSize: respSize });
 
     } catch (err: any) {
       this.logger.error('Query execution failed:', err || query);
@@ -880,6 +900,8 @@ export class QueryComponent implements OnInit, OnDestroy {
     this.error.set(null);
 
     try {
+      const startTime = performance.now();
+
       // executeQuery already handles full URLs (checks if starts with 'http')
       let result = await this.fhirService.executeQuery(url);
 
@@ -887,8 +909,17 @@ export class QueryComponent implements OnInit, OnDestroy {
         result = await firstValueFrom(result as any);
       }
 
+      const endTime = performance.now();
+      const execTime = Math.round(endTime - startTime);
+
+      // Calculate response size from JSON string
+      const responseStr = JSON.stringify(result);
+      const respSize = new Blob([responseStr]).size;
+
       this.result.set(result);
-      this.queryStateService.setResult(result);
+      this.executionTime.set(execTime);
+      this.responseSize.set(respSize);
+      this.queryStateService.setResult(result, execTime, respSize);
       this.logger.info('Navigated to page:', url);
     } catch (err: any) {
       this.logger.error('Page navigation failed:', err);

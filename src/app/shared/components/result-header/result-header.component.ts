@@ -112,6 +112,16 @@ export class ResultHeaderComponent {
   @Input() total?: number;
 
   /**
+   * Query execution time in milliseconds
+   */
+  @Input() executionTime?: number | null;
+
+  /**
+   * Response size in bytes
+   */
+  @Input() responseSize?: number | null;
+
+  /**
    * Event emitted when user navigates to a page via pagination
    * Emits the URL to navigate to
    */
@@ -209,6 +219,42 @@ export class ResultHeaderComponent {
 
     if (url) {
       this.pageNavigate.emit(url);
+    }
+  }
+
+  /**
+   * Get badge color class based on execution time
+   * Green: <500ms, Yellow: <2000ms, Red: >=2000ms
+   */
+  getTimingBadgeClass(): string {
+    if (this.executionTime === null || this.executionTime === undefined) {
+      return 'bg-secondary';
+    }
+
+    if (this.executionTime < 500) {
+      return 'bg-success';
+    } else if (this.executionTime < 2000) {
+      return 'bg-warning text-dark';
+    } else {
+      return 'bg-danger';
+    }
+  }
+
+  /**
+   * Format response size for display
+   * Returns formatted string with appropriate unit (B, KB, MB)
+   */
+  formatResponseSize(): string {
+    if (this.responseSize === null || this.responseSize === undefined) {
+      return '';
+    }
+
+    if (this.responseSize < 1024) {
+      return `${this.responseSize} B`;
+    } else if (this.responseSize < 1024 * 1024) {
+      return `${(this.responseSize / 1024).toFixed(1)} KB`;
+    } else {
+      return `${(this.responseSize / (1024 * 1024)).toFixed(2)} MB`;
     }
   }
 }

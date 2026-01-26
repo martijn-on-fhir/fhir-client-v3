@@ -1,12 +1,21 @@
 import { Injectable, signal, computed } from '@angular/core';
 
 /**
+ * Query execution metrics
+ */
+export interface QueryMetrics {
+  executionTime: number;    // Total execution time in ms
+  responseSize?: number;    // Response size in bytes
+}
+
+/**
  * Query History Entry
  */
 export interface QueryHistoryEntry {
   query: string;
   timestamp: number;
   mode?: 'text' | 'visual';
+  metrics?: QueryMetrics;
 }
 
 /**
@@ -41,7 +50,7 @@ export class QueryHistoryService {
   /**
    * Add a query to history
    */
-  addQuery(query: string, mode: 'text' | 'visual' = 'text'): void {
+  addQuery(query: string, mode: 'text' | 'visual' = 'text', metrics?: QueryMetrics): void {
     if (!query || !query.trim()) {
       return;
     }
@@ -59,7 +68,8 @@ export class QueryHistoryService {
     const entry: QueryHistoryEntry = {
       query: trimmedQuery,
       timestamp: Date.now(),
-      mode
+      mode,
+      metrics
     };
 
     // If we're in the middle of history, remove everything after current position
