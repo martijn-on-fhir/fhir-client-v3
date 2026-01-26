@@ -164,7 +164,7 @@ return 'reference';
    */
   fetchReverseReferences(
     reference: string,
-    maxResults: number = 10
+    maxResults: number = 20
   ): Observable<{ resources: any[]; searchParam: string; resourceType: string }[]> {
     const parsed = this.parseReference(reference);
     if (!parsed) {
@@ -578,28 +578,32 @@ return `${resourceType}: ${given} ${family}`.trim();
    * Convert GraphNode array to vis-network format
    */
   toVisNodes(nodes: GraphNode[]): VisNode[] {
-    return nodes.map(node => ({
-      id: node.id,
-      label: node.label,
-      title: `${node.resourceType}/${node.resourceId}${node.error ? '\n(Error: ' + node.errorMessage + ')' : ''}`,
-      color: {
-        background: node.color || '#BDBDBD',
-        border: node.borderColor || '#9E9E9E',
-        highlight: {
+    return nodes.map(node => {
+      const isRoot = node.depth === 0;
+
+      return {
+        id: node.id,
+        label: node.label,
+        title: `${node.resourceType}/${node.resourceId}${isRoot ? ' (root)' : ''}${node.error ? '\n(Error: ' + node.errorMessage + ')' : ''}`,
+        color: {
           background: node.color || '#BDBDBD',
-          border: '#000000'
+          border: isRoot ? '#000000' : (node.borderColor || '#9E9E9E'),  // Black border for root
+          highlight: {
+            background: node.color || '#BDBDBD',
+            border: '#000000'
+          }
+        },
+        font: {
+          color: node.fontColor || '#000000'
+        },
+        shape: 'box',
+        borderWidth: isRoot ? 4 : (node.error ? 2 : 1),
+        borderWidthSelected: isRoot ? 5 : 3,
+        shapeProperties: {
+          borderDashes: (isRoot || node.error) ? [5, 5] : false  // Dashed border for root and error nodes
         }
-      },
-      font: {
-        color: node.fontColor || '#000000'
-      },
-      shape: 'box',
-      borderWidth: node.error ? 2 : 1,
-      borderWidthSelected: 3,
-      shapeProperties: {
-        borderDashes: node.error ? [5, 5] : false
-      }
-    } as VisNode));
+      } as VisNode;
+    });
   }
 
   /**
