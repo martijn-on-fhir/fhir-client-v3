@@ -1,3 +1,10 @@
+# [1.35.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.34.0...v1.35.0) (2026-01-26)
+
+
+### Features
+
+* **reference-graph:** add reverse reference support to show incoming references ([dd59aec](https://github.com/martijn-on-fhir/fhir-client-v3/commit/dd59aecc716315fa9001822879d9f57eb63d2bcf))
+
 # [1.34.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.33.2...v1.34.0) (2026-01-25)
 
 
