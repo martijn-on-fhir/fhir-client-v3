@@ -1,3 +1,10 @@
+## [1.39.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.39.0...v1.39.1) (2026-01-26)
+
+
+### Bug Fixes
+
+* **query:** support _history endpoint without version ID ([1522388](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1522388135bf0f335e52d14225b9c69372046348))
+
 # [1.39.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.38.0...v1.39.0) (2026-01-26)
 
 
