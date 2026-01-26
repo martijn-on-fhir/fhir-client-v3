@@ -4,13 +4,13 @@
     <div class="card-body p-2">
       <div class="d-flex gap-2 align-items-center">
         <!-- Reference Input -->
-        <div class="input-group" style="flex: 1; max-width: 400px">
+        <div class="input-group input-group-sm" style="flex: 1">
           <span class="input-group-text">
             <i class="fas fa-link"></i>
           </span>
           <input
             type="text"
-            class="form-control"
+            class="form-control form-control-sm"
             [ngModel]="rootReference()"
             (ngModelChange)="onRootReferenceChange($event)"
             placeholder="Patient/123 or Observation/456"
@@ -19,10 +19,10 @@
         </div>
 
         <!-- Depth Selector -->
-        <div class="input-group" style="width: 140px">
+        <div class="input-group input-group-sm" style="width: 130px">
           <span class="input-group-text">Depth</span>
           <select
-            class="form-select"
+            class="form-select form-select-sm"
             [ngModel]="maxDepth()"
             (ngModelChange)="onMaxDepthChange($event)">
             @for (depth of depthOptions; track depth) {
@@ -39,7 +39,7 @@
             id="reverseRefsToggle"
             [checked]="includeReverseRefs()"
             (change)="onReverseRefsToggle($event)">
-          <label class="form-check-label" for="reverseRefsToggle" title="Include resources that reference this resource">
+          <label class="form-check-label small" for="reverseRefsToggle" title="Include resources that reference this resource">
             <i class="fas fa-reply me-1"></i>
             Reverse refs
           </label>
@@ -47,7 +47,7 @@
 
         <!-- Execute Button -->
         <button
-          class="btn btn-primary"
+          class="btn btn-sm btn-primary"
           (click)="executeGraph()"
           [disabled]="loading() || !rootReference()">
           @if (loading()) {
@@ -60,19 +60,12 @@
 
         <!-- Clear Button -->
         <button
-          class="btn btn-outline-secondary"
+          class="btn btn-sm btn-outline-secondary"
           (click)="clearGraph()"
           [disabled]="graphNodes().length === 0"
           title="Clear graph">
           <i class="fas fa-trash"></i>
         </button>
-
-        <!-- Statistics Badge -->
-        @if (nodeCount() > 0) {
-          <span class="badge bg-secondary">
-            {{ nodeCount() }} nodes, {{ edgeCount() }} edges
-          </span>
-        }
       </div>
     </div>
   </div>
