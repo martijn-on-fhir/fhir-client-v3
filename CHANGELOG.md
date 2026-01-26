@@ -1,3 +1,11 @@
+# [1.36.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.35.1...v1.36.0) (2026-01-26)
+
+
+### Features
+
+* **query:** add resource diff viewer dialog for comparing FHIR resources ([d97bb2a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/d97bb2a726049672cdfe27a31c3e49c19b0c93bd))
+* **reference-graph:** improve graph visualization and stability ([7033781](https://github.com/martijn-on-fhir/fhir-client-v3/commit/7033781def56f1f0a328e5e978e24ebbc18bf8d6))
+
 ## [1.35.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.35.0...v1.35.1) (2026-01-26)
 
 
