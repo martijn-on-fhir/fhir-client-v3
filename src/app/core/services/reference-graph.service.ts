@@ -9,7 +9,9 @@ import {
   RESOURCE_TYPE_COLORS,
   ResourceTypeColor,
   VisNode,
-  VisEdge
+  VisEdge,
+  REVERSE_REFERENCE_MAP,
+  ReverseReferenceConfig
 } from '../models/reference-graph.model';
 import { FhirService } from './fhir.service';
 import { LoggerService } from './logger.service';
@@ -155,16 +157,60 @@ return 'reference';
   }
 
   /**
+   * Fetch resources that reference a given resource (reverse references)
+   * @param reference Target reference (e.g., "Patient/123")
+   * @param maxResults Maximum results per resource type
+   * @returns Observable of reverse reference results
+   */
+  fetchReverseReferences(
+    reference: string,
+    maxResults: number = 10
+  ): Observable<{ resources: any[]; searchParam: string; resourceType: string }[]> {
+    const parsed = this.parseReference(reference);
+    if (!parsed) {
+      return of([]);
+    }
+
+    const reverseConfigs = REVERSE_REFERENCE_MAP[parsed.resourceType];
+    if (!reverseConfigs || reverseConfigs.length === 0) {
+      return of([]);
+    }
+
+    // Create search observables for each reverse reference type
+    const searchObservables = reverseConfigs.map((config: ReverseReferenceConfig) =>
+      this.fhirService.search(config.resourceType, {
+        [config.searchParam]: reference,
+        _count: maxResults.toString()
+      }).pipe(
+        map(bundle => ({
+          resources: bundle?.entry?.map((e: any) => e.resource) || [],
+          searchParam: config.searchParam,
+          resourceType: config.resourceType
+        })),
+        catchError(error => {
+          // Silently handle errors (server may not support this search param)
+          this.logger.debug(`Reverse search failed for ${config.resourceType}:${config.searchParam}:`, error?.message);
+          return of({ resources: [], searchParam: config.searchParam, resourceType: config.resourceType });
+        })
+      )
+    );
+
+    return forkJoin(searchObservables);
+  }
+
+  /**
    * Build a complete reference graph starting from a root resource
    * @param rootReference Root resource reference (e.g., "Patient/123")
    * @param maxDepth Maximum depth to traverse (default: 3)
    * @param existingCache Optional existing cache of fetched resources
+   * @param includeReverseReferences Whether to include reverse references
    * @returns Observable of graph build result
    */
   buildGraph(
     rootReference: string,
     maxDepth: number = 3,
-    existingCache?: Map<string, any>
+    existingCache?: Map<string, any>,
+    includeReverseReferences: boolean = false
   ): Observable<GraphBuildResult> {
     const fetchedResources = existingCache || new Map<string, any>();
     const nodes: GraphNode[] = [];
@@ -183,7 +229,7 @@ return 'reference';
         nodes.push(rootNode);
         fetchedResources.set(rootReference, rootResource);
 
-        // Build graph recursively
+        // Build graph recursively (forward references)
         return this.expandGraphRecursive(
           rootResource,
           rootReference,
@@ -194,12 +240,84 @@ return 'reference';
           fetchedResources,
           pendingRefs
         ).pipe(
-          map(() => ({ nodes, edges, fetchedResources }))
+          switchMap(() => {
+            if (!includeReverseReferences) {
+              return of({ nodes, edges, fetchedResources });
+            }
+
+            // After forward graph is built, fetch reverse references for all nodes
+            return this.addReverseReferencesForNodes(
+              nodes,
+              edges,
+              fetchedResources
+            ).pipe(
+              map(() => ({ nodes, edges, fetchedResources }))
+            );
+          })
         );
       }),
       catchError(error => {
         this.logger.error('Failed to build graph:', error);
         return of({ nodes: [], edges: [], fetchedResources });
+      })
+    );
+  }
+
+  /**
+   * Add reverse references for all nodes in the graph
+   */
+  private addReverseReferencesForNodes(
+    nodes: GraphNode[],
+    edges: GraphEdge[],
+    fetchedResources: Map<string, any>
+  ): Observable<void> {
+    // Get unique node IDs to fetch reverse references for
+    const nodeIds = nodes.map(n => n.id);
+
+    // Fetch reverse references for all nodes in parallel
+    const reverseObservables = nodeIds.map(nodeId =>
+      this.fetchReverseReferences(nodeId, 10).pipe(
+        map(results => ({ nodeId, results }))
+      )
+    );
+
+    if (reverseObservables.length === 0) {
+      return of(undefined);
+    }
+
+    return forkJoin(reverseObservables).pipe(
+      map(allResults => {
+        allResults.forEach(({ nodeId, results }) => {
+          results.forEach(({ resources, searchParam }) => {
+            resources.forEach(resource => {
+              if (!resource?.id) {
+return;
+}
+
+              const refId = `${resource.resourceType}/${resource.id}`;
+
+              // Skip if this node already exists (avoid duplicates)
+              if (!nodes.find(n => n.id === refId)) {
+                const node = this.createNode(refId, resource, -1); // depth -1 for reverse refs
+                node.expanded = false;
+                nodes.push(node);
+                fetchedResources.set(refId, resource);
+              }
+
+              // Add reverse edge (from the referencing resource TO the target)
+              const edgeId = `${refId}->${nodeId}[rev]`;
+              if (!edges.find(e => e.id === edgeId)) {
+                edges.push({
+                  id: edgeId,
+                  from: refId,
+                  to: nodeId,
+                  label: searchParam,
+                  isReverse: true
+                });
+              }
+            });
+          });
+        });
       })
     );
   }
@@ -488,22 +606,28 @@ return `${resourceType}: ${given} ${family}`.trim();
    * Convert GraphEdge array to vis-network format
    */
   toVisEdges(edges: GraphEdge[]): VisEdge[] {
-    return edges.map(edge => ({
-      id: edge.id,
-      from: edge.from,
-      to: edge.to,
-      label: edge.label,
-      arrows: 'to',
-      color: {
-        color: '#848484',
-        highlight: '#000000'
-      },
-      font: {
-        size: 10,
-        color: '#666666',
-        strokeWidth: 2,
-        strokeColor: '#FFFFFF'
-      }
-    }));
+    return edges.map(edge => {
+      const isReverse = edge.isReverse === true;
+
+      return {
+        id: edge.id,
+        from: edge.from,
+        to: edge.to,
+        label: edge.label,
+        arrows: 'to',
+        color: {
+          color: isReverse ? '#E91E63' : '#848484',  // Pink for reverse, gray for normal
+          highlight: '#000000'
+        },
+        font: {
+          size: 10,
+          color: isReverse ? '#C2185B' : '#666666',
+          strokeWidth: 2,
+          strokeColor: '#FFFFFF'
+        },
+        dashes: isReverse ? [5, 5] : false,  // Dashed line for reverse references
+        width: isReverse ? 2 : 1
+      };
+    });
   }
 }

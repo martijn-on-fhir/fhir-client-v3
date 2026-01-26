@@ -31,6 +31,20 @@
           </select>
         </div>
 
+        <!-- Reverse References Toggle -->
+        <div class="form-check form-check-inline mb-0">
+          <input
+            type="checkbox"
+            class="form-check-input"
+            id="reverseRefsToggle"
+            [checked]="includeReverseRefs()"
+            (change)="onReverseRefsToggle($event)">
+          <label class="form-check-label" for="reverseRefsToggle" title="Include resources that reference this resource">
+            <i class="fas fa-reply me-1"></i>
+            Reverse refs
+          </label>
+        </div>
+
         <!-- Execute Button -->
         <button
           class="btn btn-primary"
@@ -215,6 +229,16 @@
       <span class="legend-item">
         <span class="legend-color" style="background: #BDBDBD"></span>
         Other
+      </span>
+      <span class="legend-separator">|</span>
+      <span class="legend-title">Edges:</span>
+      <span class="legend-item">
+        <span class="legend-edge" style="background: #848484"></span>
+        Forward ref
+      </span>
+      <span class="legend-item">
+        <span class="legend-edge legend-edge-dashed" style="background: #E91E63"></span>
+        Reverse ref
       </span>
     </div>
   }

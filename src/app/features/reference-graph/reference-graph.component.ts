@@ -54,6 +54,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   // Input state
   rootReference = signal<string>(localStorage.getItem('reference-graph-root') || '');
   maxDepth = signal<number>(parseInt(localStorage.getItem('reference-graph-depth') || '2', 10));
+  includeReverseRefs = signal<boolean>(localStorage.getItem('reference-graph-reverse') === 'true');
 
   // Loading state
   loading = signal<boolean>(false);
@@ -124,6 +125,15 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Handle reverse references toggle change
+   */
+  onReverseRefsToggle(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    this.includeReverseRefs.set(checked);
+    localStorage.setItem('reference-graph-reverse', checked.toString());
+  }
+
+  /**
    * Execute graph building from root reference
    */
   async executeGraph(): Promise<void> {
@@ -151,7 +161,12 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
 
     try {
       const result = await firstValueFrom(
-        this.graphService.buildGraph(reference, this.maxDepth())
+        this.graphService.buildGraph(
+          reference,
+          this.maxDepth(),
+          undefined,
+          this.includeReverseRefs()
+        )
       );
 
       if (result.nodes.length === 0) {

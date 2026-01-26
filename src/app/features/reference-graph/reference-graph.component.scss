@@ -121,6 +121,27 @@
   border: 1px solid rgba(0, 0, 0, 0.2);
 }
 
+.legend-separator {
+  color: var(--bs-secondary-color);
+  opacity: 0.5;
+}
+
+.legend-edge {
+  width: 20px;
+  height: 3px;
+  border-radius: 1px;
+
+  &.legend-edge-dashed {
+    background: repeating-linear-gradient(
+      90deg,
+      #E91E63,
+      #E91E63 4px,
+      transparent 4px,
+      transparent 8px
+    ) !important;
+  }
+}
+
 // Card overrides for compact spacing
 .card-header {
   font-size: 0.875rem;
@@ -158,6 +179,10 @@
   }
 
   .legend-color {
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  .legend-edge {
     border-color: rgba(255, 255, 255, 0.2);
   }
 }
