@@ -24,14 +24,14 @@
     }
 
     @if (showEverythingButton) {
-      <button class="btn btn-sm btn-outline-info" title="Get all related resources ($everything)" (click)="everythingClicked.emit()">
-        <i class="fas fa-asterisk"></i>
+      <button class="btn btn-sm btn-outline-secondary" title="Get all related resources ($everything)" (click)="everythingClicked.emit()">
+        <i class="fas fa-asterisk text-info"></i>
       </button>
     }
 
     @if (showDeleteButton) {
-      <button class="btn btn-sm btn-outline-danger" title="Delete resource" (click)="deleteClicked.emit()">
-        <i class="fas fa-trash"></i>
+      <button class="btn btn-sm btn-outline-secondary" title="Delete resource" (click)="deleteClicked.emit()">
+        <i class="fas fa-trash text-danger"></i>
       </button>
     }
 
