@@ -60,6 +60,10 @@ Validate FHIR resources against schemas and profiles.
 - Real-time validation feedback
 - Detailed error messages with line numbers
 - Supports JSON and XML formats
+- **Server-side $validate** - Validate resources on the FHIR server
+  - Select from available StructureDefinition profiles
+  - Enter custom profile URLs
+  - Parse and display OperationOutcome responses
 
 ### Resource Editor
 

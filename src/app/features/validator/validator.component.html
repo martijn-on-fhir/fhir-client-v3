@@ -2,17 +2,31 @@
   <!-- Validation Controls -->
   <div class="card mb-3 border-0" style="flex-shrink: 0">
     <div class="card-body p-2">
+      <!-- Row 1: Validation Mode -->
       <div class="row g-2 align-items-end mb-2">
-        <div class="col-md-4">
-          <label class="form-label small mb-1">Validation Profile</label>
-          <select class="form-select" [(ngModel)]="selectedProfile">
+        <div class="col-md-3">
+          <label class="form-label small mb-1">Validation Mode</label>
+          <select class="form-select form-select-sm" [(ngModel)]="selectedProfile" [disabled]="useServerValidate()">
             <option value="server-capability">Server CapabilityStatement</option>
             <option value="fhir-r4-base">FHIR R4 Base</option>
             <option value="fhir-stu3-base">FHIR STU3 Base</option>
           </select>
         </div>
-        <div class="col-md-4">
-          <label class="form-label small mb-1">Actions</label>
+        <div class="col-md-3">
+          <div class="form-check mt-4">
+            <input
+              type="checkbox"
+              class="form-check-input"
+              id="serverValidateToggle"
+              [checked]="useServerValidate()"
+              (change)="onServerValidateToggle($any($event.target).checked)">
+            <label class="form-check-label small" for="serverValidateToggle">
+              <i class="fas fa-server me-1"></i>
+              Use Server $validate
+            </label>
+          </div>
+        </div>
+        <div class="col-md-3">
           <button
             class="btn btn-sm btn-outline-secondary w-100"
             (click)="handleClear()"
@@ -21,8 +35,7 @@
             Clear
           </button>
         </div>
-        <div class="col-md-4">
-          <label class="form-label small mb-1">Validate</label>
+        <div class="col-md-3">
           <button
             class="btn btn-sm btn-primary w-100"
             (click)="handleValidate()"
@@ -37,6 +50,68 @@
           </button>
         </div>
       </div>
+
+      <!-- Row 2: Profile Selection (only shown when server $validate is enabled) -->
+      @if (useServerValidate()) {
+        <div class="row g-2 align-items-end">
+          <div class="col-md-6">
+            <label class="form-label small mb-1">
+              <i class="fas fa-file-medical me-1"></i>
+              Profile (StructureDefinition)
+            </label>
+            <div class="input-group input-group-sm">
+              <select
+                class="form-select form-select-sm"
+                [ngModel]="selectedProfileUrl()"
+                (ngModelChange)="selectedProfileUrl.set($event); useCustomProfile.set(false)"
+                [disabled]="useCustomProfile() || profilesLoading()">
+                <option value="">-- No specific profile --</option>
+                @for (profile of availableProfiles(); track profile.url) {
+                  <option [value]="profile.url">
+                    {{ profile.name || profile.title || profile.url }}
+                  </option>
+                }
+              </select>
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                (click)="refreshProfiles()"
+                [disabled]="profilesLoading()"
+                title="Refresh profiles">
+                @if (profilesLoading()) {
+                  <i class="fas fa-spinner fa-spin"></i>
+                } @else {
+                  <i class="fas fa-sync-alt"></i>
+                }
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label small mb-1">
+              <i class="fas fa-link me-1"></i>
+              Or enter custom profile URL
+            </label>
+            <div class="input-group input-group-sm">
+              <div class="input-group-text">
+                <input
+                  type="checkbox"
+                  class="form-check-input mt-0"
+                  [checked]="useCustomProfile()"
+                  (change)="useCustomProfile.set($any($event.target).checked)"
+                  title="Use custom URL">
+              </div>
+              <input
+                type="text"
+                class="form-control form-control-sm"
+                placeholder="http://hl7.org/fhir/StructureDefinition/..."
+                [ngModel]="customProfileUrl()"
+                (ngModelChange)="customProfileUrl.set($event)"
+                [disabled]="!useCustomProfile()"
+                spellcheck="false">
+            </div>
+          </div>
+        </div>
+      }
     </div>
   </div>
 

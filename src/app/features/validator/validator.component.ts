@@ -69,11 +69,29 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Loading state during validation operations */
   loading = signal<boolean>(false);
 
-  /** Selected validation profile (server-capability, fhir-r4-base, fhir-stu3-base) */
+  /** Selected validation mode (client-side or server-side) */
   selectedProfile = signal<string>('server-capability');
 
   /** Server CapabilityStatement metadata for server validation */
   serverMetadata = signal<any>(null);
+
+  /** Whether to use server-side $validate operation */
+  useServerValidate = signal<boolean>(false);
+
+  /** Available StructureDefinition profiles from server */
+  availableProfiles = signal<any[]>([]);
+
+  /** Selected profile URL for server $validate */
+  selectedProfileUrl = signal<string>('');
+
+  /** Custom profile URL input */
+  customProfileUrl = signal<string>('');
+
+  /** Whether to use custom profile URL */
+  useCustomProfile = signal<boolean>(false);
+
+  /** Loading state for fetching profiles */
+  profilesLoading = signal<boolean>(false);
 
   /** Width percentage of left panel in split view */
   leftWidth = signal<number>(50);
@@ -142,6 +160,18 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
       }
     }, {allowSignalWrites: true});
 
+    // Load profiles when server $validate is enabled
+    effect(() => {
+      if (this.useServerValidate()) {
+        // Use setTimeout to avoid issues with async in effects
+        setTimeout(() => {
+          if (this.availableProfiles().length === 0 && !this.profilesLoading()) {
+            this.loadAvailableProfiles();
+          }
+        }, 100);
+      }
+    }, {allowSignalWrites: true});
+
     // Save state to service whenever content changes (persists across tab navigation)
     effect(() => {
       const input = this.jsonInput();
@@ -152,6 +182,60 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
         this.validatorStateService.setState(input, result, profile);
       }
     }, {allowSignalWrites: true});
+  }
+
+  /**
+   * Load available StructureDefinition profiles from the server
+   */
+  private async loadAvailableProfiles() {
+    this.profilesLoading.set(true);
+
+    try {
+      const data = this.parsedData();
+      const resourceType = data?.resourceType;
+
+      // Fetch profiles, optionally filtered by resource type
+      const result = await firstValueFrom(
+        this.fhirService.getProfiles(resourceType !== 'Bundle' ? resourceType : undefined)
+      );
+
+      if (result?.entry) {
+        const profiles = result.entry
+          .map((e: any) => e.resource)
+          .filter((r: any) => r?.url)
+          .sort((a: any, b: any) => (a.name || a.url).localeCompare(b.name || b.url));
+
+        this.availableProfiles.set(profiles);
+        this.logger.info(`Loaded ${profiles.length} profiles from server`);
+      } else {
+        this.availableProfiles.set([]);
+      }
+    } catch (err) {
+      this.logger.error('Failed to load profiles:', err);
+      this.toastService.error('Failed to load profiles from server', 'Profile Error');
+      this.availableProfiles.set([]);
+    } finally {
+      this.profilesLoading.set(false);
+    }
+  }
+
+  /**
+   * Refresh available profiles (called when resource type changes)
+   */
+  async refreshProfiles() {
+    this.availableProfiles.set([]);
+    await this.loadAvailableProfiles();
+  }
+
+  /**
+   * Handle server validate toggle change
+   */
+  onServerValidateToggle(enabled: boolean) {
+    this.useServerValidate.set(enabled);
+
+    if (enabled && this.availableProfiles().length === 0) {
+      this.loadAvailableProfiles();
+    }
   }
 
   /**
@@ -290,7 +374,8 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    * - Bundle resources (validates all entries)
    *
    * Validation modes:
-   * - Server validation: Validates against server CapabilityStatement + FHIR spec
+   * - Server $validate: Validates on server with optional profile URL
+   * - Server capability: Validates against server CapabilityStatement + FHIR spec
    * - R4 Base: Validates against FHIR R4 specification
    * - STU3 Base: Validates against FHIR STU3 specification
    *
@@ -301,7 +386,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
    *
    * Sets loading state during validation and error state on failure.
    */
-  handleValidate() {
+  async handleValidate() {
     this.loading.set(true);
 
     try {
@@ -311,6 +396,14 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
         throw new Error('Invalid JSON input. Please check your JSON syntax.');
       }
 
+      // Check if using server-side $validate
+      if (this.useServerValidate()) {
+        await this.performServerValidation(data);
+
+        return;
+      }
+
+      // Client-side validation
       const isServerValidation = this.selectedProfile() === 'server-capability';
       const fhirVersion = this.selectedProfile() === 'fhir-stu3-base' ? 'STU3' : 'R4';
 
@@ -402,6 +495,66 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     } catch (err: any) {
       this.logger.error('Validation error:', err);
       this.toastService.error(err.message || 'Failed to validate resource', 'Validation Error');
+      this.validationResult.set(null);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Perform server-side $validate operation
+   */
+  private async performServerValidation(data: any) {
+    try {
+      // Determine profile URL
+      const profileUrl = this.useCustomProfile()
+        ? this.customProfileUrl().trim()
+        : this.selectedProfileUrl();
+
+      // Log validation attempt
+      if (profileUrl) {
+        this.logger.info(`Validating against profile: ${profileUrl}`);
+      } else {
+        this.logger.info('Validating without specific profile');
+      }
+
+      // Call server $validate
+      const result = await firstValueFrom(
+        this.fhirService.validateOnServer(data, profileUrl || undefined)
+      );
+
+      // Parse OperationOutcome response
+      if (result?.resourceType === 'OperationOutcome') {
+        const issues = (result.issue || []).map((issue: any) => ({
+          severity: issue.severity || 'error',
+          code: issue.code,
+          diagnostics: issue.diagnostics || issue.details?.text || 'Unknown issue',
+          location: issue.location || issue.expression || []
+        }));
+
+        const hasErrors = issues.some((i: any) => i.severity === 'error' || i.severity === 'fatal');
+
+        this.validationResult.set({
+          isValid: !hasErrors,
+          issues,
+          resourceType: data.resourceType || 'Unknown'
+        });
+
+        if (!hasErrors && issues.length === 0) {
+          this.toastService.success('Resource is valid', 'Server Validation');
+        }
+      } else {
+        // No OperationOutcome means valid
+        this.validationResult.set({
+          isValid: true,
+          issues: [],
+          resourceType: data.resourceType || 'Unknown'
+        });
+        this.toastService.success('Resource is valid', 'Server Validation');
+      }
+    } catch (err: any) {
+      this.logger.error('Server validation error:', err);
+      this.toastService.error(err.message || 'Server validation failed', 'Validation Error');
       this.validationResult.set(null);
     } finally {
       this.loading.set(false);

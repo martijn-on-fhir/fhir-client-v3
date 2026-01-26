@@ -221,6 +221,72 @@ export class FhirService {
   }
 
   /**
+   * Validate a resource on the server using $validate operation
+   * @param resource The FHIR resource to validate
+   * @param profileUrl Optional profile URL to validate against
+   * @returns Observable of OperationOutcome
+   */
+  validateOnServer(resource: any, profileUrl?: string): Observable<any> {
+    const resourceType = resource.resourceType;
+
+    if (!resourceType) {
+      return throwError(() => new Error('Resource must have a resourceType'));
+    }
+
+    let url = `${this.baseUrl}/${resourceType}/$validate`;
+
+    if (profileUrl) {
+      url += `?profile=${encodeURIComponent(profileUrl)}`;
+    }
+
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for $validate:', url);
+
+          return this.executeMtlsRequest(url, 'POST', resource);
+        }
+
+        const headers = new HttpHeaders({
+          ...authHeaders,
+          'Content-Type': 'application/fhir+json',
+          'Accept': 'application/fhir+json'
+        });
+
+        return this.http.post(url, resource, { headers });
+      }),
+      catchError(error => {
+        this.logger.error('Validation failed:', error);
+
+        // If the server returns an OperationOutcome in the error, extract it
+        if (error.error?.resourceType === 'OperationOutcome') {
+          return from([error.error]);
+        }
+
+        return throwError(() => new Error(error.message || 'Server validation failed'));
+      })
+    );
+  }
+
+  /**
+   * Get available StructureDefinitions (profiles) from the server
+   * @param resourceType Optional filter by resource type
+   * @returns Observable of Bundle containing StructureDefinitions
+   */
+  getProfiles(resourceType?: string): Observable<any> {
+    let query = '/administration/StructureDefinition?_count=200&_summary=true';
+
+    if (resourceType) {
+      query += `&type=${resourceType}`;
+    }
+
+    return this.executeQuery(query);
+  }
+
+  /**
    * Create a new resource
    * Automatically routes through mTLS when a certificate is configured for the domain
    */
