@@ -1,3 +1,10 @@
+# [1.41.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.40.0...v1.41.0) (2026-01-26)
+
+
+### Features
+
+* **query:** add request/response inspector dialog ([649becb](https://github.com/martijn-on-fhir/fhir-client-v3/commit/649becb4c9f060f9d95c1d61ca1cb0450d0d3eef))
+
 # [1.40.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.39.1...v1.40.0) (2026-01-26)
 
 
