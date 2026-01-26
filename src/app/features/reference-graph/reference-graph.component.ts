@@ -10,6 +10,7 @@ import {
   ChangeDetectionStrategy
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { firstValueFrom } from 'rxjs';
 import { GraphNode, GraphEdge, VisNode, VisEdge } from '../../core/models/reference-graph.model';
 import { EditorStateService } from '../../core/services/editor-state.service';
@@ -49,6 +50,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   private graphService = inject(ReferenceGraphService);
   private toastService = inject(ToastService);
   private editorStateService = inject(EditorStateService);
+  private router = inject(Router);
   private logger = this.loggerService.component('ReferenceGraphComponent');
 
   // Input state
@@ -310,16 +312,17 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Navigate to resource in Query tab
+   * Navigate to resource in Query tab and execute query
    */
   openInQuery(): void {
     const nodeId = this.selectedNodeId();
 
     if (nodeId) {
-      // Store the query and navigate
+      // Store the query and set flag to auto-execute
       localStorage.setItem('fhir-text-query', `/${nodeId}`);
       localStorage.setItem('fhir-query-mode', 'text');
-      window.location.hash = '#/app/query';
+      localStorage.setItem('fhir-execute-on-load', 'true');
+      this.router.navigate(['/app/query']);
     }
   }
 

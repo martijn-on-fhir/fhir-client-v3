@@ -575,6 +575,22 @@ export class QueryComponent implements OnInit, OnDestroy {
   async ngOnInit() {
     await this.loadMetadata();
 
+    // Check if we should auto-execute (e.g., coming from reference graph)
+    const executeOnLoad = localStorage.getItem('fhir-execute-on-load');
+
+    if (executeOnLoad === 'true') {
+      localStorage.removeItem('fhir-execute-on-load');
+      // Re-read query from localStorage as it may have been updated
+      const query = localStorage.getItem('fhir-text-query');
+
+      if (query) {
+        this.textQuery.set(query);
+        this.executeQuery();
+
+        return;
+      }
+    }
+
     // Restore state from query state service (persists across tab navigation)
     if (this.queryStateService.hasResult()) {
       this.result.set(this.queryStateService.result());
