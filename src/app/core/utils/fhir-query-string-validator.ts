@@ -46,6 +46,8 @@ export interface ParsedFhirQuery {
   resourceType?: string;
   /** Resource ID for read operations (e.g., "123" in /Patient/123) */
   resourceId?: string;
+  /** Whether this is a history request (e.g., /Patient/123/_history) */
+  isHistoryRequest?: boolean;
   /** Version ID for vread operations (e.g., "1" in /Patient/123/_history/1) */
   versionId?: string;
   /** List of parsed search parameters */
@@ -213,17 +215,18 @@ export class FhirQueryValidator {
 
     let resourceType: string | undefined;
     let resourceId: string | undefined;
+    let isHistoryRequest = false;
     let versionId: string | undefined;
     let queryString = query;
 
     // Match patterns including resource ID and version:
-    // /ResourceType, /ResourceType?params, /ResourceType/id, /ResourceType/id/_history/vid
+    // /ResourceType, /ResourceType?params, /ResourceType/id, /ResourceType/id/_history, /ResourceType/id/_history/vid
     const urlMatch = query.match(
-      /^(?:\/)?(?:fhir\/)?(?:r[34]\/)?([A-Z][a-zA-Z]+)(?:\/([A-Za-z0-9.-]+))?(?:\/_history\/([A-Za-z0-9.-]+))?(?:\?(.*))?$/i
+      /^(?:\/)?(?:fhir\/)?(?:r[34]\/)?([A-Z][a-zA-Z]+)(?:\/([A-Za-z0-9.-]+))?(\/(_history)(?:\/([A-Za-z0-9.-]+))?)?(?:\?(.*))?$/i
     );
 
     if (urlMatch) {
-      const [, resource, id, version, qs] = urlMatch;
+      const [, resource, id, , historyKeyword, version, qs] = urlMatch;
 
       if (resource) {
         resourceType = resource;
@@ -240,6 +243,10 @@ export class FhirQueryValidator {
         resourceId = id;
       }
 
+      if (historyKeyword) {
+        isHistoryRequest = true;
+      }
+
       if (version) {
         versionId = version;
       }
@@ -250,7 +257,7 @@ export class FhirQueryValidator {
     } else {
       errors.push({
         type: 'error',
-        message: 'Invalid query format. Expected format: /ResourceType, /ResourceType/id, or /ResourceType?param=value',
+        message: 'Invalid query format. Expected format: /ResourceType, /ResourceType/id, /ResourceType/id/_history, or /ResourceType?param=value',
       });
       return {valid: false, errors, warnings, parsed: null};
     }
@@ -282,6 +289,7 @@ export class FhirQueryValidator {
       parsed: {
         resourceType,
         resourceId,
+        isHistoryRequest,
         versionId,
         parameters,
       },
