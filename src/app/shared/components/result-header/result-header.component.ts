@@ -166,6 +166,18 @@ export class ResultHeaderComponent {
   @Output() copyAsCurlClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the $everything button in the toolbar
+   * Should be true for Patient or Encounter resources
+   * @default false
+   */
+  @Input() showEverythingButton = false;
+
+  /**
+   * Event emitted when the $everything button is clicked
+   */
+  @Output() everythingClicked = new EventEmitter<void>();
+
+  /**
    * Check if a specific pagination link exists
    * Handles 'prev'/'previous' interchangeably
    */

@@ -50,6 +50,8 @@ export interface ParsedFhirQuery {
   isHistoryRequest?: boolean;
   /** Version ID for vread operations (e.g., "1" in /Patient/123/_history/1) */
   versionId?: string;
+  /** FHIR operation name (e.g., "$everything", "$validate") */
+  operation?: string;
   /** List of parsed search parameters */
   parameters: ParsedParameter[];
 }
@@ -217,16 +219,18 @@ export class FhirQueryValidator {
     let resourceId: string | undefined;
     let isHistoryRequest = false;
     let versionId: string | undefined;
+    let operation: string | undefined;
     let queryString = query;
 
-    // Match patterns including resource ID and version:
-    // /ResourceType, /ResourceType?params, /ResourceType/id, /ResourceType/id/_history, /ResourceType/id/_history/vid
+    // Match patterns including resource ID, operations, and version:
+    // /ResourceType, /ResourceType?params, /ResourceType/id, /ResourceType/id/_history,
+    // /ResourceType/id/_history/vid, /ResourceType/id/$everything
     const urlMatch = query.match(
-      /^(?:\/)?(?:fhir\/)?(?:r[34]\/)?([A-Z][a-zA-Z]+)(?:\/([A-Za-z0-9.-]+))?(\/(_history)(?:\/([A-Za-z0-9.-]+))?)?(?:\?(.*))?$/i
+      /^(?:\/)?(?:fhir\/)?(?:r[34]\/)?([A-Z][a-zA-Z]+)(?:\/([A-Za-z0-9.-]+))?(?:\/((_history)(?:\/([A-Za-z0-9.-]+))?|(\$[a-zA-Z-]+)))?(?:\?(.*))?$/i
     );
 
     if (urlMatch) {
-      const [, resource, id, , historyKeyword, version, qs] = urlMatch;
+      const [, resource, id, , historyKeyword, version, dollarOp, qs] = urlMatch;
 
       if (resource) {
         resourceType = resource;
@@ -251,13 +255,17 @@ export class FhirQueryValidator {
         versionId = version;
       }
 
+      if (dollarOp) {
+        operation = dollarOp;
+      }
+
       queryString = qs || '';
     } else if (query.includes('=')) {
       queryString = query.startsWith('?') ? query.slice(1) : query;
     } else {
       errors.push({
         type: 'error',
-        message: 'Invalid query format. Expected format: /ResourceType, /ResourceType/id, /ResourceType/id/_history, or /ResourceType?param=value',
+        message: 'Invalid query format. Expected format: /ResourceType, /ResourceType/id, /ResourceType/id/_history, /ResourceType/id/$everything, or /ResourceType?param=value',
       });
       return {valid: false, errors, warnings, parsed: null};
     }
@@ -291,6 +299,7 @@ export class FhirQueryValidator {
         resourceId,
         isHistoryRequest,
         versionId,
+        operation,
         parameters,
       },
     };

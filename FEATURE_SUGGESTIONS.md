@@ -24,17 +24,21 @@ The application already includes:
 
 ## Priority 1: Quick Wins (Low Effort, High Value)
 
-### 1.1 $everything Operation
+### 1.1 $everything Operation ✅ IMPLEMENTED
 **Effort:** Low | **Impact:** High
 
 Add support for compartment-based $everything operations:
 - `GET /Patient/123/$everything`
 - `GET /Encounter/456/$everything`
 
-**Implementation:**
-- Add button in query results when viewing Patient/Encounter
-- Support `_since`, `_count` parameters
-- Handle large result sets with pagination
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Toolbar button (asterisk icon) appears when viewing Patient or Encounter
+- Clicking executes `$everything` operation for the resource
+- Results displayed with standard Bundle pagination
+- Autocomplete support for `$everything` in query input
+- Query validator updated to support `$operation` syntax
 
 ---
 
@@ -472,7 +476,7 @@ ipcMain.handle('webhook:getNotifications', ...)
 ### Phase 1: Quick Wins (1-2 weeks)
 1. Query execution time display
 2. ~~Copy as cURL~~ ✅ Done
-3. $everything operation
+3. ~~$everything operation~~ ✅ Done
 4. Recent resources list
 
 ### Phase 2: Core Operations (2-4 weeks)

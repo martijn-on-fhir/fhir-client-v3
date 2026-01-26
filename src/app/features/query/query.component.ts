@@ -297,6 +297,25 @@ export class QueryComponent implements OnInit, OnDestroy {
   });
 
   /**
+   * Whether Bundle has navigation links (first, previous, next, last)
+   * Used to determine if server-side pagination is available
+   */
+  hasBundleNavLinks = computed(() => {
+    const links = this.paginationLinks();
+    const navRelations = ['first', 'previous', 'prev', 'next', 'last'];
+
+    return links.some((link: { relation: string }) => navRelations.includes(link.relation));
+  });
+
+  /**
+   * Whether to show client-side pagination
+   * True when there are many entries but no Bundle navigation links
+   */
+  showClientPagination = computed(() => {
+    return !this.hasBundleNavLinks() && this.entries().length > this.itemsPerPage;
+  });
+
+  /**
    * Total count from Bundle result
    */
   resultTotal = computed(() => {
@@ -330,6 +349,17 @@ export class QueryComponent implements OnInit, OnDestroy {
    * True when a query has been executed
    */
   canCopyAsCurl = computed(() => !!this.lastExecutedQuery());
+
+  /**
+   * Whether the $everything button should be shown
+   * True when result is a Patient or Encounter with an id
+   */
+  canExecuteEverything = computed(() => {
+    const res = this.result();
+    const supportedTypes = ['Patient', 'Encounter'];
+
+    return res?.resourceType && supportedTypes.includes(res.resourceType) && res.id;
+  });
 
   /**
    * Metadata for the currently selected resource type
@@ -441,10 +471,11 @@ export class QueryComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * JSON string representation of paginated result for Monaco Editor
+   * JSON string representation of result for Monaco Editor
+   * Uses server-side pagination via Bundle links in result header
    */
   resultJson = computed(() => {
-    const result = this.paginatedResult();
+    const result = this.filteredResult();
 
     return result ? JSON.stringify(result, null, 2) : '';
   });
@@ -1590,5 +1621,22 @@ export class QueryComponent implements OnInit, OnDestroy {
       this.logger.error('Failed to copy cURL command:', err);
       this.toastService.error('Failed to copy cURL command', 'Copy as cURL');
     }
+  }
+
+  /**
+   * Executes the $everything operation for the current Patient or Encounter
+   * Fetches all resources related to the compartment
+   */
+  async onEverythingClicked(): Promise<void> {
+    const res = this.result();
+
+    if (!res?.resourceType || !res?.id) {
+      return;
+    }
+
+    const query = `/${res.resourceType}/${res.id}/$everything`;
+    this.textQuery.set(query);
+    this.queryMode.set('text');
+    await this.executeTextQuery();
   }
 }

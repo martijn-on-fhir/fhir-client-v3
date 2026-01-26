@@ -293,11 +293,12 @@ export class QueryAutocompleteService {
   }
 
   /**
-   * Get operation suggestions for resource instances (e.g., _history)
+   * Get operation suggestions for resource instances (e.g., _history, $everything)
    */
   private getOperationSuggestions(prefix: string): Suggestion[] {
     const operations = [
-      { name: '_history', description: 'Get version history of this resource' }
+      { name: '_history', description: 'Get version history of this resource' },
+      { name: '$everything', description: 'Get all related resources (Patient/Encounter)' }
     ];
 
     const lowerPrefix = prefix.toLowerCase();

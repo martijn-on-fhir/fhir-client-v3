@@ -71,10 +71,12 @@
         [showDeleteButton]="showDeleteButton"
         [showCompareButton]="showCompareButton"
         [showCopyAsCurl]="showCopyAsCurl"
+        [showEverythingButton]="showEverythingButton"
         (editClicked)="editClicked.emit()"
         (deleteClicked)="deleteClicked.emit()"
         (compareClicked)="compareClicked.emit()"
-        (copyAsCurlClicked)="copyAsCurlClicked.emit()">
+        (copyAsCurlClicked)="copyAsCurlClicked.emit()"
+        (everythingClicked)="everythingClicked.emit()">
       </app-json-viewer-toolbar>
     }
   </div>

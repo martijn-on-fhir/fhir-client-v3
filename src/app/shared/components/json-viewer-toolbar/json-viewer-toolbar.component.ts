@@ -80,6 +80,18 @@ export class JsonViewerToolbarComponent {
   @Output() copyAsCurlClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the $everything button.
+   * Should be true for Patient or Encounter resources.
+   * @default false
+   */
+  @Input() showEverythingButton = false;
+
+  /**
+   * Emitted when the $everything button is clicked.
+   */
+  @Output() everythingClicked = new EventEmitter<void>();
+
+  /**
    * Whether to show the generate narrative button.
    * @default false
    */
