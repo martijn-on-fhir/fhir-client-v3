@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-26 (Query Execution Time implemented)
+> Last Updated: 2026-01-26 (Request/Response Inspector implemented)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -76,7 +76,7 @@ Export any executed query as a cURL command for sharing/debugging.
 
 ---
 
-### 1.4 Request/Response Inspector
+### 1.4 Request/Response Inspector ✅ IMPLEMENTED
 **Effort:** Low | **Impact:** Medium
 
 Show raw HTTP details for debugging:
@@ -85,9 +85,17 @@ Show raw HTTP details for debugging:
 - Status code and timing
 - Response size
 
-**Implementation:**
-- Collapsible panel below results
-- Tab for Request / Response / Timing
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Clickable timing badge opens inspector dialog
+- Tabbed interface: Request / Response / Timing
+- Request tab shows all headers and body (if any)
+- Response tab shows all response headers
+- Timing tab with visual stats cards (request size, response size, duration, status)
+- Color-coded HTTP method badges (GET=green, POST=blue, PUT=yellow, DELETE=red)
+- Color-coded status badges based on HTTP status code
+- HTTP interceptor captures all traffic automatically
 
 ---
 
@@ -483,7 +491,8 @@ ipcMain.handle('webhook:getNotifications', ...)
 1. ~~Query execution time display~~ ✅ Done
 2. ~~Copy as cURL~~ ✅ Done
 3. ~~$everything operation~~ ✅ Done
-4. Recent resources list
+4. ~~Request/Response Inspector~~ ✅ Done
+5. Recent resources list
 
 ### Phase 2: Core Operations (2-4 weeks)
 1. ~~Resource version history with basic diff~~ ✅ Done (integrated in Diff Viewer)
