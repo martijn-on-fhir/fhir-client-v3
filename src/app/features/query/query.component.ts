@@ -321,9 +321,7 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Whether to show client-side pagination
    * True when there are many entries but no Bundle navigation links
    */
-  showClientPagination = computed(() => {
-    return !this.hasBundleNavLinks() && this.entries().length > this.itemsPerPage;
-  });
+  showClientPagination = computed(() => !this.hasBundleNavLinks() && this.entries().length > this.itemsPerPage);
 
   /**
    * Total count from Bundle result
