@@ -7,10 +7,20 @@ import {
   ImportOptions,
   ExportOptions
 } from '../../core/models/bulk-operation.model';
+import {
+  CollectionExportFormat,
+  CollectionExportSource,
+  CollectionExportOptions,
+  ExportQueryItem
+} from '../../core/models/collection-export.model';
 import { BulkOperationService } from '../../core/services/bulk-operation.service';
+import { FavoritesService } from '../../core/services/favorites.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { QueryHistoryService } from '../../core/services/query-history.service';
+import { ServerProfileService } from '../../core/services/server-profile.service';
 import { ToastService } from '../../core/services/toast.service';
+import { generateCollection, getFileExtension } from '../../core/utils/collection-generators';
 
 /**
  * Bulk Import/Export Component
@@ -18,6 +28,7 @@ import { ToastService } from '../../core/services/toast.service';
  * Provides functionality to:
  * - Import multiple FHIR resources from JSON or NDJSON files
  * - Export resources to JSON files
+ * - Export queries as Postman/OpenAPI/Insomnia collections
  * - Track progress with visual progress bar
  * - Report errors per resource
  * - Support dry-run validation
@@ -32,12 +43,15 @@ import { ToastService } from '../../core/services/toast.service';
 export class BulkImportExportComponent implements OnInit, OnDestroy {
   private bulkService = inject(BulkOperationService);
   private fhirService = inject(FhirService);
+  private favoritesService = inject(FavoritesService);
+  private queryHistoryService = inject(QueryHistoryService);
+  private serverProfileService = inject(ServerProfileService);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('BulkImportExportComponent');
   private toastService = inject(ToastService);
 
   /** Active tab */
-  activeTab = signal<'import' | 'export'>('export');
+  activeTab = signal<'import' | 'export' | 'collection'>('export');
 
   /** Available resource types from server */
   resourceTypes = signal<string[]>([]);
@@ -93,6 +107,29 @@ export class BulkImportExportComponent implements OnInit, OnDestroy {
 
   /** Exported data (deprecated - kept for backward compat in template) */
   exportedData = signal<any[] | null>(null);
+
+  // === Collection Export State ===
+
+  /** Collection export format */
+  collectionFormat = signal<CollectionExportFormat>('postman');
+
+  /** Collection export source */
+  collectionSource = signal<CollectionExportSource>('favorites');
+
+  /** Collection name */
+  collectionName = signal<string>('FHIR API Collection');
+
+  /** Include authentication headers */
+  collectionIncludeAuth = signal<boolean>(false);
+
+  /** Generated collection content */
+  generatedCollection = signal<string | null>(null);
+
+  /** Number of queries in collection */
+  collectionQueryCount = signal<number>(0);
+
+  /** Collection generation in progress */
+  generatingCollection = signal<boolean>(false);
 
   // === Shared State from Service ===
 
@@ -171,7 +208,7 @@ export class BulkImportExportComponent implements OnInit, OnDestroy {
   /**
    * Switch active tab
    */
-  setActiveTab(tab: 'import' | 'export'): void {
+  setActiveTab(tab: 'import' | 'export' | 'collection'): void {
     this.activeTab.set(tab);
     this.bulkService.reset();
   }
@@ -519,5 +556,240 @@ return;
    */
   hasExportData(): boolean {
     return this.tempExportPath() !== null && this.exportedCount() > 0;
+  }
+
+  // === Collection Export Methods ===
+
+  /**
+   * Get queries from the selected source
+   */
+  private getQueriesFromSource(): ExportQueryItem[] {
+    const source = this.collectionSource();
+    const queries: ExportQueryItem[] = [];
+
+    if (source === 'favorites') {
+      const favorites = this.favoritesService.currentProfileFavorites();
+
+      for (const fav of favorites) {
+        queries.push({
+          name: fav.displayName,
+          method: 'GET',
+          path: fav.query,
+          resourceType: fav.resourceType,
+          description: `Favorite: ${fav.displayName}`
+        });
+      }
+    } else if (source === 'history') {
+      const history = this.queryHistoryService.getHistory();
+
+      for (const entry of history) {
+        const resourceType = this.extractResourceType(entry.query);
+        queries.push({
+          name: `${resourceType} query`,
+          method: 'GET',
+          path: entry.query,
+          resourceType,
+          description: `Executed: ${new Date(entry.timestamp).toLocaleString()}`
+        });
+      }
+    } else if (source === 'server-capabilities') {
+      // Generate CRUD operations for each resource type
+      const types = this.resourceTypes();
+
+      for (const type of types) {
+        // Search
+        queries.push({
+          name: `Search ${type}`,
+          method: 'GET',
+          path: `/${type}`,
+          resourceType: type,
+          description: `Search all ${type} resources`
+        });
+
+        // Read by ID
+        queries.push({
+          name: `Get ${type} by ID`,
+          method: 'GET',
+          path: `/${type}/{id}`,
+          resourceType: type,
+          description: `Retrieve a specific ${type} by ID`
+        });
+
+        // Create
+        queries.push({
+          name: `Create ${type}`,
+          method: 'POST',
+          path: `/${type}`,
+          resourceType: type,
+          description: `Create a new ${type} resource`,
+          body: { resourceType: type }
+        });
+
+        // Update
+        queries.push({
+          name: `Update ${type}`,
+          method: 'PUT',
+          path: `/${type}/{id}`,
+          resourceType: type,
+          description: `Update an existing ${type} resource`,
+          body: { resourceType: type, id: '{id}' }
+        });
+
+        // Delete
+        queries.push({
+          name: `Delete ${type}`,
+          method: 'DELETE',
+          path: `/${type}/{id}`,
+          resourceType: type,
+          description: `Delete a ${type} resource`
+        });
+      }
+    }
+
+    return queries;
+  }
+
+  /**
+   * Extract resource type from query path
+   */
+  private extractResourceType(query: string): string {
+    const path = query.split('?')[0];
+    const segments = path.split('/').filter(Boolean);
+
+    return segments[0] || 'Unknown';
+  }
+
+  /**
+   * Generate collection
+   */
+  async generateCollectionExport(): Promise<void> {
+    this.generatingCollection.set(true);
+    this.generatedCollection.set(null);
+
+    try {
+      const queries = this.getQueriesFromSource();
+
+      if (queries.length === 0) {
+        this.toastService.warning('No queries found for selected source', 'Warning');
+
+        return;
+      }
+
+      const activeProfile = this.serverProfileService.activeProfile();
+      const baseUrl = activeProfile?.fhirServerUrl || '';
+
+      const options: CollectionExportOptions = {
+        format: this.collectionFormat(),
+        source: this.collectionSource(),
+        collectionName: this.collectionName(),
+        includeAuth: this.collectionIncludeAuth(),
+        baseUrl,
+        includeExamples: true
+      };
+
+      const collection = generateCollection(queries, options);
+      this.generatedCollection.set(collection);
+      this.collectionQueryCount.set(queries.length);
+
+      this.toastService.success(
+        `Generated ${this.collectionFormat()} collection with ${queries.length} queries`,
+        'Collection Generated'
+      );
+    } catch (error: any) {
+      this.logger.error('Failed to generate collection:', error);
+      this.toastService.error(error.message || 'Failed to generate collection', 'Error');
+    } finally {
+      this.generatingCollection.set(false);
+    }
+  }
+
+  /**
+   * Save collection to file
+   */
+  async saveCollection(): Promise<void> {
+    const collection = this.generatedCollection();
+
+    if (!collection) {
+      this.toastService.warning('No collection generated', 'Warning');
+
+      return;
+    }
+
+    const extension = getFileExtension(this.collectionFormat());
+    const filename = `${this.collectionName().replace(/[^a-zA-Z0-9]/g, '-')}.${extension}`;
+
+    try {
+      if (window.electronAPI?.file?.saveFile) {
+        const result = await window.electronAPI.file.saveFile(collection, filename);
+
+        if (result && 'error' in result) {
+          this.toastService.error(result.error, 'Save Error');
+        } else if (result && result.success) {
+          this.toastService.success('Collection saved', 'Saved');
+        }
+      } else {
+        // Fallback: download via blob
+        const blob = new Blob([collection], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.toastService.success('Collection downloaded', 'Downloaded');
+      }
+    } catch (error: any) {
+      this.toastService.error(error.message || 'Failed to save collection', 'Error');
+    }
+  }
+
+  /**
+   * Copy collection to clipboard
+   */
+  async copyCollection(): Promise<void> {
+    const collection = this.generatedCollection();
+
+    if (!collection) {
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(collection);
+      this.toastService.success('Collection copied to clipboard', 'Copied');
+    } catch {
+      this.toastService.error('Failed to copy', 'Error');
+    }
+  }
+
+  /**
+   * Clear collection state
+   */
+  clearCollection(): void {
+    this.generatedCollection.set(null);
+    this.collectionQueryCount.set(0);
+  }
+
+  /**
+   * Get count of available queries for source
+   */
+  getSourceQueryCount(): number {
+    const source = this.collectionSource();
+
+    if (source === 'favorites') {
+      return this.favoritesService.currentProfileFavorites().length;
+    } else if (source === 'history') {
+      return this.queryHistoryService.getHistoryCount();
+    } else if (source === 'server-capabilities') {
+      return this.resourceTypes().length * 5; // 5 operations per type
+    }
+
+    return 0;
+  }
+
+  /**
+   * Check if collection is ready
+   */
+  hasCollection(): boolean {
+    return this.generatedCollection() !== null;
   }
 }

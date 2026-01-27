@@ -150,6 +150,30 @@ Compare FHIR resources side-by-side with visual diff highlighting.
   - Diff statistics (additions, deletions)
 - **Full-screen dialog** - Maximum space for comparing large resources
 
+### Bulk Import/Export
+
+Import and export FHIR resources in bulk, plus export API collections.
+
+- **Bulk Export** - Export resources from the server
+  - Filter by resource type or export all
+  - Stream to temp file for memory efficiency (handles 100k+ records)
+  - Preview sample before saving
+  - Save as JSON array
+- **Bulk Import** - Import multiple resources at once
+  - Support for JSON array, FHIR Bundle, and NDJSON formats
+  - Drag-and-drop file upload
+  - Dry-run mode for validation without importing
+  - Progress tracking with per-resource error reporting
+  - Continue-on-error option
+- **Collection Export** - Export queries as API collections
+  - **Postman Collection v2.1** - Import directly into Postman
+  - **OpenAPI 3.0 Spec** - Swagger-compatible API documentation
+  - **Insomnia v4** - Import into Insomnia REST client
+  - Three query sources: Favorites, Query History, Server Capabilities
+  - Server Capabilities generates CRUD operations for all resource types
+  - Preview generated collection before download
+  - Optional authentication scheme inclusion
+
 ### Subscription Management
 
 Manage FHIR STU3 subscriptions for real-time notifications.

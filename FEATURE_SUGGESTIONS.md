@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-27 (Security fixes + Bulk Import/Export)
+> Last Updated: 2026-01-27 (Collection Export + Security fixes + Bulk Import/Export)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -435,13 +435,26 @@ Generate boilerplate code from resources:
 
 ---
 
-### 5.2 Postman/OpenAPI Export
+### 5.2 Postman/OpenAPI Export ✅ IMPLEMENTED
 **Effort:** Medium | **Impact:** Low
 
 Export queries as:
 - Postman collection
 - OpenAPI/Swagger spec
 - Insomnia collection
+
+**Status:** Fully implemented in Bulk Import/Export tab.
+
+**Features delivered:**
+- New "Collection" tab in Bulk Import/Export feature
+- Postman Collection v2.1 export with folders per resource type
+- OpenAPI 3.0 specification generation
+- Insomnia v4 export format
+- Three query sources: Favorites, Query History, Server Capabilities
+- Server Capabilities generates CRUD operations for all resource types
+- Preview generated collection before saving
+- Copy to clipboard or save to file
+- Optional authentication scheme inclusion
 
 ---
 
