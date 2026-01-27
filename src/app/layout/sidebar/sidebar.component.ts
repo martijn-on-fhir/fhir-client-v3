@@ -199,12 +199,10 @@ return;
     // Update last accessed timestamp
     this.favoritesService.updateLastAccessed(favorite.id);
 
-    // Set the query in localStorage so it persists
-    localStorage.setItem('fhir-text-query', favorite.query);
-    localStorage.setItem('fhir-query-mode', 'text');
-    localStorage.setItem('fhir-execute-on-load', 'true');
+    // Use navigation service to trigger query execution
+    this.navigationService.navigateToFavoriteQuery(favorite.query);
 
-    // Navigate to query tab
+    // Navigate to query tab (if not already there)
     this.router.navigate(['/app/query']);
   }
 

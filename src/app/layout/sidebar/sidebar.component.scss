@@ -98,7 +98,8 @@
 
 // Favorites Section
 .favorites-section {
-  border-bottom: none;
+  border-bottom: 2px solid var(--bs-border-color);
+  margin-bottom: 0.5rem;
 }
 
 .section-header {
@@ -129,7 +130,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 200px;
+  max-height: 350px;
   overflow-y: auto;
 
   // Custom scrollbar

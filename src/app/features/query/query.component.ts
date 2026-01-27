@@ -628,6 +628,17 @@ export class QueryComponent implements OnInit, OnDestroy {
     }, {allowSignalWrites: true});
 
     effect(() => {
+      const favEvent = this.navigationService.favoriteQueryEvent();
+
+      if (favEvent) {
+        this.queryMode.set('text');
+        this.textQuery.set(favEvent.query);
+        this.executeTextQuery();
+        this.navigationService.clearFavoriteQueryEvent();
+      }
+    }, {allowSignalWrites: true});
+
+    effect(() => {
       const hasResults = this.resultJson() !== '';
       const mode = this.queryMode();
 
