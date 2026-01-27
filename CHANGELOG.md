@@ -1,3 +1,10 @@
+# [1.44.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.43.0...v1.44.0) (2026-01-27)
+
+
+### Features
+
+* **query:** add XML format toggle and query analytics ([900e9ff](https://github.com/martijn-on-fhir/fhir-client-v3/commit/900e9ff9572718e9ae6546dc39152da6c3d493ff))
+
 # [1.43.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.42.0...v1.43.0) (2026-01-27)
 
 
