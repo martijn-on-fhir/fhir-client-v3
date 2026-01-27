@@ -1,3 +1,18 @@
+# [1.42.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.41.1...v1.42.0) (2026-01-27)
+
+
+### Bug Fixes
+
+* **favorites:** fix navigation and improve sidebar styling ([baba85b](https://github.com/martijn-on-fhir/fhir-client-v3/commit/baba85b65243249ebab0ba0269309b556aac5c07))
+
+
+### Features
+
+* **bulk-import-export:** add bulk import and export functionality ([3dfeb58](https://github.com/martijn-on-fhir/fhir-client-v3/commit/3dfeb58a83343a95bbb56f13ca0e46e191380e82))
+* **query:** add favorites feature for bookmarking FHIR queries ([e433eba](https://github.com/martijn-on-fhir/fhir-client-v3/commit/e433eba6a8300085da360757fac18b160c5881a5))
+* **recent-resources:** add support for tracking and navigating recent query executions ([1517ae9](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1517ae932f59eb36876e7451bd880855e64781ac))
+* **bulk-export:** stream export to temp file for memory efficiency ([2557c8c](https://github.com/martijn-on-fhir/fhir-client-v3/commit/2557c8cae77d6a7facccb0dfb54b7e868b9c4f0f))
+
 ## [1.41.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.41.0...v1.41.1) (2026-01-26)
 
 
