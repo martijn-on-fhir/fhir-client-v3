@@ -1,9 +1,11 @@
-const { Menu, BrowserWindow, shell} = require('electron');
+const { Menu, BrowserWindow, shell, app } = require('electron');
 
 /**
  * Create application menu
  */
 function createApplicationMenu() {
+  // Check if running in development mode
+  const isDev = !app.isPackaged;
 
   const template = [];
 
@@ -106,7 +108,8 @@ function createApplicationMenu() {
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { role: 'toggleDevTools' },
+        // Only show DevTools in development mode
+        ...(isDev ? [{ role: 'toggleDevTools' }] : []),
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },
@@ -202,7 +205,8 @@ function createApplicationMenu() {
       submenu: [
         { role: 'reload' },
         { role: 'forceReload' },
-        { role: 'toggleDevTools' },
+        // Only show DevTools in development mode
+        ...(isDev ? [{ role: 'toggleDevTools' }] : []),
         { type: 'separator' },
         { role: 'resetZoom' },
         { role: 'zoomIn' },

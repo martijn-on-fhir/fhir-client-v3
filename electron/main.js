@@ -49,13 +49,22 @@ ipcMain.handle('security:isSecureStorageAvailable', () => {
 });
 
 // Shell API handler - open URLs in external browser
+// Security: Only allow http:// and https:// URLs to prevent malicious protocols
 ipcMain.handle('shell:openExternal', async (event, url) => {
-
   try {
+    // Validate URL to prevent protocol injection attacks
+    const parsedUrl = new URL(url);
+    const allowedProtocols = ['http:', 'https:'];
+
+    if (!allowedProtocols.includes(parsedUrl.protocol)) {
+      log.warn(`[Main] Blocked shell.openExternal with disallowed protocol: ${parsedUrl.protocol}`);
+      return { success: false, error: `Protocol not allowed: ${parsedUrl.protocol}` };
+    }
+
     await shell.openExternal(url);
     return { success: true };
   } catch (error) {
-
+    log.error('[Main] shell.openExternal error:', error.message);
     return { success: false, error: error.message };
   }
 });

@@ -32,12 +32,42 @@ class NarrativeTemplatesService {
 
   /**
    * Get sanitized filename for template
+   * Security: Prevents path traversal attacks by:
+   * 1. Replacing invalid filename characters
+   * 2. Removing path separators and parent directory references
+   * 3. Ensuring the filename stays within templatesDir
+   *
    * @param {string} name - Template name (profile name)
    * @returns {string} Safe filename with .hbs extension
    */
   getSafeFilename(name) {
-    // Replace invalid filename characters with underscores
-    return name.replace(/[<>:"/\\|?*]/g, '_') + '.hbs';
+    // First, replace invalid filename characters with underscores
+    let safe = name.replace(/[<>:"/\\|?*]/g, '_');
+
+    // Remove any remaining path separators and parent directory references
+    safe = safe.replace(/\.\./g, '').replace(/[/\\]/g, '_');
+
+    // Remove leading/trailing dots and spaces
+    safe = safe.replace(/^[\s.]+|[\s.]+$/g, '');
+
+    // Ensure we have a valid filename (fallback to 'template' if empty)
+    if (!safe || safe.length === 0) {
+      safe = 'template';
+    }
+
+    return safe + '.hbs';
+  }
+
+  /**
+   * Validate that a path is within the templates directory
+   * @param {string} filePath - Path to validate
+   * @returns {boolean} True if path is safe
+   */
+  isPathSafe(filePath) {
+    const resolvedPath = path.resolve(filePath);
+    const resolvedTemplatesDir = path.resolve(this.templatesDir);
+    return resolvedPath.startsWith(resolvedTemplatesDir + path.sep) ||
+           resolvedPath === resolvedTemplatesDir;
   }
 
   /**
@@ -49,6 +79,12 @@ class NarrativeTemplatesService {
     try {
       const filename = this.getSafeFilename(name);
       const filePath = path.join(this.templatesDir, filename);
+
+      // Security: Verify path is within templates directory
+      if (!this.isPathSafe(filePath)) {
+        log.warn(`[NarrativeTemplates] Path traversal attempt blocked: ${name}`);
+        return null;
+      }
 
       const content = await fs.readFile(filePath, 'utf-8');
 
@@ -78,6 +114,12 @@ class NarrativeTemplatesService {
       const filename = this.getSafeFilename(name);
       const filePath = path.join(this.templatesDir, filename);
 
+      // Security: Verify path is within templates directory
+      if (!this.isPathSafe(filePath)) {
+        log.warn(`[NarrativeTemplates] Path traversal attempt blocked on save: ${name}`);
+        throw new Error('Invalid template name');
+      }
+
       await fs.writeFile(filePath, content, 'utf-8');
 
       log.info(`[NarrativeTemplates] Template saved: ${name}`);
@@ -97,6 +139,12 @@ class NarrativeTemplatesService {
     try {
       const filename = this.getSafeFilename(name);
       const filePath = path.join(this.templatesDir, filename);
+
+      // Security: Verify path is within templates directory
+      if (!this.isPathSafe(filePath)) {
+        log.warn(`[NarrativeTemplates] Path traversal attempt blocked on delete: ${name}`);
+        throw new Error('Invalid template name');
+      }
 
       await fs.unlink(filePath);
 

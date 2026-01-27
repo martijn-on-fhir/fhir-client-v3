@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-27 (Bulk Import/Export implemented)
+> Last Updated: 2026-01-27 (Security fixes + Bulk Import/Export)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -471,14 +471,19 @@ Extensibility architecture:
 
 These should be addressed regardless of new features:
 
-| Priority | Issue | File |
-|----------|-------|------|
-| Critical | Enable sandbox mode | `electron/main.js` |
-| High | URL validation in shell.openExternal | `electron/main.js` |
-| High | Move terminology credentials to secure storage | `electron/config/` |
-| Medium | Remove CSP unsafe-inline | `electron/main.js` |
-| Medium | Path traversal protection | `electron/services/narrative-templates.js` |
-| Low | Hide DevTools in production | `electron/menu/menu-handler.js` |
+| Priority | Issue | File | Status |
+|----------|-------|------|--------|
+| Critical | Enable sandbox mode | `electron/main.js` | Deferred (ESM compatibility) |
+| High | URL validation in shell.openExternal | `electron/main.js` | ✅ Fixed |
+| High | Move terminology credentials to secure storage | `electron/config/` | ✅ Already filtered from renderer |
+| Medium | Remove CSP unsafe-inline | `electron/main.js` | Deferred (may break Monaco) |
+| Medium | Path traversal protection | `electron/services/narrative-templates.js` | ✅ Fixed |
+| Low | Hide DevTools in production | `electron/menu/menu-handler.js` | ✅ Fixed |
+
+**Security fixes implemented (2026-01-27):**
+- URL validation: Only allows `http:` and `https:` protocols in `shell.openExternal`
+- Path traversal: Enhanced `getSafeFilename()` and added `isPathSafe()` validation
+- DevTools: Now only visible in development mode (`!app.isPackaged`)
 
 ---
 
