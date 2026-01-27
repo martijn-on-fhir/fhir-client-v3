@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-26 (Request/Response Inspector implemented)
+> Last Updated: 2026-01-27 (Favorite Resources implemented)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -119,13 +119,27 @@ Display query performance metrics:
 
 ---
 
-### 1.6 Favorite Resources
+### 1.6 Favorite Resources ✅ IMPLEMENTED
 **Effort:** Low | **Impact:** Medium
 
 Bookmark frequently accessed resources:
 - Star button on single resources
 - Favorites list in sidebar or dropdown
 - Quick navigation to bookmarked resources
+
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Star button in result toolbar for any query with results
+- Gold star indicates favorited, outline star for not favorited
+- Smart display name generation (extracts patient names, titles, codes for single resources; query summary for searches)
+- Collapsible favorites section in sidebar with badge count
+- Different icons: file icon for single resources, folder icon for bundle/search results
+- Click favorite to navigate and re-execute query instantly
+- Remove button on hover for each favorite
+- Favorites filtered by active server profile (multi-server support)
+- Persisted in localStorage with `fhir_favorite_resources` key
+- Toast notifications when adding/removing favorites
 
 ---
 
@@ -472,10 +486,8 @@ ipcMain.handle('fhir:bulkExport', ...)
 // History ✅ Implemented via FhirService.history()
 // ipcMain.handle('fhir:getHistory', ...) - Not needed, uses existing executeQuery
 
-// Favorites
-ipcMain.handle('favorites:get', ...)
-ipcMain.handle('favorites:add', ...)
-ipcMain.handle('favorites:remove', ...)
+// Favorites ✅ Implemented via localStorage (FavoritesService)
+// No IPC needed - uses localStorage with key 'fhir_favorite_resources'
 
 // Webhook server
 ipcMain.handle('webhook:start', ...)
@@ -492,7 +504,8 @@ ipcMain.handle('webhook:getNotifications', ...)
 2. ~~Copy as cURL~~ ✅ Done
 3. ~~$everything operation~~ ✅ Done
 4. ~~Request/Response Inspector~~ ✅ Done
-5. Recent resources list
+5. ~~Favorite Resources~~ ✅ Done
+6. Recent resources list
 
 ### Phase 2: Core Operations (2-4 weeks)
 1. ~~Resource version history with basic diff~~ ✅ Done (integrated in Diff Viewer)
@@ -526,4 +539,4 @@ When implementing these features:
 
 ---
 
-*Last updated: 2026-01-26*
+*Last updated: 2026-01-27*
