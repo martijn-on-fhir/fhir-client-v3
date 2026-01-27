@@ -1,3 +1,10 @@
+# [1.43.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.42.0...v1.43.0) (2026-01-27)
+
+
+### Features
+
+* **collection-export:** add Postman/OpenAPI/Insomnia collection export ([1e94ee5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1e94ee51d0132d719599910be51859427fe7a806))
+
 # [1.42.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.41.1...v1.42.0) (2026-01-27)
 
 
