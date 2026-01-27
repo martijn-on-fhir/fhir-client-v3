@@ -139,6 +139,7 @@ export class BulkImportExportComponent implements OnInit, OnDestroy {
    */
   private async cleanupTempFile(): Promise<void> {
     const tempPath = this.tempExportPath();
+
     if (tempPath && window.electronAPI?.file?.deleteTempFile) {
       await window.electronAPI.file.deleteTempFile(tempPath);
       this.tempExportPath.set(null);
@@ -377,12 +378,14 @@ return;
    */
   private async loadExportSample(): Promise<void> {
     const tempPath = this.tempExportPath();
+
     if (!tempPath || !window.electronAPI?.file?.readSample) {
       return;
     }
 
     try {
       const result = await window.electronAPI.file.readSample(tempPath, 20);
+
       if (!('error' in result)) {
         this.exportSample.set(result.sample);
         this.exportHasMore.set(result.hasMore);
@@ -402,6 +405,7 @@ return;
 
     if (!tempPath) {
       this.toastService.warning('No export data available', 'Warning');
+
       return;
     }
 

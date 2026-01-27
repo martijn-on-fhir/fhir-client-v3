@@ -391,9 +391,7 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Whether the favorite button should be shown
    * True when a result exists (any query with results)
    */
-  canFavorite = computed(() => {
-    return !!this.result();
-  });
+  canFavorite = computed(() => !!this.result());
 
   /**
    * Whether the current query is favorited
@@ -1780,10 +1778,13 @@ export class QueryComponent implements OnInit, OnDestroy {
         // Patient, Practitioner, Organization names
         if (Array.isArray(result.name)) {
           const name = result.name[0];
+
           if (name?.family || name?.given) {
             const given = Array.isArray(name.given) ? name.given.join(' ') : name.given || '';
+
             return `${result.resourceType}: ${given} ${name.family || ''}`.trim();
           }
+
           if (typeof name === 'string') {
             return `${result.resourceType}: ${name}`;
           }
@@ -1801,6 +1802,7 @@ export class QueryComponent implements OnInit, OnDestroy {
       if (result.code?.text) {
         return `${result.resourceType}: ${result.code.text}`;
       }
+
       if (result.code?.coding?.[0]?.display) {
         return `${result.resourceType}: ${result.code.coding[0].display}`;
       }
@@ -1819,6 +1821,7 @@ export class QueryComponent implements OnInit, OnDestroy {
 
     if (params.length > 0) {
       const summary = params.slice(0, 2).join(', ');
+
       return `${resourceType} search: ${summary}`;
     }
 
@@ -1841,16 +1844,19 @@ export class QueryComponent implements OnInit, OnDestroy {
    */
   private extractQueryParams(query: string): string[] {
     const queryIndex = query.indexOf('?');
+
     if (queryIndex === -1) {
       return [];
     }
 
     const queryString = query.substring(queryIndex + 1);
+
     return queryString.split('&').map(param => {
       const [key, value] = param.split('=');
       // Decode and truncate long values
       const decodedValue = decodeURIComponent(value || '');
       const truncatedValue = decodedValue.length > 20 ? decodedValue.substring(0, 20) + '...' : decodedValue;
+
       return `${key}=${truncatedValue}`;
     });
   }

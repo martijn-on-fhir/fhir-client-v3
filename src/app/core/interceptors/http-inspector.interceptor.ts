@@ -8,7 +8,8 @@ import { ServerProfileService } from '../services/server-profile.service';
 /**
  * Extract headers from HttpRequest or HttpResponse
  */
-function extractHeaders(headers: { keys(): string[]; get(name: string): string | null }): Record<string, string> {
+const extractHeaders = (headers: { keys(): string[]; get(name: string): string | null }): Record<string, string> => {
+
   const result: Record<string, string> = {};
   const keys = headers.keys();
 

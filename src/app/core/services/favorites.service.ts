@@ -7,8 +7,8 @@
 
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { FavoriteResource } from '../models/favorite-resource.model';
-import { ServerProfileService } from './server-profile.service';
 import { LoggerService } from './logger.service';
+import { ServerProfileService } from './server-profile.service';
 
 const FAVORITES_STORAGE_KEY = 'fhir_favorite_resources';
 

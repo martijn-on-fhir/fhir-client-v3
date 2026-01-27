@@ -7,8 +7,8 @@
 
 import { Injectable, signal, computed, inject } from '@angular/core';
 import { RecentResource } from '../models/recent-resource.model';
-import { ServerProfileService } from './server-profile.service';
 import { LoggerService } from './logger.service';
+import { ServerProfileService } from './server-profile.service';
 
 const RECENT_STORAGE_KEY = 'fhir_recent_resources';
 const MAX_RECENT_ITEMS = 20;
