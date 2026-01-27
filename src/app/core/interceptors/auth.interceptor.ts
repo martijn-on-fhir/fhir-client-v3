@@ -33,24 +33,30 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   // Get auth headers for the active profile
   return from(profileService.getActiveAuthHeaders()).pipe(
     switchMap(authHeaders => {
+      // Get existing Accept header from request (if any)
+      const existingAccept = req.headers.get('Accept');
+      const acceptHeader = existingAccept || 'application/fhir+json';
+
+      logger.debug(`Interceptor: existing Accept header = ${existingAccept}, using = ${acceptHeader}`);
+
       // If no auth headers needed, proceed without modification
       if (Object.keys(authHeaders).length === 0) {
-        // Still add FHIR content type headers
+        // Still add FHIR content type headers (preserve existing Accept header if set)
         const fhirReq = req.clone({
           setHeaders: {
             'Content-Type': req.headers.get('Content-Type') || 'application/fhir+json',
-            'Accept': 'application/fhir+json'
+            'Accept': acceptHeader
           }
         });
         return next(fhirReq);
       }
 
-      // Clone request and add auth headers
+      // Clone request and add auth headers (preserve existing Accept header if set)
       const authReq = req.clone({
         setHeaders: {
           ...authHeaders,
           'Content-Type': req.headers.get('Content-Type') || 'application/fhir+json',
-          'Accept': 'application/fhir+json'
+          'Accept': acceptHeader
         }
       });
 

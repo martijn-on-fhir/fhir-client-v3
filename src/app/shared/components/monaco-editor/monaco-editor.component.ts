@@ -141,6 +141,13 @@ export class MonacoEditorComponent implements AfterViewInit, OnChanges, OnDestro
       }
     }
 
+    if (changes['language'] && !changes['language'].firstChange && this.editor && this.monaco) {
+      const model = this.editor.getModel();
+      if (model) {
+        this.monaco.editor.setModelLanguage(model, this.language);
+      }
+    }
+
     if (changes['readOnly'] && !changes['readOnly'].firstChange && this.editor) {
       this.editor.updateOptions({ readOnly: this.readOnly });
     }

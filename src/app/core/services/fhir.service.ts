@@ -186,6 +186,74 @@ export class FhirService {
   }
 
   /**
+   * Execute a FHIR query with specified response format
+   * @param query The FHIR query string
+   * @param format Response format: 'json' or 'xml'
+   * @returns Observable of response (parsed JSON or raw XML string)
+   */
+  executeQueryWithFormat(query: string, format: 'json' | 'xml' = 'json'): Observable<any> {
+    const url = query.startsWith('http') ? query : `${this.baseUrl}${query}`;
+    const acceptHeader = format === 'xml' ? 'application/fhir+xml' : 'application/fhir+json';
+
+    return from(Promise.all([
+      this.checkMtlsRequired(url),
+      this.getProfileAuthHeaders()
+    ])).pipe(
+      switchMap(([useMtls, authHeaders]) => {
+        if (useMtls) {
+          this.logger.debug('Using mTLS for request:', url);
+          return this.executeMtlsRequestWithFormat(url, 'GET', format);
+        }
+
+        // Build headers properly using set() to ensure Accept header is correctly set
+        let headers = new HttpHeaders();
+        headers = headers.set('Accept', acceptHeader);
+
+        // Add auth headers
+        for (const [key, value] of Object.entries(authHeaders)) {
+          headers = headers.set(key, value);
+        }
+
+        this.logger.debug(`Request format: ${format}, Accept header: ${acceptHeader}`);
+
+        if (format === 'xml') {
+          // Request as text for XML
+          return this.http.get(url, { headers, responseType: 'text' });
+        }
+
+        return this.http.get(url, { headers });
+      }),
+      catchError(error => {
+        this.logger.error('Query failed:', error);
+        return throwError(() => new Error(error.message || 'FHIR query failed'));
+      })
+    );
+  }
+
+  /**
+   * Execute mTLS request with specified format
+   */
+  private executeMtlsRequestWithFormat<T>(url: string, method: string, format: 'json' | 'xml'): Observable<T> {
+    const acceptHeader = format === 'xml' ? 'application/fhir+xml' : 'application/fhir+json';
+
+    return from(this.mtlsService.request<T>({
+      url,
+      method,
+      headers: {
+        'Accept': acceptHeader,
+        'Content-Type': 'application/fhir+json'
+      }
+    })).pipe(
+      switchMap(response => {
+        if (response.success && response.data !== undefined) {
+          return from([response.data]);
+        }
+        return throwError(() => new Error(response.error || 'mTLS request failed'));
+      })
+    );
+  }
+
+  /**
    * Check if mTLS is required for a URL
    */
   private async checkMtlsRequired(url: string): Promise<boolean> {

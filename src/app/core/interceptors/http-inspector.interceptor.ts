@@ -39,12 +39,12 @@ export const httpInspectorInterceptor: HttpInterceptorFn = (req, next) => {
   // Get auth headers asynchronously (same source as auth interceptor)
   return from(profileService.getActiveAuthHeaders()).pipe(
     switchMap(authHeaders => {
-      // Build complete request headers
+      // Build complete request headers (preserve existing Accept header if set)
       const requestHeaders: Record<string, string> = {
         ...extractHeaders(req.headers),
         ...authHeaders,
         'Content-Type': req.headers.get('Content-Type') || 'application/fhir+json',
-        'Accept': 'application/fhir+json'
+        'Accept': req.headers.get('Accept') || 'application/fhir+json'
       };
 
       // Calculate request size
