@@ -194,6 +194,23 @@ export class ResultHeaderComponent {
   @Output() everythingClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the favorite button in the toolbar
+   * @default false
+   */
+  @Input() showFavoriteButton = false;
+
+  /**
+   * Whether the current query is favorited
+   * @default false
+   */
+  @Input() isFavorited = false;
+
+  /**
+   * Event emitted when the favorite button is clicked
+   */
+  @Output() favoriteToggled = new EventEmitter<void>();
+
+  /**
    * Check if a specific pagination link exists
    * Handles 'prev'/'previous' interchangeably
    */

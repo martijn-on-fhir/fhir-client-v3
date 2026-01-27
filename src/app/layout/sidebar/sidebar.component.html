@@ -19,6 +19,35 @@
     </div>
   </div>
 
+  <!-- Favorites Section -->
+  @if (favorites().length > 0) {
+    <div class="favorites-section">
+      <button class="section-header" (click)="toggleFavorites()">
+        <i class="fas fa-star text-warning"></i>
+        <span>Favorites</span>
+        <span class="badge bg-secondary">{{ favorites().length }}</span>
+        <i class="fas fa-chevron-{{ favoritesExpanded() ? 'up' : 'down' }} ms-auto"></i>
+      </button>
+      @if (favoritesExpanded()) {
+        <ul class="favorites-list">
+          @for (fav of favorites(); track fav.id) {
+            <li class="favorite-item" (click)="navigateToFavorite(fav)" [title]="fav.query">
+              <i class="fas fa-{{ fav.resultType === 'single' ? 'file' : 'folder' }} favorite-icon"></i>
+              <div class="favorite-content">
+                <span class="favorite-name">{{ fav.displayName }}</span>
+                <span class="favorite-type">{{ fav.resourceType }}</span>
+              </div>
+              <button class="btn-remove" (click)="removeFavorite(fav, $event)" title="Remove from favorites">
+                <i class="fas fa-times"></i>
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+    <hr class="favorites-divider">
+  }
+
   <!-- Resource Types List -->
   <div class="sidebar-content">
     @if (loading()) {

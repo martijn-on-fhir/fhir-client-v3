@@ -109,13 +109,16 @@
               [showCompareButton]="isSingleResource()"
               [showCopyAsCurl]="canCopyAsCurl()"
               [showEverythingButton]="canExecuteEverything()"
+              [showFavoriteButton]="canFavorite()"
+              [isFavorited]="isCurrentQueryFavorited()"
               (pageNavigate)="navigateToPage($event)"
               (timingClicked)="openInspectorDialog()"
               (editClicked)="onEditClicked()"
               (deleteClicked)="onDeleteClicked()"
               (compareClicked)="openDiffDialog()"
               (copyAsCurlClicked)="onCopyAsCurlClicked()"
-              (everythingClicked)="onEverythingClicked()">
+              (everythingClicked)="onEverythingClicked()"
+              (favoriteToggled)="onFavoriteToggled()">
             </app-result-header>
 
             @if (loading()) {
@@ -538,13 +541,16 @@
             [showCompareButton]="isSingleResource()"
             [showCopyAsCurl]="canCopyAsCurl()"
             [showEverythingButton]="canExecuteEverything()"
+            [showFavoriteButton]="canFavorite()"
+            [isFavorited]="isCurrentQueryFavorited()"
             (pageNavigate)="navigateToPage($event)"
             (timingClicked)="openInspectorDialog()"
             (editClicked)="onEditClicked()"
             (deleteClicked)="onDeleteClicked()"
             (compareClicked)="openDiffDialog()"
             (copyAsCurlClicked)="onCopyAsCurlClicked()"
-            (everythingClicked)="onEverythingClicked()">
+            (everythingClicked)="onEverythingClicked()"
+            (favoriteToggled)="onFavoriteToggled()">
           </app-result-header>
 
           @if (loading()) {

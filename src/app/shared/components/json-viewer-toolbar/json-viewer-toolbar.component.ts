@@ -103,6 +103,23 @@ export class JsonViewerToolbarComponent {
   @Output() generateNarrativeClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the favorite button.
+   * @default false
+   */
+  @Input() showFavoriteButton = false;
+
+  /**
+   * Whether the current query is favorited.
+   * @default false
+   */
+  @Input() isFavorited = false;
+
+  /**
+   * Emitted when the favorite button is clicked.
+   */
+  @Output() favoriteToggled = new EventEmitter<void>();
+
+  /**
    * Current fold level of the editor (1-7).
    * Level 2 = maximally collapsed, Level 7 = fully expanded.
    * @default 7

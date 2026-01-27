@@ -18,6 +18,7 @@ import {
   SearchParameter,
 } from '../../core/models/query-builder.model';
 import {EditorStateService} from '../../core/services/editor-state.service';
+import {FavoritesService} from '../../core/services/favorites.service';
 import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
@@ -84,6 +85,11 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Injected query state service for persisting state across tab navigation
    */
   private queryStateService = inject(QueryStateService);
+
+  /**
+   * Injected favorites service for managing favorite queries
+   */
+  private favoritesService = inject(FavoritesService);
 
   /**
    * DestroyRef for managing subscriptions
@@ -373,6 +379,23 @@ export class QueryComponent implements OnInit, OnDestroy {
     const supportedTypes = ['Patient', 'Encounter'];
 
     return res?.resourceType && supportedTypes.includes(res.resourceType) && res.id;
+  });
+
+  /**
+   * Whether the favorite button should be shown
+   * True when a result exists (any query with results)
+   */
+  canFavorite = computed(() => {
+    return !!this.result();
+  });
+
+  /**
+   * Whether the current query is favorited
+   */
+  isCurrentQueryFavorited = computed(() => {
+    const query = this.getCurrentQuery();
+
+    return query ? this.favoritesService.isFavorite(query) : false;
   });
 
   /**
@@ -1683,5 +1706,129 @@ export class QueryComponent implements OnInit, OnDestroy {
     this.textQuery.set(query);
     this.queryMode.set('text');
     await this.executeTextQuery();
+  }
+
+  /**
+   * Handles favorite toggle button click
+   * Adds or removes the current query from favorites
+   */
+  onFavoriteToggled(): void {
+    const query = this.getCurrentQuery();
+    const res = this.result();
+
+    if (!query || !res) {
+      return;
+    }
+
+    const displayName = this.generateFavoriteDisplayName(res, query);
+    const resourceType = this.extractResourceType(query);
+    const resultType: 'single' | 'bundle' = res.resourceType === 'Bundle' ? 'bundle' : 'single';
+
+    const wasAdded = this.favoritesService.toggleFavorite(query, displayName, resultType, resourceType);
+
+    if (wasAdded) {
+      this.toastService.success('Added to favorites', 'Favorites');
+    } else {
+      this.toastService.info('Removed from favorites', 'Favorites');
+    }
+  }
+
+  /**
+   * Gets the current query string based on query mode
+   */
+  private getCurrentQuery(): string | null {
+    if (this.queryMode() === 'text') {
+      return this.textQuery() || null;
+    } else {
+      return this.generatedQuery() || null;
+    }
+  }
+
+  /**
+   * Generates a user-friendly display name for a favorite
+   * For single resources: extracts Patient name, title, code.text, etc.
+   * For searches: uses query summary (e.g., "Patient search: name=Smith")
+   */
+  private generateFavoriteDisplayName(result: any, query: string): string {
+    // For single resources, try to extract a meaningful name
+    if (result.resourceType && result.resourceType !== 'Bundle') {
+      // Try common FHIR name patterns
+      if (result.name) {
+        // Patient, Practitioner, Organization names
+        if (Array.isArray(result.name)) {
+          const name = result.name[0];
+          if (name?.family || name?.given) {
+            const given = Array.isArray(name.given) ? name.given.join(' ') : name.given || '';
+            return `${result.resourceType}: ${given} ${name.family || ''}`.trim();
+          }
+          if (typeof name === 'string') {
+            return `${result.resourceType}: ${name}`;
+          }
+        } else if (typeof result.name === 'string') {
+          return `${result.resourceType}: ${result.name}`;
+        }
+      }
+
+      // Try title (for documents, questionnaires, etc.)
+      if (result.title) {
+        return `${result.resourceType}: ${result.title}`;
+      }
+
+      // Try code.text or code.coding[0].display
+      if (result.code?.text) {
+        return `${result.resourceType}: ${result.code.text}`;
+      }
+      if (result.code?.coding?.[0]?.display) {
+        return `${result.resourceType}: ${result.code.coding[0].display}`;
+      }
+
+      // Fallback to resourceType/id
+      if (result.id) {
+        return `${result.resourceType}/${result.id}`;
+      }
+
+      return result.resourceType;
+    }
+
+    // For Bundle/search results, generate a summary from the query
+    const resourceType = this.extractResourceType(query);
+    const params = this.extractQueryParams(query);
+
+    if (params.length > 0) {
+      const summary = params.slice(0, 2).join(', ');
+      return `${resourceType} search: ${summary}`;
+    }
+
+    return `${resourceType} search`;
+  }
+
+  /**
+   * Extracts the resource type from a query string
+   */
+  private extractResourceType(query: string): string {
+    // Remove leading slash and get the first path segment
+    const cleanQuery = query.startsWith('/') ? query.substring(1) : query;
+    const segments = cleanQuery.split(/[/?]/);
+
+    return segments[0] || 'Unknown';
+  }
+
+  /**
+   * Extracts query parameters as key=value pairs
+   */
+  private extractQueryParams(query: string): string[] {
+    const queryIndex = query.indexOf('?');
+    if (queryIndex === -1) {
+      return [];
+    }
+
+    const queryString = query.substring(queryIndex + 1);
+    return queryString.split('&').map(param => {
+      const [key, value] = param.split('=');
+      // Decode and truncate long values
+      const decodedValue = decodeURIComponent(value || '');
+      const truncatedValue = decodedValue.length > 20 ? decodedValue.substring(0, 20) + '...' : decodedValue;
+      return `${key}=${truncatedValue}`;
+    });
   }
 }

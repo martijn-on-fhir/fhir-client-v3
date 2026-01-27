@@ -5,6 +5,16 @@
       <i class="fas fa-save"></i>
     </button>
 
+    @if (showFavoriteButton) {
+      <button class="btn btn-sm btn-outline-secondary"
+              [class.active]="isFavorited"
+              [title]="isFavorited ? 'Remove from favorites' : 'Add to favorites'"
+              (click)="favoriteToggled.emit()">
+        <i class="fa-star" [class.fas]="isFavorited" [class.far]="!isFavorited"
+           [class.text-warning]="isFavorited"></i>
+      </button>
+    }
+
     @if (showEditButton) {
       <button class="btn btn-sm btn-outline-primary" title="Edit resource" (click)="editClicked.emit()">
         <i class="fas fa-edit"></i>
