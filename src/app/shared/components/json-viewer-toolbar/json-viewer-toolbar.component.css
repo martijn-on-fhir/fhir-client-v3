@@ -1,3 +1,6 @@
-
+.btn-outline-secondary.active:has(.fa-star) {
+  background-color: transparent;
+  border-color: var(--bs-secondary);
+}
 
 /*# sourceMappingURL=json-viewer-toolbar.component.css.map */

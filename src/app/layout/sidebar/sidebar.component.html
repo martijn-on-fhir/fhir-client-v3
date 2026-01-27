@@ -47,6 +47,34 @@
     </div>
   }
 
+  <!-- Recent Resources Section -->
+  @if (recentResources().length > 0) {
+    <div class="recent-section">
+      <button class="section-header" (click)="toggleRecent()">
+        <i class="fas fa-clock text-primary"></i>
+        <span>Recent</span>
+        <span class="badge bg-secondary">{{ recentResources().length }}</span>
+        <button class="btn-clear-section" (click)="clearRecent($event)" title="Clear recent">
+          <i class="fas fa-trash-alt"></i>
+        </button>
+        <i class="fas fa-chevron-{{ recentExpanded() ? 'up' : 'down' }} ms-auto"></i>
+      </button>
+      @if (recentExpanded()) {
+        <ul class="recent-list">
+          @for (item of recentResources(); track item.id) {
+            <li class="recent-item" (click)="navigateToRecent(item)" [title]="item.query">
+              <i class="fas fa-{{ item.resultType === 'single' ? 'file' : 'folder' }} recent-icon"></i>
+              <div class="recent-content">
+                <span class="recent-name">{{ item.displayName }}</span>
+                <span class="recent-type">{{ item.resourceType }}</span>
+              </div>
+            </li>
+          }
+        </ul>
+      }
+    </div>
+  }
+
   <!-- Resource Types List -->
   <div class="sidebar-content">
     @if (loading()) {

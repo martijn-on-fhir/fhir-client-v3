@@ -3,10 +3,12 @@ import { Component, OnInit, OnDestroy, signal, computed, inject, HostListener } 
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { FavoriteResource } from '../../core/models/favorite-resource.model';
+import { RecentResource } from '../../core/models/recent-resource.model';
 import { FavoritesService } from '../../core/services/favorites.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { NavigationService } from '../../core/services/navigation.service';
+import { RecentResourcesService } from '../../core/services/recent-resources.service';
 import { SettingsService } from '../../core/services/settings.service';
 
 /**
@@ -28,6 +30,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private settingsService = inject(SettingsService);
   private navigationService = inject(NavigationService);
   private favoritesService = inject(FavoritesService);
+  private recentResourcesService = inject(RecentResourcesService);
   private router = inject(Router);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('SidebarComponent');
@@ -40,6 +43,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // Favorites
   favorites = this.favoritesService.currentProfileFavorites;
   favoritesExpanded = signal(true);
+
+  // Recent resources
+  recentResources = this.recentResourcesService.currentProfileRecent;
+  recentExpanded = signal(true);
 
   // Filter
   filterText = signal('');
@@ -191,6 +198,13 @@ return;
   }
 
   /**
+   * Toggle recent section expansion
+   */
+  toggleRecent() {
+    this.recentExpanded.set(!this.recentExpanded());
+  }
+
+  /**
    * Navigate to a favorite query
    */
   navigateToFavorite(favorite: FavoriteResource) {
@@ -213,5 +227,27 @@ return;
     event.stopPropagation();
     this.favoritesService.removeFavorite(favorite.id);
     this.logger.info('Removed favorite:', favorite.id);
+  }
+
+  /**
+   * Navigate to a recent resource query
+   */
+  navigateToRecent(recent: RecentResource) {
+    this.logger.info('Navigating to recent:', recent.query);
+
+    // Use navigation service to trigger query execution
+    this.navigationService.navigateToFavoriteQuery(recent.query);
+
+    // Navigate to query tab (if not already there)
+    this.router.navigate(['/app/query']);
+  }
+
+  /**
+   * Clear all recent resources for current profile
+   */
+  clearRecent(event: Event) {
+    event.stopPropagation();
+    this.recentResourcesService.clearRecent();
+    this.logger.info('Cleared recent resources');
   }
 }

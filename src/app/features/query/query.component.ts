@@ -25,6 +25,7 @@ import {NavigationService} from '../../core/services/navigation.service';
 import {QueryAutocompleteService, Suggestion} from '../../core/services/query-autocomplete.service';
 import {QueryHistoryService} from '../../core/services/query-history.service';
 import {QueryStateService} from '../../core/services/query-state.service';
+import {RecentResourcesService} from '../../core/services/recent-resources.service';
 import {ToastService} from '../../core/services/toast.service';
 import {FhirQueryValidator} from '../../core/utils/fhir-query-string-validator'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
@@ -90,6 +91,11 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Injected favorites service for managing favorite queries
    */
   private favoritesService = inject(FavoritesService);
+
+  /**
+   * Injected recent resources service for tracking viewed resources
+   */
+  private recentResourcesService = inject(RecentResourcesService);
 
   /**
    * DestroyRef for managing subscriptions
@@ -922,6 +928,12 @@ export class QueryComponent implements OnInit, OnDestroy {
       this.queryStateService.setResult(result, execTime, respSize);
       this.queryStateService.setQueryMode(this.queryMode());
       this.queryHistoryService.addQuery(query, this.queryMode(), { executionTime: execTime, responseSize: respSize });
+
+      // Track as recent resource
+      const displayName = this.generateFavoriteDisplayName(result, query);
+      const resourceType = this.extractResourceType(query);
+      const resultType: 'single' | 'bundle' = (result as any).resourceType === 'Bundle' ? 'bundle' : 'single';
+      this.recentResourcesService.addRecentResource(query, displayName, resultType, resourceType);
 
     } catch (err: any) {
       this.logger.error('Query execution failed:', err || query);
