@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-27 (Favorite Resources implemented)
+> Last Updated: 2026-01-27 (Bulk Import/Export implemented)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -190,7 +190,7 @@ Execute FHIR Bundles with multiple operations:
 
 ---
 
-### 2.2 Bulk Import
+### 2.2 Bulk Import ✅ IMPLEMENTED
 **Effort:** Medium | **Impact:** High
 
 Import multiple resources from files:
@@ -201,22 +201,46 @@ Import multiple resources from files:
 - Error reporting per resource
 - Dry-run validation option
 
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Dedicated "Bulk Import/Export" tab
+- Drag-and-drop file upload or file browser dialog
+- Auto-detect format (JSON array, FHIR Bundle, or NDJSON)
+- Visual progress bar with resource count stats
+- Per-resource error reporting in table format
+- Dry-run mode for validation without importing
+- Continue-on-error option
+- Batch processing for performance
+
 ---
 
-### 2.3 Bulk Export
+### 2.3 Bulk Export ✅ IMPLEMENTED
 **Effort:** Medium | **Impact:** High
 
 Export query results in multiple formats:
 - JSON (current)
 - NDJSON for bulk data
-- CSV (flattened)
-- Excel (.xlsx)
-- Select specific fields for export
+- CSV (flattened) - *not yet implemented*
+- Excel (.xlsx) - *not yet implemented*
+- Select specific fields for export - *not yet implemented*
 
-**Implementation:**
-- Add export dropdown in result header
-- Field selector dialog for CSV/Excel
-- Use libraries: `xlsx`, `json2csv`
+**Status:** Core functionality implemented (JSON/NDJSON).
+
+**Features delivered:**
+- Export all resources or filter by resource type
+- Stream to temp file for memory efficiency (supports 100k+ records)
+- Save as JSON array or NDJSON format
+- Progress bar during export with resource type indicator
+- Preview sample of first 20 resources
+- Optional max resource limit
+- Automatic pagination handling
+- Filters out OperationOutcome responses
+
+**Future enhancements:**
+- CSV export with field selection
+- Excel export
+- Custom field mapping
 
 ---
 
@@ -479,9 +503,8 @@ These should be addressed regardless of new features:
 ipcMain.handle('fhir:executeBatch', ...)
 ipcMain.handle('fhir:executeTransaction', ...)
 
-// Bulk operations
-ipcMain.handle('fhir:bulkImport', ...)
-ipcMain.handle('fhir:bulkExport', ...)
+// Bulk operations ✅ Implemented via BulkOperationService + Electron file APIs
+// file:createTempExport, file:appendLines, file:saveTempExport, file:readSample
 
 // History ✅ Implemented via FhirService.history()
 // ipcMain.handle('fhir:getHistory', ...) - Not needed, uses existing executeQuery
@@ -509,9 +532,9 @@ ipcMain.handle('webhook:getNotifications', ...)
 
 ### Phase 2: Core Operations (2-4 weeks)
 1. ~~Resource version history with basic diff~~ ✅ Done (integrated in Diff Viewer)
-2. Bulk export (CSV, Excel)
+2. ~~Bulk export~~ ✅ Done (JSON/NDJSON, CSV/Excel pending)
 3. Batch/Transaction support
-4. Bulk import
+4. ~~Bulk import~~ ✅ Done
 
 ### Phase 3: Advanced Features (4-8 weeks) - PARTIALLY COMPLETE
 1. ~~Interactive reference graph~~ ✅ Done
