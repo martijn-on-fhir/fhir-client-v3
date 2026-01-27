@@ -28,6 +28,15 @@
               Import
             </a>
           </li>
+          <li class="nav-item">
+            <a class="nav-link"
+               [class.active]="activeTab() === 'collection'"
+               (click)="setActiveTab('collection')"
+               href="javascript:void(0)">
+              <i class="fas fa-folder-open me-1"></i>
+              Collection
+            </a>
+          </li>
         </ul>
       </div>
     </div>
@@ -440,6 +449,175 @@
               <div class="text-center text-muted py-5">
                 <i class="fas fa-file-export fa-3x mb-3 opacity-50"></i>
                 <p>Configure export options and click Start Export</p>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- ===== COLLECTION EXPORT TAB ===== -->
+      @if (activeTab() === 'collection') {
+        <div class="row">
+          <!-- Left Column: Collection Options -->
+          <div class="col-md-5">
+            <div class="card mb-3">
+              <div class="card-header py-2">
+                <i class="fas fa-cog me-1"></i>
+                Collection Options
+              </div>
+              <div class="card-body">
+                <!-- Collection Name -->
+                <div class="mb-3">
+                  <label class="form-label small">Collection Name</label>
+                  <input type="text"
+                         class="form-control form-control-sm"
+                         [ngModel]="collectionName()"
+                         (ngModelChange)="collectionName.set($event)"
+                         placeholder="FHIR API Collection">
+                </div>
+
+                <!-- Export Format -->
+                <div class="mb-3">
+                  <label class="form-label small">Export Format</label>
+                  <select class="form-select form-select-sm"
+                          [ngModel]="collectionFormat()"
+                          (ngModelChange)="collectionFormat.set($event)">
+                    <option value="postman">Postman Collection (v2.1)</option>
+                    <option value="openapi">OpenAPI 3.0 Spec</option>
+                    <option value="insomnia">Insomnia v4</option>
+                  </select>
+                </div>
+
+                <!-- Query Source -->
+                <div class="mb-3">
+                  <label class="form-label small">Query Source</label>
+                  <select class="form-select form-select-sm"
+                          [ngModel]="collectionSource()"
+                          (ngModelChange)="collectionSource.set($event)">
+                    <option value="favorites">Favorites ({{ getSourceQueryCount() }} queries)</option>
+                    <option value="history">Query History ({{ getSourceQueryCount() }} queries)</option>
+                    <option value="server-capabilities">Server Capabilities (CRUD for all types)</option>
+                  </select>
+                  <small class="text-muted">
+                    @if (collectionSource() === 'favorites') {
+                      Export your bookmarked queries
+                    } @else if (collectionSource() === 'history') {
+                      Export recent query history
+                    } @else {
+                      Generate CRUD operations for all resource types
+                    }
+                  </small>
+                </div>
+
+                <!-- Include Auth -->
+                <div class="form-check mb-2">
+                  <input type="checkbox"
+                         class="form-check-input"
+                         id="includeAuth"
+                         [checked]="collectionIncludeAuth()"
+                         (change)="collectionIncludeAuth.set($any($event.target).checked)">
+                  <label class="form-check-label small" for="includeAuth">
+                    <i class="fas fa-lock me-1"></i>
+                    Include authentication scheme
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Format Info -->
+            <div class="card mb-3">
+              <div class="card-header py-2">
+                <i class="fas fa-info-circle me-1"></i>
+                Format Info
+              </div>
+              <div class="card-body small">
+                @if (collectionFormat() === 'postman') {
+                  <p class="mb-1"><strong>Postman Collection v2.1</strong></p>
+                  <p class="text-muted mb-0">
+                    Import directly into Postman. Includes folders per resource type,
+                    FHIR headers, and query parameters.
+                  </p>
+                } @else if (collectionFormat() === 'openapi') {
+                  <p class="mb-1"><strong>OpenAPI 3.0 Specification</strong></p>
+                  <p class="text-muted mb-0">
+                    Standard API documentation format. Use with Swagger UI,
+                    code generators, or API gateways.
+                  </p>
+                } @else {
+                  <p class="mb-1"><strong>Insomnia v4 Export</strong></p>
+                  <p class="text-muted mb-0">
+                    Import into Insomnia REST client. Includes workspaces,
+                    environments, and request groups.
+                  </p>
+                }
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary"
+                      (click)="generateCollectionExport()"
+                      [disabled]="generatingCollection() || getSourceQueryCount() === 0">
+                @if (generatingCollection()) {
+                  <i class="fas fa-spinner fa-spin me-2"></i>
+                  Generating...
+                } @else {
+                  <i class="fas fa-magic me-2"></i>
+                  Generate Collection
+                }
+              </button>
+            </div>
+          </div>
+
+          <!-- Right Column: Preview & Download -->
+          <div class="col-md-7">
+            @if (hasCollection()) {
+              <div class="card">
+                <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                  <span>
+                    <i class="fas fa-check-circle text-success me-1"></i>
+                    Collection Generated
+                  </span>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-outline-primary" (click)="saveCollection()">
+                      <i class="fas fa-save me-1"></i>
+                      Save
+                    </button>
+                    <button class="btn btn-outline-secondary" (click)="copyCollection()">
+                      <i class="fas fa-copy me-1"></i>
+                      Copy
+                    </button>
+                    <button class="btn btn-outline-danger" (click)="clearCollection()">
+                      <i class="fas fa-times me-1"></i>
+                      Clear
+                    </button>
+                  </div>
+                </div>
+                <div class="card-body">
+                  <div class="mb-3">
+                    <span class="badge bg-primary me-2">
+                      {{ collectionFormat() | uppercase }}
+                    </span>
+                    <span class="badge bg-secondary">
+                      {{ collectionQueryCount() }} queries
+                    </span>
+                  </div>
+
+                  <!-- Preview -->
+                  <div class="border rounded p-2 bg-light" style="max-height: 400px; overflow: auto;">
+                    <pre class="mb-0 small"><code>{{ generatedCollection() }}</code></pre>
+                  </div>
+                </div>
+              </div>
+            } @else {
+              <!-- Empty State -->
+              <div class="text-center text-muted py-5">
+                <i class="fas fa-folder-open fa-3x mb-3 opacity-50"></i>
+                <p class="mb-2">Export queries as API collections</p>
+                <p class="small">
+                  Generate Postman, OpenAPI, or Insomnia collections from your
+                  favorites, history, or server capabilities.
+                </p>
               </div>
             }
           </div>
