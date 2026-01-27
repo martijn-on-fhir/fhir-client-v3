@@ -541,6 +541,7 @@ export class QueryComponent implements OnInit, OnDestroy {
     }
 
     const result = this.filteredResult();
+
     return result ? JSON.stringify(result, null, 2) : '';
   });
 
@@ -993,6 +994,7 @@ export class QueryComponent implements OnInit, OnDestroy {
 
     // Re-execute the query with the new format
     const query = this.lastExecutedQuery();
+
     if (query) {
       await this.executeQueryString(query);
     }
@@ -1915,8 +1917,10 @@ export class QueryComponent implements OnInit, OnDestroy {
 
       // Check for parse errors
       const parseError = doc.querySelector('parsererror');
+
       if (parseError) {
         this.logger.warn('XML parse error:', parseError.textContent);
+
         return { resourceType: 'XMLResponse' };
       }
 
@@ -1940,6 +1944,7 @@ export class QueryComponent implements OnInit, OnDestroy {
       linkElements.forEach(linkEl => {
         const relation = linkEl.querySelector('relation')?.getAttribute('value');
         const url = linkEl.querySelector('url')?.getAttribute('value');
+
         if (relation && url) {
           links.push({ relation, url });
         }
@@ -1952,6 +1957,7 @@ export class QueryComponent implements OnInit, OnDestroy {
       };
     } catch (err) {
       this.logger.error('Failed to parse XML Bundle info:', err);
+
       return { resourceType: 'XMLResponse' };
     }
   }
