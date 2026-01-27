@@ -132,6 +132,13 @@ export const routes: Routes = [
         path: 'reference-graph',
         loadComponent: () => import('./features/reference-graph/reference-graph.component')
           .then(m => m.ReferenceGraphComponent)
+      },
+
+      // Bulk Import/Export Tab
+      {
+        path: 'bulk-import-export',
+        loadComponent: () => import('./features/bulk-import-export/bulk-import-export.component')
+          .then(m => m.BulkImportExportComponent)
       }
     ]
   },

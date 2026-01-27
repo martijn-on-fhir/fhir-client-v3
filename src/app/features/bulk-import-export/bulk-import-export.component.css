@@ -1,0 +1,71 @@
+.bulk-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 1.5rem;
+  overflow: hidden;
+  background: var(--bs-body-bg);
+  box-sizing: border-box;
+}
+
+.drop-zone {
+  border: 2px dashed var(--bs-border-color);
+  border-radius: 0.5rem;
+  background-color: var(--bs-tertiary-bg);
+  transition: all 0.2s ease;
+}
+.drop-zone:hover {
+  border-color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.05);
+}
+.drop-zone.drag-over {
+  border-color: var(--bs-primary);
+  background-color: rgba(var(--bs-primary-rgb), 0.1);
+  transform: scale(1.01);
+}
+.drop-zone.has-file {
+  border-style: solid;
+  border-color: var(--bs-success);
+  background-color: rgba(var(--bs-success-rgb), 0.05);
+}
+
+.nav-tabs .nav-link {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.875rem;
+}
+.nav-tabs .nav-link.active {
+  font-weight: 500;
+}
+
+.progress {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.table th, .table td {
+  vertical-align: middle;
+}
+.table .sticky-top {
+  z-index: 1;
+}
+
+.card-header {
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.form-label {
+  font-weight: 500;
+}
+
+:host-context(.dark-mode) .drop-zone {
+  background-color: var(--bs-dark);
+}
+:host-context(.dark-mode) .drop-zone:hover, :host-context(.dark-mode) .drop-zone.drag-over {
+  background-color: rgba(var(--bs-primary-rgb), 0.15);
+}
+:host-context(.dark-mode) .drop-zone.has-file {
+  background-color: rgba(var(--bs-success-rgb), 0.1);
+}
+
+/*# sourceMappingURL=bulk-import-export.component.css.map */

@@ -109,5 +109,12 @@ export const APP_TABS: Tab[] = [
     icon: 'project-diagram',
     route: '/app/reference-graph',
     active: true
+  },
+  {
+    id: 'bulk-import-export',
+    label: 'Bulk Import/Export',
+    icon: 'exchange-alt',
+    route: '/app/bulk-import-export',
+    active: true
   }
 ];
