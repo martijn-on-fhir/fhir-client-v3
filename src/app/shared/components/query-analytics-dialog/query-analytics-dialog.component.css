@@ -1,0 +1,47 @@
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.card {
+  border: 1px solid var(--bs-border-color);
+}
+.card .card-body .h3 {
+  font-weight: 600;
+}
+
+.slow-queries-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.slow-queries-list .card {
+  background-color: var(--bs-body-bg);
+}
+.slow-queries-list .card code {
+  background: none;
+  padding: 0;
+  font-size: 0.8rem;
+}
+
+.table th {
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.table td {
+  vertical-align: middle;
+}
+
+.list-group-item {
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+}
+
+:host-context(.dark-mode) .card {
+  background-color: var(--bs-dark);
+}
+:host-context(.dark-mode) .table-light {
+  --bs-table-bg: var(--bs-gray-800);
+  --bs-table-color: var(--bs-light);
+}
+
+/*# sourceMappingURL=query-analytics-dialog.component.css.map */

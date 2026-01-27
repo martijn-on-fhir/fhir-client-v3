@@ -1,0 +1,57 @@
+.modal-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.card {
+  border: 1px solid var(--bs-border-color);
+
+  .card-body {
+    .h3 {
+      font-weight: 600;
+    }
+  }
+}
+
+.slow-queries-list {
+  max-height: 300px;
+  overflow-y: auto;
+
+  .card {
+    background-color: var(--bs-body-bg);
+
+    code {
+      background: none;
+      padding: 0;
+      font-size: 0.8rem;
+    }
+  }
+}
+
+.table {
+  th {
+    font-weight: 600;
+    font-size: 0.85rem;
+  }
+
+  td {
+    vertical-align: middle;
+  }
+}
+
+.list-group-item {
+  background-color: var(--bs-body-bg);
+  border-color: var(--bs-border-color);
+}
+
+// Dark mode adjustments
+:host-context(.dark-mode) {
+  .card {
+    background-color: var(--bs-dark);
+  }
+
+  .table-light {
+    --bs-table-bg: var(--bs-gray-800);
+    --bs-table-color: var(--bs-light);
+  }
+}

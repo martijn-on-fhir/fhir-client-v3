@@ -29,6 +29,7 @@ import {RecentResourcesService} from '../../core/services/recent-resources.servi
 import {ToastService} from '../../core/services/toast.service';
 import {FhirQueryValidator} from '../../core/utils/fhir-query-string-validator'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
+import {QueryAnalyticsDialogComponent} from '../../shared/components/query-analytics-dialog/query-analytics-dialog.component';
 import {RequestInspectorDialogComponent} from '../../shared/components/request-inspector-dialog/request-inspector-dialog.component';
 import {ResourceDiffDialogComponent} from '../../shared/components/resource-diff-dialog/resource-diff-dialog.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
@@ -36,7 +37,7 @@ import {ResultHeaderComponent} from '../../shared/components/result-header/resul
 @Component({
   selector: 'app-query',
   standalone: true,
-  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent, ResourceDiffDialogComponent, RequestInspectorDialogComponent],
+  imports: [CommonModule, FormsModule, MonacoEditorComponent, ResultHeaderComponent, ResourceDiffDialogComponent, RequestInspectorDialogComponent, QueryAnalyticsDialogComponent],
   templateUrl: './query.component.html',
   styleUrl: './query.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -155,6 +156,11 @@ export class QueryComponent implements OnInit, OnDestroy {
   @ViewChild('inspectorDialog') inspectorDialog?: RequestInspectorDialogComponent;
 
   /**
+   * Reference to query analytics dialog
+   */
+  @ViewChild('analyticsDialog') analyticsDialog?: QueryAnalyticsDialogComponent;
+
+  /**
    * Autocomplete suggestions for text mode
    */
   autocompleteSuggestions = signal<Suggestion[]>([]);
@@ -250,6 +256,18 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Search term for filtering results
    */
   searchTerm = signal(localStorage.getItem('visual-builder-search-term') || '');
+
+  /**
+   * Display format for query results (JSON or XML)
+   */
+  displayFormat = signal<'json' | 'xml'>(
+    (localStorage.getItem('fhir-display-format') as 'json' | 'xml') || 'json'
+  );
+
+  /**
+   * Raw XML result when format is XML
+   */
+  resultXml = signal<string | null>(null);
 
   /**
    * Collapsed level for JSON viewer (false means fully expanded)
@@ -512,14 +530,24 @@ export class QueryComponent implements OnInit, OnDestroy {
   });
 
   /**
-   * JSON string representation of result for Monaco Editor
-   * Uses server-side pagination via Bundle links in result header
+   * String representation of result for Monaco Editor
+   * Returns JSON or XML based on displayFormat
    */
   resultJson = computed(() => {
-    const result = this.filteredResult();
+    const format = this.displayFormat();
 
+    if (format === 'xml') {
+      return this.resultXml() || '';
+    }
+
+    const result = this.filteredResult();
     return result ? JSON.stringify(result, null, 2) : '';
   });
+
+  /**
+   * Language for Monaco Editor based on display format
+   */
+  editorLanguage = computed(() => this.displayFormat());
 
   /**
    * Creates an instance of QueryComponent
@@ -590,6 +618,10 @@ export class QueryComponent implements OnInit, OnDestroy {
 
     effect(() => {
       localStorage.setItem('visual-builder-search-term', this.searchTerm());
+    });
+
+    effect(() => {
+      localStorage.setItem('fhir-display-format', this.displayFormat());
     });
 
     effect(() => {
@@ -891,35 +923,43 @@ export class QueryComponent implements OnInit, OnDestroy {
       strictMode: true
     });
 
-    const result = validator.validate(query);
+    const validationResult = validator.validate(query);
 
-    if(!result.valid) {
+    if(!validationResult.valid) {
 
       this.loading.set(false);
-      this.result.set(result);
+      this.result.set(validationResult);
 
-      this.logger.error('Failed to validate query:', result);
+      this.logger.error('Failed to validate query:', validationResult);
 
       return
     }
 
+    const format = this.displayFormat();
+
     try {
       const startTime = performance.now();
 
-      let result = await this.fhirService.executeQuery(query);
-
-      if (result && typeof result === 'object' && 'subscribe' in result) {
-        result = await firstValueFrom(result as any);
-      }
+      const result = await firstValueFrom(this.fhirService.executeQueryWithFormat(query, format));
 
       const endTime = performance.now();
       const execTime = Math.round(endTime - startTime);
 
-      // Calculate response size from JSON string
-      const responseStr = JSON.stringify(result);
+      // Calculate response size
+      const responseStr: string = format === 'xml' ? result as string : JSON.stringify(result);
       const respSize = new Blob([responseStr]).size;
 
-      this.result.set(result);
+      if (format === 'xml') {
+        // Store XML string separately
+        this.resultXml.set(result as string);
+        // Parse XML to extract Bundle info for pagination
+        const bundleInfo = this.parseXmlBundleInfo(result as string);
+        this.result.set(bundleInfo);
+      } else {
+        this.result.set(result);
+        this.resultXml.set(null);
+      }
+
       this.lastExecutedQuery.set(query);
       this.executionTime.set(execTime);
       this.responseSize.set(respSize);
@@ -927,17 +967,34 @@ export class QueryComponent implements OnInit, OnDestroy {
       this.queryStateService.setQueryMode(this.queryMode());
       this.queryHistoryService.addQuery(query, this.queryMode(), { executionTime: execTime, responseSize: respSize });
 
-      // Track as recent resource
-      const displayName = this.generateFavoriteDisplayName(result, query);
-      const resourceType = this.extractResourceType(query);
-      const resultType: 'single' | 'bundle' = (result as any).resourceType === 'Bundle' ? 'bundle' : 'single';
-      this.recentResourcesService.addRecentResource(query, displayName, resultType, resourceType);
+      // Track as recent resource (only for JSON where we can extract info)
+      if (format === 'json') {
+        const displayName = this.generateFavoriteDisplayName(result, query);
+        const resourceType = this.extractResourceType(query);
+        const resultType: 'single' | 'bundle' = (result as any).resourceType === 'Bundle' ? 'bundle' : 'single';
+        this.recentResourcesService.addRecentResource(query, displayName, resultType, resourceType);
+      }
 
     } catch (err: any) {
       this.logger.error('Query execution failed:', err || query);
       this.toastService.error(err.message || 'Query execution failed', 'Query Error');
     } finally {
       this.loading.set(false);
+    }
+  }
+
+  /**
+   * Toggle between JSON and XML display format
+   * Re-executes the current query with the new format
+   */
+  async toggleDisplayFormat() {
+    const newFormat = this.displayFormat() === 'json' ? 'xml' : 'json';
+    this.displayFormat.set(newFormat);
+
+    // Re-execute the query with the new format
+    const query = this.lastExecutedQuery();
+    if (query) {
+      await this.executeQueryString(query);
     }
   }
 
@@ -1689,6 +1746,14 @@ export class QueryComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Opens the query analytics dialog
+   * Shows performance analytics for query history
+   */
+  openAnalyticsDialog(): void {
+    this.analyticsDialog?.open();
+  }
+
+  /**
    * Copies the last executed query as a cURL command
    * Uses redacted auth tokens by default
    */
@@ -1837,6 +1902,58 @@ export class QueryComponent implements OnInit, OnDestroy {
     const segments = cleanQuery.split(/[/?]/);
 
     return segments[0] || 'Unknown';
+  }
+
+  /**
+   * Parse XML Bundle to extract pagination info (links and total)
+   * Uses browser's DOMParser to parse the XML
+   */
+  private parseXmlBundleInfo(xml: string): any {
+    try {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(xml, 'application/xml');
+
+      // Check for parse errors
+      const parseError = doc.querySelector('parsererror');
+      if (parseError) {
+        this.logger.warn('XML parse error:', parseError.textContent);
+        return { resourceType: 'XMLResponse' };
+      }
+
+      // Get root element
+      const root = doc.documentElement;
+      const resourceType = root.localName || root.tagName;
+
+      // If not a Bundle, return simple info
+      if (resourceType !== 'Bundle') {
+        return { resourceType, id: root.querySelector('id')?.getAttribute('value') };
+      }
+
+      // Extract total
+      const totalElement = root.querySelector('total');
+      const total = totalElement ? parseInt(totalElement.getAttribute('value') || '0', 10) : undefined;
+
+      // Extract links for pagination
+      const linkElements = root.querySelectorAll('link');
+      const links: { relation: string; url: string }[] = [];
+
+      linkElements.forEach(linkEl => {
+        const relation = linkEl.querySelector('relation')?.getAttribute('value');
+        const url = linkEl.querySelector('url')?.getAttribute('value');
+        if (relation && url) {
+          links.push({ relation, url });
+        }
+      });
+
+      return {
+        resourceType: 'Bundle',
+        total,
+        link: links.length > 0 ? links : undefined
+      };
+    } catch (err) {
+      this.logger.error('Failed to parse XML Bundle info:', err);
+      return { resourceType: 'XMLResponse' };
+    }
   }
 
   /**

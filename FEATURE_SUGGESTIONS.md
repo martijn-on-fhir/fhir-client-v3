@@ -1,7 +1,7 @@
 # FHIR Client MX - Feature Suggestions
 
 > Generated: 2026-01-25
-> Last Updated: 2026-01-27 (Collection Export + Security fixes + Bulk Import/Export)
+> Last Updated: 2026-01-27 (Query Performance Analytics + Collection Export + Security fixes + XML Format Toggle)
 > Status: Roadmap for future development
 
 ## Current Feature Summary
@@ -143,7 +143,7 @@ Bookmark frequently accessed resources:
 
 ---
 
-### 1.7 Recent Resources
+### 1.7 Recent Resources ✅ IMPLEMENTED
 **Effort:** Low | **Impact:** Medium
 
 Track recently viewed resources:
@@ -151,15 +151,26 @@ Track recently viewed resources:
 - Persisted in electron-store
 - Quick access dropdown
 
+**Status:** Fully implemented.
+
 ---
 
-### 1.8 XML Format Toggle
+### 1.8 XML Format Toggle ✅ IMPLEMENTED
 **Effort:** Medium | **Impact:** Medium
 
 Switch between JSON and XML display:
 - Toggle button in toolbar
 - Request with `_format=xml` or Accept header
 - Syntax highlighting for XML
+
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Toggle button in query toolbar (both text and visual modes)
+- Uses Accept header (`application/fhir+xml` or `application/fhir+json`)
+- Monaco editor dynamically switches language for syntax highlighting
+- Format preference persisted in localStorage
+- Re-executes query when format is toggled
 
 ---
 
@@ -412,7 +423,7 @@ Visualize query results:
 
 ---
 
-### 4.2 Query Performance Analytics
+### 4.2 Query Performance Analytics ✅ IMPLEMENTED
 **Effort:** Medium | **Impact:** Low
 
 Track and analyze query performance:
@@ -420,6 +431,17 @@ Track and analyze query performance:
 - Slow query identification
 - Server response time trends
 - Suggestions for optimization
+
+**Status:** Fully implemented.
+
+**Features delivered:**
+- Analytics dialog accessible via chart icon in Query tab toolbar
+- Summary cards: Total Queries, Average Time, Slowest, Avg Size
+- Additional stats: Fastest, P95, Total Data
+- Performance breakdown by resource type with status indicators
+- Slow queries list (>500ms threshold) with optimization suggestions
+- FHIR-specific optimization tips (detect missing _count, _summary, _elements, multiple _include)
+- Based on query history data with execution metrics
 
 ---
 
@@ -546,7 +568,8 @@ ipcMain.handle('webhook:getNotifications', ...)
 3. ~~$everything operation~~ ✅ Done
 4. ~~Request/Response Inspector~~ ✅ Done
 5. ~~Favorite Resources~~ ✅ Done
-6. Recent resources list
+6. ~~Recent resources list~~ ✅ Done
+7. ~~XML Format Toggle~~ ✅ Done
 
 ### Phase 2: Core Operations (2-4 weeks)
 1. ~~Resource version history with basic diff~~ ✅ Done (integrated in Diff Viewer)

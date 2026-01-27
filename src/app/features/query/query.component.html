@@ -40,6 +40,24 @@
               <i class="fas fa-chevron-right"></i>
             </button>
 
+            <!-- Analytics Button -->
+            <button
+              class="btn btn-sm btn-outline-secondary"
+              (click)="openAnalyticsDialog()"
+              title="Query Performance Analytics">
+              <i class="fas fa-chart-line"></i>
+            </button>
+
+            <!-- Format Toggle Button -->
+            <button
+              class="btn btn-sm"
+              [class.btn-outline-secondary]="displayFormat() === 'json'"
+              [class.btn-outline-primary]="displayFormat() === 'xml'"
+              (click)="toggleDisplayFormat()"
+              [title]="'Switch to ' + (displayFormat() === 'json' ? 'XML' : 'JSON') + ' format'">
+              <i class="fas fa-code me-1"></i>{{ displayFormat() | uppercase }}
+            </button>
+
             <!-- Query Input with Autocomplete -->
             <div class="position-relative" style="flex: 1">
               <input
@@ -132,7 +150,7 @@
               <div class="card-body p-0" style="overflow-y: auto; flex: 1; min-height: 400px">
                 <app-monaco-editor #component
                   [value]="resultJson()"
-                  [language]="'json'"
+                  [language]="editorLanguage()"
                   [readOnly]="true"
                   [theme]="'light'"
                   (linkClicked)="onLinkClicked($event)"
@@ -514,6 +532,15 @@
                 }
               </div>
               @if (generatedQuery()) {
+                <!-- Format Toggle Button -->
+                <button
+                  class="btn btn-sm"
+                  [class.btn-outline-secondary]="displayFormat() === 'json'"
+                  [class.btn-outline-primary]="displayFormat() === 'xml'"
+                  (click)="toggleDisplayFormat()"
+                  [title]="'Switch to ' + (displayFormat() === 'json' ? 'XML' : 'JSON') + ' format'">
+                  <i class="fas fa-code me-1"></i>{{ displayFormat() | uppercase }}
+                </button>
                 <button class="btn btn-primary btn-sm" (click)="executeQuery()" title="Execute Query">
                   <i class="fas fa-bolt me-1"></i> Execute
                 </button>
@@ -564,7 +591,7 @@
             <div class="card-body p-0" style="overflow-y: auto; flex: 1; min-height: 0">
               <app-monaco-editor #componentVisual
                 [value]="resultJson()"
-                [language]="'json'"
+                [language]="editorLanguage()"
                 [readOnly]="true"
                 [theme]="'light'"
                 (linkClicked)="onLinkClicked($event)"
@@ -591,3 +618,6 @@
 
 <!-- Request Inspector Dialog -->
 <app-request-inspector-dialog #inspectorDialog></app-request-inspector-dialog>
+
+<!-- Query Analytics Dialog -->
+<app-query-analytics-dialog #analyticsDialog></app-query-analytics-dialog>
