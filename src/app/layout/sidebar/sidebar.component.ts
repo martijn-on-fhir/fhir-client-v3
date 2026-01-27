@@ -2,6 +2,8 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal, computed, inject, HostListener } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { FavoriteResource } from '../../core/models/favorite-resource.model';
+import { FavoritesService } from '../../core/services/favorites.service';
 import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { NavigationService } from '../../core/services/navigation.service';
@@ -25,6 +27,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   private fhirService = inject(FhirService);
   private settingsService = inject(SettingsService);
   private navigationService = inject(NavigationService);
+  private favoritesService = inject(FavoritesService);
   private router = inject(Router);
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('SidebarComponent');
@@ -33,6 +36,10 @@ export class SidebarComponent implements OnInit, OnDestroy {
   resourceTypes = signal<string[]>([]);
   loading = signal(false);
   error = signal<string | null>(null);
+
+  // Favorites
+  favorites = this.favoritesService.currentProfileFavorites;
+  favoritesExpanded = signal(true);
 
   // Filter
   filterText = signal('');
@@ -174,5 +181,37 @@ return;
    */
   clearFilter() {
     this.filterText.set('');
+  }
+
+  /**
+   * Toggle favorites section expansion
+   */
+  toggleFavorites() {
+    this.favoritesExpanded.set(!this.favoritesExpanded());
+  }
+
+  /**
+   * Navigate to a favorite query
+   */
+  navigateToFavorite(favorite: FavoriteResource) {
+    this.logger.info('Navigating to favorite:', favorite.query);
+
+    // Update last accessed timestamp
+    this.favoritesService.updateLastAccessed(favorite.id);
+
+    // Use navigation service to trigger query execution
+    this.navigationService.navigateToFavoriteQuery(favorite.query);
+
+    // Navigate to query tab (if not already there)
+    this.router.navigate(['/app/query']);
+  }
+
+  /**
+   * Remove a favorite
+   */
+  removeFavorite(favorite: FavoriteResource, event: Event) {
+    event.stopPropagation();
+    this.favoritesService.removeFavorite(favorite.id);
+    this.logger.info('Removed favorite:', favorite.id);
   }
 }

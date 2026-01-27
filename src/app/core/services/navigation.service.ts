@@ -23,6 +23,9 @@ export class NavigationService {
   // Signal for query navigation events
   private queryNavigationEventSignal = signal<{ resource: string; mode: 'text' | 'visual' } | null>(null);
 
+  // Signal for favorite query navigation events
+  private favoriteQueryEventSignal = signal<{ query: string } | null>(null);
+
   // Signal for edit resource events (opens resource editor dialog)
   private editResourceEventSignal = signal<{ resource: any } | null>(null);
 
@@ -33,6 +36,11 @@ export class NavigationService {
    * Read-only computed signal for query navigation events
    */
   readonly queryNavigationEvent = computed(() => this.queryNavigationEventSignal());
+
+  /**
+   * Read-only computed signal for favorite query navigation events
+   */
+  readonly favoriteQueryEvent = computed(() => this.favoriteQueryEventSignal());
 
   /**
    * Read-only computed signal for edit resource events
@@ -56,6 +64,20 @@ export class NavigationService {
    */
   clearQueryNavigationEvent() {
     this.queryNavigationEventSignal.set(null);
+  }
+
+  /**
+   * Navigate to query tab with a specific query string (for favorites)
+   */
+  navigateToFavoriteQuery(query: string) {
+    this.favoriteQueryEventSignal.set({ query });
+  }
+
+  /**
+   * Clear the favorite query event after it's been handled
+   */
+  clearFavoriteQueryEvent() {
+    this.favoriteQueryEventSignal.set(null);
   }
 
   /**

@@ -89,11 +89,14 @@
         [showCompareButton]="showCompareButton"
         [showCopyAsCurl]="showCopyAsCurl"
         [showEverythingButton]="showEverythingButton"
+        [showFavoriteButton]="showFavoriteButton"
+        [isFavorited]="isFavorited"
         (editClicked)="editClicked.emit()"
         (deleteClicked)="deleteClicked.emit()"
         (compareClicked)="compareClicked.emit()"
         (copyAsCurlClicked)="copyAsCurlClicked.emit()"
-        (everythingClicked)="everythingClicked.emit()">
+        (everythingClicked)="everythingClicked.emit()"
+        (favoriteToggled)="favoriteToggled.emit()">
       </app-json-viewer-toolbar>
     }
   </div>
