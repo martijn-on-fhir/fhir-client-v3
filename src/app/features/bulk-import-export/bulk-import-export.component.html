@@ -12,20 +12,20 @@
         <ul class="nav nav-tabs border-0">
           <li class="nav-item">
             <a class="nav-link"
-               [class.active]="activeTab() === 'import'"
-               (click)="setActiveTab('import')"
-               href="javascript:void(0)">
-              <i class="fas fa-upload me-1"></i>
-              Import
-            </a>
-          </li>
-          <li class="nav-item">
-            <a class="nav-link"
                [class.active]="activeTab() === 'export'"
                (click)="setActiveTab('export')"
                href="javascript:void(0)">
               <i class="fas fa-download me-1"></i>
               Export
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link"
+               [class.active]="activeTab() === 'import'"
+               (click)="setActiveTab('import')"
+               href="javascript:void(0)">
+              <i class="fas fa-upload me-1"></i>
+              Import
             </a>
           </li>
         </ul>
@@ -379,7 +379,7 @@
             }
 
             <!-- Export Result -->
-            @if (exportedData()) {
+            @if (hasExportData()) {
               <div class="card">
                 <div class="card-header py-2 d-flex justify-content-between align-items-center">
                   <span>
@@ -389,11 +389,7 @@
                   <div class="btn-group btn-group-sm">
                     <button class="btn btn-outline-primary" (click)="saveExport()">
                       <i class="fas fa-save me-1"></i>
-                      Save
-                    </button>
-                    <button class="btn btn-outline-secondary" (click)="copyToClipboard()">
-                      <i class="fas fa-copy me-1"></i>
-                      Copy
+                      Save to File
                     </button>
                     <button class="btn btn-outline-danger" (click)="clearExport()">
                       <i class="fas fa-times me-1"></i>
@@ -403,23 +399,44 @@
                 </div>
                 <div class="card-body">
                   <p class="mb-2">
-                    <strong>{{ exportedData()!.length }}</strong> resources ready for download
+                    <strong>{{ exportedCount() }}</strong> resources ready for download
                   </p>
 
-                  <!-- Resource Type Summary -->
+                  <!-- Preview Info -->
+                  @if (exportSample().length > 0) {
+                    <div class="mb-2">
+                      <small class="text-muted">
+                        <i class="fas fa-eye me-1"></i>
+                        Preview (showing first {{ exportSample().length }} of {{ exportedCount() }}):
+                      </small>
+                    </div>
+                  }
+
+                  <!-- Resource Type Summary (from sample) -->
                   <div class="small text-muted">
                     @for (type of getResourceTypeSummary(); track type.type) {
                       <span class="badge bg-secondary me-1 mb-1">
                         {{ type.type }}: {{ type.count }}
                       </span>
                     }
+                    @if (exportHasMore()) {
+                      <span class="text-muted small">(based on preview sample)</span>
+                    }
+                  </div>
+
+                  <!-- Note about temp file -->
+                  <div class="mt-2">
+                    <small class="text-muted">
+                      <i class="fas fa-info-circle me-1"></i>
+                      Data is stored in a temporary file. Click "Save to File" to save it permanently.
+                    </small>
                   </div>
                 </div>
               </div>
             }
 
             <!-- Empty State -->
-            @if (!progress() && !exportedData()) {
+            @if (!progress() && !hasExportData()) {
               <div class="text-center text-muted py-5">
                 <i class="fas fa-file-export fa-3x mb-3 opacity-50"></i>
                 <p>Configure export options and click Start Export</p>

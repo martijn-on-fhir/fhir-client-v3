@@ -235,7 +235,67 @@ contextBridge.exposeInMainWorld('electronAPI', {
      * @returns {Promise<{path: string, success: boolean}|{error: string}|null>}
      */
     saveFile: (content, defaultFileName) =>
-      ipcRenderer.invoke('file:save', content, defaultFileName)
+      ipcRenderer.invoke('file:save', content, defaultFileName),
+
+    /**
+     * Create a temporary file for streaming exports
+     * @param {string} prefix - Filename prefix
+     * @returns {Promise<{path: string, success: boolean}|{error: string}>}
+     */
+    createTempExport: (prefix) =>
+      ipcRenderer.invoke('file:createTempExport', prefix),
+
+    /**
+     * Append a line to a file
+     * @param {string} filePath - Path to the file
+     * @param {string} line - Line to append
+     * @returns {Promise<{success: boolean}|{error: string}>}
+     */
+    appendLine: (filePath, line) =>
+      ipcRenderer.invoke('file:appendLine', filePath, line),
+
+    /**
+     * Append multiple lines to a file (batch)
+     * @param {string} filePath - Path to the file
+     * @param {Array} lines - Lines to append (strings or objects to JSON stringify)
+     * @returns {Promise<{success: boolean}|{error: string}>}
+     */
+    appendLines: (filePath, lines) =>
+      ipcRenderer.invoke('file:appendLines', filePath, lines),
+
+    /**
+     * Save temp export file via dialog (converts NDJSON to JSON if needed)
+     * @param {string} tempFilePath - Path to temp file
+     * @param {string} defaultFileName - Default filename for save dialog
+     * @returns {Promise<{path: string, success: boolean}|{canceled: boolean}|{error: string}>}
+     */
+    saveTempExport: (tempFilePath, defaultFileName) =>
+      ipcRenderer.invoke('file:saveTempExport', tempFilePath, defaultFileName),
+
+    /**
+     * Delete a temporary file
+     * @param {string} filePath - Path to temp file
+     * @returns {Promise<{success: boolean}|{error: string}>}
+     */
+    deleteTempFile: (filePath) =>
+      ipcRenderer.invoke('file:deleteTempFile', filePath),
+
+    /**
+     * Get line count of a file
+     * @param {string} filePath - Path to file
+     * @returns {Promise<{count: number}|{error: string}>}
+     */
+    getLineCount: (filePath) =>
+      ipcRenderer.invoke('file:getLineCount', filePath),
+
+    /**
+     * Read a sample of lines from a file
+     * @param {string} filePath - Path to file
+     * @param {number} maxLines - Maximum lines to read
+     * @returns {Promise<{sample: Array, totalCount: number, hasMore: boolean}|{error: string}>}
+     */
+    readSample: (filePath, maxLines) =>
+      ipcRenderer.invoke('file:readSample', filePath, maxLines)
   },
 
   // Shell API

@@ -249,7 +249,8 @@ export class BulkOperationService {
   }
 
   /**
-   * Export resources from the server
+   * Export resources from the server (legacy - keeps in memory)
+   * @deprecated Use exportToTempFile for large exports
    */
   async exportResources(options: ExportOptions): Promise<any[]> {
     this.cancelRequested = false;
@@ -276,11 +277,11 @@ export class BulkOperationService {
 
         for (const rt of resourceTypes) {
           if (this.cancelRequested) {
-break;
-}
+            break;
+          }
           if (options.maxResources > 0 && allResources.length >= options.maxResources) {
-break;
-}
+            break;
+          }
 
           const resources = await this.fetchAllOfType(rt, options);
           allResources.push(...resources);
@@ -319,7 +320,164 @@ break;
   }
 
   /**
-   * Fetch all resources of a specific type
+   * Export resources from the server to a temp file (streaming)
+   * Returns the temp file path for later saving
+   */
+  async exportToTempFile(options: ExportOptions): Promise<{ tempFilePath: string; count: number }> {
+    if (!window.electronAPI?.file?.createTempExport) {
+      throw new Error('Electron file API not available');
+    }
+
+    this.cancelRequested = false;
+    this.isRunning.set(true);
+    this.progress.set({
+      total: 0,
+      processed: 0,
+      succeeded: 0,
+      failed: 0,
+      skipped: 0,
+      isComplete: false,
+      isCancelled: false
+    });
+
+    // Create temp file
+    const prefix = options.resourceType || 'all-resources';
+    const tempResult = await window.electronAPI.file.createTempExport(prefix);
+    if ('error' in tempResult) {
+      throw new Error(tempResult.error);
+    }
+    const tempFilePath = tempResult.path;
+
+    let totalCount = 0;
+
+    try {
+      // If no resource type, we need to get all resource types first
+      if (!options.resourceType) {
+        const metadata = await firstValueFrom(this.fhirService.getMetadata());
+        const resourceTypes = metadata?.rest?.[0]?.resource
+          ?.map((r: any) => r.type)
+          ?.filter(Boolean) || [];
+
+        for (const rt of resourceTypes) {
+          if (this.cancelRequested) {
+            break;
+          }
+          if (options.maxResources > 0 && totalCount >= options.maxResources) {
+            break;
+          }
+
+          const count = await this.streamResourceTypeToFile(rt, options, tempFilePath, totalCount);
+          totalCount += count;
+
+          this.progress.update(p => p ? {
+            ...p,
+            processed: totalCount,
+            succeeded: totalCount,
+            currentResource: rt
+          } : null);
+        }
+      } else {
+        // Export single resource type
+        totalCount = await this.streamResourceTypeToFile(options.resourceType, options, tempFilePath, 0);
+      }
+
+      this.progress.update(p => p ? {
+        ...p,
+        total: totalCount,
+        processed: totalCount,
+        succeeded: totalCount,
+        isComplete: true
+      } : null);
+
+      this.logger.info('Export to temp file complete', { count: totalCount, path: tempFilePath });
+
+    } catch (error) {
+      this.logger.error('Export failed:', error);
+      // Clean up temp file on error
+      await window.electronAPI.file.deleteTempFile?.(tempFilePath);
+      throw error;
+    } finally {
+      this.isRunning.set(false);
+    }
+
+    return { tempFilePath, count: totalCount };
+  }
+
+  /**
+   * Stream resources of a type directly to temp file
+   */
+  private async streamResourceTypeToFile(
+    resourceType: string,
+    options: ExportOptions,
+    tempFilePath: string,
+    currentTotal: number
+  ): Promise<number> {
+    let count = 0;
+    let nextUrl: string | null = `/${resourceType}?_count=100`;
+
+    if (options.searchParams) {
+      const params = new URLSearchParams(options.searchParams);
+      nextUrl += `&${params.toString()}`;
+    }
+
+    while (nextUrl && !this.cancelRequested) {
+      if (options.maxResources > 0 && (currentTotal + count) >= options.maxResources) {
+        break;
+      }
+
+      try {
+        const bundle: any = await firstValueFrom(this.fhirService.executeQuery<any>(nextUrl));
+
+        if (bundle?.entry) {
+          let entries = bundle.entry
+            .map((e: any) => e.resource)
+            .filter((r: any) => r && r.resourceType && r.resourceType !== 'OperationOutcome');
+
+          // Limit to max if set
+          if (options.maxResources > 0) {
+            const remaining = options.maxResources - (currentTotal + count);
+            entries = entries.slice(0, remaining);
+          }
+
+          // Stream to temp file
+          if (entries.length > 0) {
+            const result = await window.electronAPI!.file!.appendLines!(tempFilePath, entries);
+            if ('error' in result) {
+              throw new Error(result.error);
+            }
+            count += entries.length;
+          }
+        }
+
+        // Get next page link
+        const links: any[] = bundle?.link || [];
+        const nextLink = links.find((l: any) => l.relation === 'next');
+        if (nextLink?.url) {
+          // Extract relative path from full URL
+          const parsedUrl = new URL(nextLink.url);
+          nextUrl = parsedUrl.pathname + parsedUrl.search;
+        } else {
+          nextUrl = null;
+        }
+
+        this.progress.update(p => p ? {
+          ...p,
+          processed: currentTotal + count,
+          succeeded: currentTotal + count,
+          currentResource: resourceType
+        } : null);
+
+      } catch (error) {
+        this.logger.error(`Failed to fetch ${resourceType}:`, error);
+        break;
+      }
+    }
+
+    return count;
+  }
+
+  /**
+   * Fetch all resources of a specific type (in memory)
    */
   private async fetchAllOfType(resourceType: string, options: ExportOptions): Promise<any[]> {
     const resources: any[] = [];
@@ -341,7 +499,7 @@ break;
         if (bundle?.entry) {
           const entries = bundle.entry
             .map((e: any) => e.resource)
-            .filter(Boolean);
+            .filter((r: any) => r && r.resourceType && r.resourceType !== 'OperationOutcome');
 
           // Limit to max if set
           if (options.maxResources > 0) {

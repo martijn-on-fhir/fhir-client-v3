@@ -27,6 +27,13 @@ declare global {
       file?: {
         openFile: () => Promise<{ path: string; content: string } | { error: string } | null>;
         saveFile: (content: string, defaultFileName?: string) => Promise<{ path: string; success: boolean } | { error: string } | null>;
+        createTempExport: (prefix?: string) => Promise<{ path: string; success: boolean } | { error: string }>;
+        appendLine: (filePath: string, line: string) => Promise<{ success: boolean } | { error: string }>;
+        appendLines: (filePath: string, lines: (string | object)[]) => Promise<{ success: boolean } | { error: string }>;
+        saveTempExport: (tempFilePath: string, defaultFileName?: string) => Promise<{ path: string; success: boolean } | { canceled: boolean } | { error: string }>;
+        deleteTempFile: (filePath: string) => Promise<{ success: boolean } | { error: string }>;
+        getLineCount: (filePath: string) => Promise<{ count: number } | { error: string }>;
+        readSample: (filePath: string, maxLines?: number) => Promise<{ sample: any[]; totalCount: number; hasMore: boolean } | { error: string }>;
       };
       shell?: {
         openExternal: (url: string) => Promise<{ success: boolean; error?: string }>;

@@ -37,7 +37,7 @@ export class BulkImportExportComponent implements OnInit, OnDestroy {
   private toastService = inject(ToastService);
 
   /** Active tab */
-  activeTab = signal<'import' | 'export'>('import');
+  activeTab = signal<'import' | 'export'>('export');
 
   /** Available resource types from server */
   resourceTypes = signal<string[]>([]);
@@ -79,7 +79,19 @@ export class BulkImportExportComponent implements OnInit, OnDestroy {
   /** Max resources to export */
   maxResources = signal<number>(0);
 
-  /** Exported data */
+  /** Temp file path for streamed export */
+  tempExportPath = signal<string | null>(null);
+
+  /** Total count of exported resources */
+  exportedCount = signal<number>(0);
+
+  /** Sample of exported data (for preview) */
+  exportSample = signal<any[]>([]);
+
+  /** Whether there are more records than the sample */
+  exportHasMore = signal<boolean>(false);
+
+  /** Exported data (deprecated - kept for backward compat in template) */
   exportedData = signal<any[] | null>(null);
 
   // === Shared State from Service ===
@@ -93,8 +105,8 @@ export class BulkImportExportComponent implements OnInit, OnDestroy {
     const p = this.progress();
 
     if (!p || p.total === 0) {
-return 0;
-}
+      return 0;
+    }
 
     return Math.round((p.processed / p.total) * 100);
   });
@@ -117,6 +129,19 @@ return 0;
     // Cancel any running operation
     if (this.isRunning()) {
       this.bulkService.cancelOperation();
+    }
+    // Clean up temp export file
+    this.cleanupTempFile();
+  }
+
+  /**
+   * Clean up temp file if exists
+   */
+  private async cleanupTempFile(): Promise<void> {
+    const tempPath = this.tempExportPath();
+    if (tempPath && window.electronAPI?.file?.deleteTempFile) {
+      await window.electronAPI.file.deleteTempFile(tempPath);
+      this.tempExportPath.set(null);
     }
   }
 
@@ -148,8 +173,6 @@ return 0;
   setActiveTab(tab: 'import' | 'export'): void {
     this.activeTab.set(tab);
     this.bulkService.reset();
-    this.parseError.set(null);
-    this.exportedData.set(null);
   }
 
   // === Drag and Drop Handlers ===
@@ -320,20 +343,28 @@ return;
   }
 
   /**
-   * Start export operation
+   * Start export operation (streams to temp file)
    */
   async startExport(): Promise<void> {
+    // Clean up any previous temp file
+    await this.cleanupTempFile();
+
     const options: ExportOptions = {
       resourceType: this.exportResourceType(),
       maxResources: this.maxResources()
     };
 
     try {
-      const resources = await this.bulkService.exportResources(options);
-      this.exportedData.set(resources);
+      // Use streaming export to temp file
+      const result = await this.bulkService.exportToTempFile(options);
+      this.tempExportPath.set(result.tempFilePath);
+      this.exportedCount.set(result.count);
+
+      // Load a sample for preview
+      await this.loadExportSample();
 
       this.toastService.success(
-        `Exported ${resources.length} resources`,
+        `Exported ${result.count} resources to temp file`,
         'Export Complete'
       );
     } catch (error: any) {
@@ -342,38 +373,54 @@ return;
   }
 
   /**
-   * Save exported data to file
+   * Load a sample of exported data for preview
+   */
+  private async loadExportSample(): Promise<void> {
+    const tempPath = this.tempExportPath();
+    if (!tempPath || !window.electronAPI?.file?.readSample) {
+      return;
+    }
+
+    try {
+      const result = await window.electronAPI.file.readSample(tempPath, 20);
+      if (!('error' in result)) {
+        this.exportSample.set(result.sample);
+        this.exportHasMore.set(result.hasMore);
+        // Also set exportedData for backward compat with template
+        this.exportedData.set(result.sample);
+      }
+    } catch (error) {
+      this.logger.error('Failed to load export sample:', error);
+    }
+  }
+
+  /**
+   * Save exported data to file (from temp file)
    */
   async saveExport(): Promise<void> {
-    const data = this.exportedData();
+    const tempPath = this.tempExportPath();
 
-    if (!data) {
-return;
-}
+    if (!tempPath) {
+      this.toastService.warning('No export data available', 'Warning');
+      return;
+    }
 
     const resourceType = this.exportResourceType() || 'all-resources';
     const filename = `${resourceType}-export-${new Date().toISOString().split('T')[0]}.json`;
-    const content = JSON.stringify(data, null, 2);
 
     try {
-      if (window.electronAPI?.file?.saveFile) {
-        const result = await window.electronAPI.file.saveFile(content, filename);
+      if (window.electronAPI?.file?.saveTempExport) {
+        const result = await window.electronAPI.file.saveTempExport(tempPath, filename);
 
-        if (result && 'error' in result) {
+        if ('error' in result) {
           this.toastService.error(result.error, 'Save Error');
-        } else if (result?.success) {
-          this.toastService.success('File saved successfully', 'Saved');
+        } else if ('canceled' in result) {
+          // User cancelled, do nothing
+        } else if (result.success) {
+          this.toastService.success(`Saved ${this.exportedCount()} resources to file`, 'Saved');
         }
       } else {
-        // Fallback: browser download
-        const blob = new Blob([content], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        link.click();
-        URL.revokeObjectURL(url);
-        this.toastService.success('File downloaded', 'Downloaded');
+        this.toastService.error('Save API not available', 'Error');
       }
     } catch (error: any) {
       this.toastService.error(error.message || 'Failed to save file', 'Error');
@@ -401,8 +448,12 @@ return;
   /**
    * Clear export state
    */
-  clearExport(): void {
+  async clearExport(): Promise<void> {
+    await this.cleanupTempFile();
     this.exportedData.set(null);
+    this.exportSample.set([]);
+    this.exportedCount.set(0);
+    this.exportHasMore.set(false);
     this.bulkService.reset();
   }
 
@@ -438,14 +489,15 @@ return;
   }
 
   /**
-   * Get summary of resource types in exported data
+   * Get summary of resource types in exported sample
+   * Note: This only counts the preview sample, not the full export
    */
   getResourceTypeSummary(): { type: string; count: number }[] {
-    const data = this.exportedData();
+    const data = this.exportSample();
 
-    if (!data) {
-return [];
-}
+    if (!data || data.length === 0) {
+      return [];
+    }
 
     const counts = new Map<string, number>();
     for (const resource of data) {
@@ -456,5 +508,12 @@ return [];
     return Array.from(counts.entries())
       .map(([type, count]) => ({ type, count }))
       .sort((a, b) => b.count - a.count);
+  }
+
+  /**
+   * Check if there's export data available
+   */
+  hasExportData(): boolean {
+    return this.tempExportPath() !== null && this.exportedCount() > 0;
   }
 }
