@@ -352,13 +352,19 @@
                   }
                 </div>
                 <div class="card-body">
-                  <!-- Progress Bar (indeterminate when total unknown) -->
+                  <!-- Progress Bar -->
                   <div class="progress mb-3" style="height: 24px;">
                     @if (progress()!.total === 0 && isRunning()) {
-                      <div class="progress-bar progress-bar-striped progress-bar-animated"
+                      <div class="progress-bar bg-warning text-dark"
                            style="width: 100%"
                            role="progressbar">
-                        Scanning...
+                        {{ progress()!.currentResource || 'Counting resources...' }}
+                      </div>
+                    } @else if (isRunning()) {
+                      <div class="progress-bar bg-primary"
+                           [style.width.%]="progressPercent()"
+                           role="progressbar">
+                        {{ progressPercent() }}% ({{ progress()!.succeeded }} / {{ progress()!.total }})
                       </div>
                     } @else {
                       <div class="progress-bar bg-success"
@@ -373,8 +379,14 @@
                   <div class="row text-center">
                     <div class="col">
                       <div class="h4 mb-0 text-success">{{ progress()!.succeeded }}</div>
-                      <small class="text-muted">Resources Found</small>
+                      <small class="text-muted">Resources Exported</small>
                     </div>
+                    @if (progress()!.total > 0) {
+                      <div class="col">
+                        <div class="h4 mb-0 text-primary">{{ progress()!.total }}</div>
+                        <small class="text-muted">Total Expected</small>
+                      </div>
+                    }
                   </div>
 
                   @if (progress()!.isCancelled) {

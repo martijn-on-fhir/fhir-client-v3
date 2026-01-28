@@ -233,10 +233,10 @@ export class BulkOperationService {
         status: 'success',
         response
       };
+
     } catch (error: any) {
-      const errorMsg = error?.error?.issue?.[0]?.diagnostics
-        || error?.message
-        || 'Operation failed';
+
+      const errorMsg = error?.error?.issue?.[0]?.diagnostics  || error?.message || 'Operation failed';
 
       return {
         index,
@@ -253,6 +253,7 @@ export class BulkOperationService {
    * @deprecated Use exportToTempFile for large exports
    */
   async exportResources(options: ExportOptions): Promise<any[]> {
+
     this.cancelRequested = false;
     this.isRunning.set(true);
     this.progress.set({
@@ -261,21 +262,26 @@ export class BulkOperationService {
       succeeded: 0,
       failed: 0,
       skipped: 0,
+      currentResource: 'Counting resources...',
       isComplete: false,
       isCancelled: false
     });
+
+    // First, get the total count for accurate progress
+    const estimatedTotal = await this.getTotalExportCount(options);
+    this.progress.update(p => p ? { ...p, total: estimatedTotal } : null);
 
     const allResources: any[] = [];
 
     try {
       // If no resource type, we need to get all resource types first
       if (!options.resourceType) {
+
         const metadata = await firstValueFrom(this.fhirService.getMetadata());
-        const resourceTypes = metadata?.rest?.[0]?.resource
-          ?.map((r: any) => r.type)
-          ?.filter(Boolean) || [];
+        const resourceTypes = metadata?.rest?.[0]?.resource ?.map((r: any) => r.type) ?.filter(Boolean) || [];
 
         for (const rt of resourceTypes) {
+
           if (this.cancelRequested) {
             break;
           }
@@ -320,10 +326,67 @@ export class BulkOperationService {
   }
 
   /**
+   * Get the count of resources for a specific type using _summary=count
+   */
+  private async getResourceCount(resourceType: string, searchParams?: Record<string, string>): Promise<number> {
+    try {
+      let url = `/${resourceType}?_summary=count`;
+      if (searchParams) {
+        const params = new URLSearchParams(searchParams);
+        url += `&${params.toString()}`;
+      }
+      const bundle: any = await firstValueFrom(this.fhirService.executeQuery<any>(url));
+      return bundle?.total ?? 0;
+    } catch (error) {
+      this.logger.warn(`Failed to get count for ${resourceType}:`, error);
+      return 0;
+    }
+  }
+
+  /**
+   * Get total count for export (single type or all types)
+   */
+  private async getTotalExportCount(options: ExportOptions): Promise<number> {
+    if (options.resourceType) {
+      // Single resource type
+      const count = await this.getResourceCount(options.resourceType, options.searchParams);
+      return options.maxResources > 0 ? Math.min(count, options.maxResources) : count;
+    }
+
+    // All resource types - sum up counts
+    const metadata = await firstValueFrom(this.fhirService.getMetadata());
+    const resourceTypes = metadata?.rest?.[0]?.resource
+      ?.map((r: any) => r.type)
+      ?.filter(Boolean) || [];
+
+    let totalCount = 0;
+    for (const rt of resourceTypes) {
+      if (this.cancelRequested) {
+break;
+}
+      if (options.maxResources > 0 && totalCount >= options.maxResources) {
+break;
+}
+
+      const count = await this.getResourceCount(rt, options.searchParams);
+      totalCount += count;
+
+      // Update progress to show counting phase
+      this.progress.update(p => p ? {
+        ...p,
+        currentResource: `Counting ${rt}...`
+      } : null);
+    }
+
+    return options.maxResources > 0 ? Math.min(totalCount, options.maxResources) : totalCount;
+  }
+
+  /**
    * Export resources from the server to a temp file (streaming)
    * Returns the temp file path for later saving
    */
   async exportToTempFile(options: ExportOptions): Promise<{ tempFilePath: string; count: number }> {
+
     if (!window.electronAPI?.file?.createTempExport) {
       throw new Error('Electron file API not available');
     }
@@ -336,13 +399,19 @@ export class BulkOperationService {
       succeeded: 0,
       failed: 0,
       skipped: 0,
+      currentResource: 'Counting resources...',
       isComplete: false,
       isCancelled: false
     });
 
+    // First, get the total count for accurate progress
+    const estimatedTotal = await this.getTotalExportCount(options);
+    this.progress.update(p => p ? { ...p, total: estimatedTotal } : null);
+
     // Create temp file
     const prefix = options.resourceType || 'all-resources';
     const tempResult = await window.electronAPI.file.createTempExport(prefix);
+
     if ('error' in tempResult) {
       throw new Error(tempResult.error);
     }
@@ -353,6 +422,7 @@ export class BulkOperationService {
     try {
       // If no resource type, we need to get all resource types first
       if (!options.resourceType) {
+
         const metadata = await firstValueFrom(this.fhirService.getMetadata());
         const resourceTypes = metadata?.rest?.[0]?.resource
           ?.map((r: any) => r.type)
@@ -413,7 +483,7 @@ export class BulkOperationService {
     currentTotal: number
   ): Promise<number> {
     let count = 0;
-    let nextUrl: string | null = `/${resourceType}?_count=100`;
+    let nextUrl: string | null = `/${resourceType}?_count=50`;
 
     if (options.searchParams) {
       const params = new URLSearchParams(options.searchParams);
@@ -452,6 +522,7 @@ export class BulkOperationService {
         // Get next page link
         const links: any[] = bundle?.link || [];
         const nextLink = links.find((l: any) => l.relation === 'next');
+
         if (nextLink?.url) {
           // Extract relative path from full URL
           const parsedUrl = new URL(nextLink.url);
@@ -480,8 +551,9 @@ export class BulkOperationService {
    * Fetch all resources of a specific type (in memory)
    */
   private async fetchAllOfType(resourceType: string, options: ExportOptions): Promise<any[]> {
+
     const resources: any[] = [];
-    let nextUrl: string | null = `/${resourceType}?_count=100`;
+    let nextUrl: string | null = `/${resourceType}?_count=50`;
 
     if (options.searchParams) {
       const params = new URLSearchParams(options.searchParams);
@@ -489,11 +561,13 @@ export class BulkOperationService {
     }
 
     while (nextUrl && !this.cancelRequested) {
+
       if (options.maxResources > 0 && resources.length >= options.maxResources) {
         break;
       }
 
       try {
+
         const bundle: any = await firstValueFrom(this.fhirService.executeQuery<any>(nextUrl));
 
         if (bundle?.entry) {
@@ -513,6 +587,7 @@ export class BulkOperationService {
         // Get next page link
         const links: any[] = bundle?.link || [];
         const nextLink = links.find((l: any) => l.relation === 'next');
+
         if (nextLink?.url) {
           // Extract relative path from full URL
           const parsedUrl = new URL(nextLink.url);
