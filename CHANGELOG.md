@@ -1,3 +1,10 @@
+# [1.45.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.44.0...v1.45.0) (2026-01-28)
+
+
+### Features
+
+* **export:** add real progress tracking with resource count ([b51edf5](https://github.com/martijn-on-fhir/fhir-client-v3/commit/b51edf53141012d6fb7a741cb7bb59ca68ba017f))
+
 # [1.44.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.43.0...v1.44.0) (2026-01-27)
 
 
