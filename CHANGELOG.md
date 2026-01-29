@@ -1,3 +1,10 @@
+## [1.45.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.45.0...v1.45.1) (2026-01-29)
+
+
+### Bug Fixes
+
+* **mtls:** forward auth headers through mTLS proxy and improve diagnostics ([107f15a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/107f15a1c2b1a9bb8b06b3f7ea48458ff941a2fe))
+
 # [1.45.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.44.0...v1.45.0) (2026-01-28)
 
 
