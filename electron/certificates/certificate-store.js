@@ -218,6 +218,13 @@ function sanitizeForUI(entry) {
  * @returns {boolean} True if pattern matches hostname
  */
 function domainMatches(pattern, hostname) {
+  // Strip protocol if someone entered a full URL as the domain
+  try {
+    if (pattern.includes('://')) {
+      pattern = new URL(pattern).hostname;
+    }
+  } catch { /* not a URL, use as-is */ }
+
   // Exact match
   if (pattern === hostname) {
     return true;

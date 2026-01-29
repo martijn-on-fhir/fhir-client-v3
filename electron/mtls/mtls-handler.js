@@ -35,6 +35,7 @@ function registerMtlsHandlers() {
 
     try {
       const cert = certificateStore.getCertificateForDomain(hostname);
+      log.info(`[MtlsHandler] hasCertificate check for "${hostname}": found=${!!cert}, enabled=${cert?.enabled ?? false}${cert ? `, name="${cert.name}", domain="${cert.domain}"` : ''}`);
       return { hasCertificate: !!cert, enabled: cert?.enabled ?? false };
     } catch (error) {
       log.error('[MtlsHandler] Error checking certificate:', error);
@@ -71,7 +72,11 @@ function registerMtlsHandlers() {
         };
       }
 
-      log.info(`[MtlsHandler] Making mTLS request to ${hostname} using certificate: ${cert.name}`);
+      const headerKeys = Object.keys(headers);
+      const hasAuth = headerKeys.some(k => k.toLowerCase() === 'authorization');
+      log.info(`[MtlsHandler] Making mTLS ${method} request to ${url}`);
+      log.info(`[MtlsHandler]   Certificate: "${cert.name}" (domain: "${cert.domain}")`);
+      log.info(`[MtlsHandler]   Headers: [${headerKeys.join(', ')}], hasAuth=${hasAuth}, hasCa=${!!cert.caCertificate}, hasPassphrase=${!!cert.passphrase}`);
 
       // Create HTTPS agent with client certificate
       const agentOptions = {
@@ -105,6 +110,8 @@ function registerMtlsHandlers() {
         timeout,
         validateStatus: () => true // Don't throw on any status code
       });
+
+      log.info(`[MtlsHandler]   Response: ${response.status} ${response.statusText}`);
 
       return {
         success: true,

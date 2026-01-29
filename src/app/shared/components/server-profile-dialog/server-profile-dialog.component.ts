@@ -9,6 +9,7 @@ import {
   DEFAULT_PROFILE
 } from '../../../core/models/server-profile.model';
 import {CertificateService} from '../../../core/services/certificate.service';
+import {MtlsService} from '../../../core/services/mtls.service';
 import {ServerProfileService} from '../../../core/services/server-profile.service';
 import {ToastService} from '../../../core/services/toast.service';
 
@@ -60,6 +61,7 @@ interface ProfileFormData {
 export class ServerProfileDialogComponent {
   private profileService = inject(ServerProfileService);
   private certificateService = inject(CertificateService);
+  private mtlsService = inject(MtlsService);
   private toastService = inject(ToastService);
 
   @Output() profileSaved = new EventEmitter<ServerProfile>();
@@ -224,7 +226,7 @@ return;
         headers['Authorization'] = `Bearer ${form.bearerToken}`;
       }
 
-      // For OAuth2, we would need to get a token first
+      // For OAuth2, test token retrieval only (FHIR server may require mTLS separately)
       if (form.authType === 'oauth2') {
         if (!form.clientId || !form.clientSecret || !form.tokenEndpoint) {
           this.toastService.warning('Vul alle OAuth2 velden in om te testen');
@@ -232,7 +234,6 @@ return;
           return;
         }
 
-        // Try to get a token first
         try {
           const tokenResponse = await this.getOAuth2Token(
             form.tokenEndpoint,
@@ -242,18 +243,22 @@ return;
           );
 
           if (tokenResponse?.access_token) {
-            headers['Authorization'] = `Bearer ${tokenResponse.access_token}`;
+            const expiresIn = tokenResponse.expires_in;
+            this.toastService.success(
+              'OAuth2 token ontvangen!',
+              `Token geldig voor ${expiresIn} seconden`
+            );
           } else {
             throw new Error('Geen access token ontvangen');
           }
         } catch (tokenErr) {
           this.toastService.error('OAuth2 authenticatie mislukt', String(tokenErr));
-
-          return;
         }
+
+        return;
       }
 
-      // For mTLS, we need to use the Electron proxy
+      // For mTLS auth type, use the Electron proxy
       if (form.authType === 'mtls') {
         const result = await this.testMtlsConnection(metadataUrl, form.mtlsCertificateId);
 
@@ -266,7 +271,7 @@ return;
         return;
       }
 
-      // Make the test request
+      // Make the test request via browser fetch
       const response = await fetch(metadataUrl, {
         method: 'GET',
         headers
@@ -460,6 +465,7 @@ return;
           authConfig.scope = form.scope;
         }
         break;
+
     }
 
     // Convert customHeaders array to Record (filter out empty entries)

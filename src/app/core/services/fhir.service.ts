@@ -168,7 +168,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for request:', url);
-          return this.executeMtlsRequest<T>(url, 'GET');
+          return this.executeMtlsRequest<T>(url, 'GET', undefined, authHeaders);
         }
 
         // Apply profile auth headers if available
@@ -202,7 +202,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for request:', url);
-          return this.executeMtlsRequestWithFormat(url, 'GET', format);
+          return this.executeMtlsRequestWithFormat(url, 'GET', format, authHeaders);
         }
 
         // Build headers properly using set() to ensure Accept header is correctly set
@@ -233,13 +233,14 @@ export class FhirService {
   /**
    * Execute mTLS request with specified format
    */
-  private executeMtlsRequestWithFormat<T>(url: string, method: string, format: 'json' | 'xml'): Observable<T> {
+  private executeMtlsRequestWithFormat<T>(url: string, method: string, format: 'json' | 'xml', authHeaders?: Record<string, string>): Observable<T> {
     const acceptHeader = format === 'xml' ? 'application/fhir+xml' : 'application/fhir+json';
 
     return from(this.mtlsService.request<T>({
       url,
       method,
       headers: {
+        ...authHeaders,
         'Accept': acceptHeader,
         'Content-Type': 'application/fhir+json'
       }
@@ -268,12 +269,13 @@ export class FhirService {
   /**
    * Execute request through mTLS proxy
    */
-  private executeMtlsRequest<T>(url: string, method: string, data?: any): Observable<T> {
+  private executeMtlsRequest<T>(url: string, method: string, data?: any, authHeaders?: Record<string, string>): Observable<T> {
     return from(this.mtlsService.request<T>({
       url,
       method,
       data,
       headers: {
+        ...authHeaders,
         'Accept': 'application/fhir+json',
         'Content-Type': 'application/fhir+json'
       }
@@ -371,7 +373,7 @@ export class FhirService {
         if (useMtls) {
           this.logger.debug('Using mTLS for $validate:', url);
 
-          return this.executeMtlsRequest(url, 'POST', resource);
+          return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
 
         const headers = new HttpHeaders({
@@ -423,7 +425,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for create:', url);
-          return this.executeMtlsRequest(url, 'POST', resource);
+          return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
           ? { headers: new HttpHeaders(authHeaders) }
@@ -451,7 +453,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for update:', url);
-          return this.executeMtlsRequest(url, 'PUT', resource);
+          return this.executeMtlsRequest(url, 'PUT', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
           ? { headers: new HttpHeaders(authHeaders) }
@@ -479,7 +481,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for createResource:', url);
-          return this.executeMtlsRequest(url, 'POST', resource);
+          return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
           ? { headers: new HttpHeaders(authHeaders) }
@@ -506,7 +508,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for updateResource:', url);
-          return this.executeMtlsRequest(url, 'PUT', resource);
+          return this.executeMtlsRequest(url, 'PUT', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
           ? { headers: new HttpHeaders(authHeaders) }
@@ -533,7 +535,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for delete:', url);
-          return this.executeMtlsRequest(url, 'DELETE');
+          return this.executeMtlsRequest(url, 'DELETE', undefined, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
           ? { headers: new HttpHeaders(authHeaders) }
@@ -566,7 +568,7 @@ export class FhirService {
       switchMap(([useMtls, authHeaders]) => {
         if (useMtls) {
           this.logger.debug('Using mTLS for validateResource:', url);
-          return this.executeMtlsRequest(url, 'POST', resource);
+          return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
           ? { headers: new HttpHeaders(authHeaders) }
