@@ -27,6 +27,9 @@ export interface UISettings {
   sidebarVisible: boolean;
   sidebarWidth: number; // Width in pixels (150-500)
   enabledTabs: string[]; // List of enabled tab IDs
+  sidebarFavoritesExpanded: boolean;
+  sidebarRecentExpanded: boolean;
+  sidebarResourceTypesExpanded: boolean;
 }
 
 /**
@@ -52,7 +55,10 @@ export const DEFAULT_SETTINGS: AppSettings = {
     logViewerEnabled: false,
     sidebarVisible: true,
     sidebarWidth: 250,
-    enabledTabs: ['query', 'predefined', 'terminology', 'validator', 'profiles', 'nictiz', 'fhirpath', 'pluriform', 'resource-info', 'logs', 'subscriptions', 'narratives', 'reference-graph', 'bulk-import-export']
+    enabledTabs: ['query', 'predefined', 'terminology', 'validator', 'profiles', 'nictiz', 'fhirpath', 'pluriform', 'resource-info', 'logs', 'subscriptions', 'narratives', 'reference-graph', 'bulk-import-export'],
+    sidebarFavoritesExpanded: true,
+    sidebarRecentExpanded: true,
+    sidebarResourceTypesExpanded: true
   },
   notifications: {
     loginNotificationEnabled: true

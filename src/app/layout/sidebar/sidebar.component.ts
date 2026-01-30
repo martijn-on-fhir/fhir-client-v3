@@ -42,14 +42,14 @@ export class SidebarComponent implements OnInit, OnDestroy {
 
   // Favorites
   private allFavorites = this.favoritesService.currentProfileFavorites;
-  favoritesExpanded = signal(true);
+  favoritesExpanded = this.settingsService.sidebarFavoritesExpanded;
 
   // Recent resources
   private allRecentResources = this.recentResourcesService.currentProfileRecent;
-  recentExpanded = signal(true);
+  recentExpanded = this.settingsService.sidebarRecentExpanded;
 
   // Resource types section
-  resourceTypesExpanded = signal(true);
+  resourceTypesExpanded = this.settingsService.sidebarResourceTypesExpanded;
 
   // Filter
   filterText = signal('');
@@ -223,21 +223,21 @@ return;
    * Toggle favorites section expansion
    */
   toggleFavorites() {
-    this.favoritesExpanded.set(!this.favoritesExpanded());
+    this.settingsService.toggleSidebarFavorites();
   }
 
   /**
    * Toggle recent section expansion
    */
   toggleRecent() {
-    this.recentExpanded.set(!this.recentExpanded());
+    this.settingsService.toggleSidebarRecent();
   }
 
   /**
    * Toggle resource types section expansion
    */
   toggleResourceTypes() {
-    this.resourceTypesExpanded.set(!this.resourceTypesExpanded());
+    this.settingsService.toggleSidebarResourceTypes();
   }
 
   /**

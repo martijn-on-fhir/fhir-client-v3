@@ -59,6 +59,13 @@ export class SettingsService {
   readonly enabledTabs = computed(() => this.settings().ui.enabledTabs);
 
   /**
+   * Computed signals for sidebar panel expanded states
+   */
+  readonly sidebarFavoritesExpanded = computed(() => this.settings().ui.sidebarFavoritesExpanded);
+  readonly sidebarRecentExpanded = computed(() => this.settings().ui.sidebarRecentExpanded);
+  readonly sidebarResourceTypesExpanded = computed(() => this.settings().ui.sidebarResourceTypesExpanded);
+
+  /**
    * Computed signal for pluriform base URL
    */
   readonly pluriformBaseUrl = computed(() => this.settings().general.pluriformBaseUrl);
@@ -148,6 +155,21 @@ export class SettingsService {
    */
   setTheme(theme: 'light' | 'dark'): void {
     this.updateUISettings({ theme });
+  }
+
+  /**
+   * Toggle sidebar panel expanded states
+   */
+  toggleSidebarFavorites(): void {
+    this.updateUISettings({ sidebarFavoritesExpanded: !this.sidebarFavoritesExpanded() });
+  }
+
+  toggleSidebarRecent(): void {
+    this.updateUISettings({ sidebarRecentExpanded: !this.sidebarRecentExpanded() });
+  }
+
+  toggleSidebarResourceTypes(): void {
+    this.updateUISettings({ sidebarResourceTypesExpanded: !this.sidebarResourceTypesExpanded() });
   }
 
   /**
