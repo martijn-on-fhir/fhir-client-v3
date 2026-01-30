@@ -41,11 +41,11 @@ export class SidebarComponent implements OnInit, OnDestroy {
   error = signal<string | null>(null);
 
   // Favorites
-  favorites = this.favoritesService.currentProfileFavorites;
+  private allFavorites = this.favoritesService.currentProfileFavorites;
   favoritesExpanded = signal(true);
 
   // Recent resources
-  recentResources = this.recentResourcesService.currentProfileRecent;
+  private allRecentResources = this.recentResourcesService.currentProfileRecent;
   recentExpanded = signal(true);
 
   // Resource types section
@@ -54,7 +54,7 @@ export class SidebarComponent implements OnInit, OnDestroy {
   // Filter
   filterText = signal('');
 
-  // Filtered resource types
+  // Filtered lists
   filteredResourceTypes = computed(() => {
     const filter = this.filterText().toLowerCase();
 
@@ -64,6 +64,32 @@ return this.resourceTypes();
 
     return this.resourceTypes().filter(type =>
       type.toLowerCase().includes(filter)
+    );
+  });
+
+  favorites = computed(() => {
+    const filter = this.filterText().toLowerCase();
+
+    if (!filter) {
+return this.allFavorites();
+}
+
+    return this.allFavorites().filter(fav =>
+      fav.displayName.toLowerCase().includes(filter) ||
+      fav.resourceType.toLowerCase().includes(filter)
+    );
+  });
+
+  recentResources = computed(() => {
+    const filter = this.filterText().toLowerCase();
+
+    if (!filter) {
+return this.allRecentResources();
+}
+
+    return this.allRecentResources().filter(item =>
+      item.displayName.toLowerCase().includes(filter) ||
+      item.resourceType.toLowerCase().includes(filter)
     );
   });
 
