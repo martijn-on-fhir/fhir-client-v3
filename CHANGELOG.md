@@ -1,3 +1,10 @@
+# [1.47.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.46.0...v1.47.0) (2026-01-30)
+
+
+### Features
+
+* **sidebar:** make FHIR Resources section collapsible and distribute space across expanded panels ([dcfa7d0](https://github.com/martijn-on-fhir/fhir-client-v3/commit/dcfa7d0750c633ac0d51c38484d070dddac33ed2))
+
 # [1.46.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.45.1...v1.46.0) (2026-01-30)
 
 
