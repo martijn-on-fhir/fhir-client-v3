@@ -1,3 +1,10 @@
+# [1.48.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.47.0...v1.48.0) (2026-01-30)
+
+
+### Features
+
+* **sidebar:** apply filter to favorites and recent sections ([a820735](https://github.com/martijn-on-fhir/fhir-client-v3/commit/a8207354187b5113fed4e6138b8db6d4a6f8202e))
+
 # [1.47.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.46.0...v1.47.0) (2026-01-30)
 
 
