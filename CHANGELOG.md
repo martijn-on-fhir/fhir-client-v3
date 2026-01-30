@@ -1,3 +1,10 @@
+# [1.46.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.45.1...v1.46.0) (2026-01-30)
+
+
+### Features
+
+* **auth:** add native login notification with configurable toggle ([dba7174](https://github.com/martijn-on-fhir/fhir-client-v3/commit/dba7174c99673600c00ee719f9697309da3088bb))
+
 ## [1.45.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.45.0...v1.45.1) (2026-01-29)
 
 
