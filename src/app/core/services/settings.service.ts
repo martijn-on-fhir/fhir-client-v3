@@ -1,5 +1,5 @@
 import { Injectable, signal, computed, effect, inject } from '@angular/core';
-import { AppSettings, UISettings, GeneralSettings, DEFAULT_SETTINGS } from '../models/settings.model';
+import { AppSettings, UISettings, GeneralSettings, NotificationSettings, DEFAULT_SETTINGS } from '../models/settings.model';
 import { LoggerService } from './logger.service';
 
 /**
@@ -63,6 +63,11 @@ export class SettingsService {
    */
   readonly pluriformBaseUrl = computed(() => this.settings().general.pluriformBaseUrl);
 
+  /**
+   * Computed signal for login notification enabled state
+   */
+  readonly loginNotificationEnabled = computed(() => this.settings().notifications.loginNotificationEnabled);
+
   constructor() {
     effect(() => {
       this.saveSettings(this.settings());
@@ -105,6 +110,28 @@ export class SettingsService {
       },
       lastModified: Date.now()
     }));
+  }
+
+  /**
+   * Update notification settings
+   * @param notificationSettings Partial notification settings to merge with current settings
+   */
+  updateNotificationSettings(notificationSettings: Partial<NotificationSettings>): void {
+    this.settings.update(current => ({
+      ...current,
+      notifications: {
+        ...current.notifications,
+        ...notificationSettings
+      },
+      lastModified: Date.now()
+    }));
+  }
+
+  /**
+   * Toggle login notification
+   */
+  toggleLoginNotification(): void {
+    this.updateNotificationSettings({ loginNotificationEnabled: !this.loginNotificationEnabled() });
   }
 
   /**
@@ -252,6 +279,10 @@ export class SettingsService {
           ui: {
             ...DEFAULT_SETTINGS.ui,
             ...parsed.ui
+          },
+          notifications: {
+            ...DEFAULT_SETTINGS.notifications,
+            ...parsed.notifications
           }
         };
       }

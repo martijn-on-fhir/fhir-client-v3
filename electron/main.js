@@ -13,6 +13,9 @@ const { registerConfigHandlers } = require('./config/config-handler');
 const { registerNarrativeHandlers } = require('./narratives/narrative-handler');
 const { createApplicationMenu } = require('./menu/menu-handler');
 
+// Set Windows App User Model ID (controls notification app name)
+app.setAppUserModelId('FHIR Client MX');
+
 // Initialize electron-log for IPC communication
 log.initialize();
 

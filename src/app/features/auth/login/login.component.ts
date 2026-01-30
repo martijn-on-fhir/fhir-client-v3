@@ -5,6 +5,7 @@ import { Router, ActivatedRoute } from '@angular/router';
 import { ServerProfile } from '../../../core/models/server-profile.model';
 import { AuthService } from '../../../core/services/auth.service';
 import { ServerProfileService } from '../../../core/services/server-profile.service';
+import { SettingsService } from '../../../core/services/settings.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { ServerProfileDialogComponent } from '../../../shared/components/server-profile-dialog/server-profile-dialog.component';
 
@@ -28,8 +29,11 @@ import { ServerProfileDialogComponent } from '../../../shared/components/server-
   styleUrls: ['./login.component.scss']
 })
 export class LoginComponent implements OnInit {
+
   private authService = inject(AuthService);
+
   private profileService = inject(ServerProfileService);
+  private settingsService = inject(SettingsService);
   private toastService = inject(ToastService);
   private router = inject(Router);
   private route = inject(ActivatedRoute);
@@ -165,22 +169,36 @@ export class LoginComponent implements OnInit {
    * Perform login with selected profile
    */
   private async performLogin(profile: ServerProfile): Promise<void> {
+
     this.loading.set(true);
 
     try {
       const success = await this.profileService.switchToProfile(profile.id);
 
       if (success) {
+
         this.toastService.success(`Verbonden met ${profile.name}`);
+
+        if (this.settingsService.loginNotificationEnabled()) {
+
+          new Notification('FHIR Client MX', {
+            body: `Verbonden met ${profile.name}`,
+            icon: 'icon.png'
+          });
+        }
+
         const returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/app/query';
         this.router.navigate([returnUrl]);
+
       } else {
         this.toastService.error('Authenticatie mislukt', 'Controleer de server instellingen');
       }
     } catch (error: any) {
+
       this.toastService.error(error.message || 'Login mislukt');
       this.show2FAVerification.set(false);
       this.twoFactorCode.set('');
+
     } finally {
       this.loading.set(false);
     }

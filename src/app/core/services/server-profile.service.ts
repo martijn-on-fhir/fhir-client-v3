@@ -49,7 +49,7 @@ return false;
     return session?.isActive ?? false;
   });
 
-  readonly sortedProfiles = computed(() => [...this._profiles()].sort((a, b) => 
+  readonly sortedProfiles = computed(() => [...this._profiles()].sort((a, b) =>
       // Sort by lastUsed (most recent first)
        (b.lastUsed ?? 0) - (a.lastUsed ?? 0)
     ));
@@ -382,7 +382,9 @@ return false;
    * Handles authentication if needed
    */
   async switchToProfile(profileId: string): Promise<boolean> {
+
     const profile = this.getProfile(profileId);
+
     if (!profile) {
       this.logger.error('Profile not found:', {profileId});
       return false;

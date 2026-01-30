@@ -65,6 +65,9 @@ export class SettingsDialogComponent implements OnInit {
   readonly logViewerEnabled = computed(() => this.settingsService.logViewerEnabled());
   readonly enabledTabs = computed(() => this.settingsService.enabledTabs());
 
+  // Notification Settings
+  readonly loginNotificationEnabled = computed(() => this.settingsService.loginNotificationEnabled());
+
   // Available tabs
   availableTabs = APP_TABS;
 
@@ -300,6 +303,13 @@ export class SettingsDialogComponent implements OnInit {
    */
   toggleTheme() {
     this.themeService.toggleTheme();
+  }
+
+  /**
+   * Toggle login notification
+   */
+  toggleLoginNotification() {
+    this.settingsService.toggleLoginNotification();
   }
 
   /**

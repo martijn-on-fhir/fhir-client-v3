@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, inject, effect } from '@angular/core';
+import { Component, ViewChild, inject, effect } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { NavigationService } from './core/services/navigation.service';
 import { ProfileLoadingService } from './core/services/profile-loading.service';
@@ -17,7 +17,7 @@ import { ToastContainerComponent } from './shared/components/toast-container/toa
   `,
   styles: []
 })
-export class AppComponent implements OnInit {
+export class AppComponent {
   @ViewChild(ResourceEditorDialogComponent) editorDialog!: ResourceEditorDialogComponent;
 
   private themeService = inject(ThemeService);
@@ -37,11 +37,6 @@ export class AppComponent implements OnInit {
         }, 0);
       }
     });
-  }
-
-  ngOnInit() {
-    // Theme service initializes on app start
-    // Auth state is checked by guards when navigating
   }
 
   /**

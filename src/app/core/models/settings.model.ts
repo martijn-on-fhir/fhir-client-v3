@@ -12,6 +12,13 @@ export interface GeneralSettings {
 }
 
 /**
+ * Notification Settings - Notification preferences
+ */
+export interface NotificationSettings {
+  loginNotificationEnabled: boolean;
+}
+
+/**
  * UI Settings - User interface preferences
  */
 export interface UISettings {
@@ -28,6 +35,7 @@ export interface UISettings {
 export interface AppSettings {
   general: GeneralSettings;
   ui: UISettings;
+  notifications: NotificationSettings;
   version: string;
   lastModified: number;
 }
@@ -45,6 +53,9 @@ export const DEFAULT_SETTINGS: AppSettings = {
     sidebarVisible: true,
     sidebarWidth: 250,
     enabledTabs: ['query', 'predefined', 'terminology', 'validator', 'profiles', 'nictiz', 'fhirpath', 'pluriform', 'resource-info', 'logs', 'subscriptions', 'narratives', 'reference-graph', 'bulk-import-export']
+  },
+  notifications: {
+    loginNotificationEnabled: true
   },
   version: '3.0.0',
   lastModified: Date.now()

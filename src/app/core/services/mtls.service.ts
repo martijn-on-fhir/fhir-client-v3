@@ -32,6 +32,7 @@ export class MtlsService {
 
     // Check cache
     const cached = this.certificateCache.get(hostname);
+
     if (cached && Date.now() - cached.timestamp < this.cacheTimeout) {
       return cached.hasCertificate && cached.enabled;
     }
@@ -70,6 +71,7 @@ export class MtlsService {
     data?: any;
     timeout?: number;
   }): Promise<MtlsResponse<T>> {
+
     if (!this.isAvailable()) {
       return {
         success: false,
@@ -78,6 +80,7 @@ export class MtlsService {
     }
 
     try {
+
       const result = await window.electronAPI!.mtls!.request(options);
 
       if (result.success) {
@@ -88,6 +91,7 @@ export class MtlsService {
           headers: result.headers,
           data: result.data as T
         };
+
       } else {
         return {
           success: false,
@@ -136,6 +140,7 @@ export class MtlsService {
    * Get certificate info for a domain
    */
   async getCertificateInfo(hostname: string): Promise<CertificateInfo | null> {
+
     if (!this.isAvailable()) {
       return null;
     }

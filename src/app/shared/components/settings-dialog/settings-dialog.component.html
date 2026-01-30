@@ -84,6 +84,27 @@
                   <i class="fas fa-save"></i> Opslaan
                 </button>
               </div>
+
+              <!-- Login Notification -->
+              <div class="setting-item">
+                <div class="setting-info">
+                  <i class="fas fa-bell"></i>
+                  <div>
+                    <h4>Login notificatie</h4>
+                    <p>Toon een Windows notificatie na succesvol inloggen</p>
+                  </div>
+                </div>
+                <div class="setting-control">
+                  <label class="toggle-switch">
+                    <input
+                      type="checkbox"
+                      [checked]="loginNotificationEnabled()"
+                      (change)="toggleLoginNotification()"
+                    />
+                    <span class="toggle-slider"></span>
+                  </label>
+                </div>
+              </div>
             </div>
           </div>
         }

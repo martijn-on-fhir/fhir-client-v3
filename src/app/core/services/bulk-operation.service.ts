@@ -96,6 +96,7 @@ export class BulkOperationService {
     try {
       // Process in batches
       for (let i = 0; i < resources.length; i += opts.batchSize) {
+
         if (this.cancelRequested) {
           this.progress.update(p => p ? { ...p, isCancelled: true, isComplete: true } : null);
           break;
@@ -313,8 +314,6 @@ export class BulkOperationService {
         isComplete: true
       } : null);
 
-      this.logger.info('Export complete', { count: allResources.length });
-
     } catch (error) {
       this.logger.error('Export failed:', error);
       throw error;
@@ -458,8 +457,6 @@ break;
         succeeded: totalCount,
         isComplete: true
       } : null);
-
-      this.logger.info('Export to temp file complete', { count: totalCount, path: tempFilePath });
 
     } catch (error) {
       this.logger.error('Export failed:', error);

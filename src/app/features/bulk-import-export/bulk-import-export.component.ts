@@ -541,6 +541,7 @@ return;
     }
 
     const counts = new Map<string, number>();
+
     for (const resource of data) {
       const type = resource?.resourceType || 'Unknown';
       counts.set(type, (counts.get(type) || 0) + 1);

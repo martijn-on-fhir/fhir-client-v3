@@ -148,6 +148,7 @@ module.exports = tseslint.config(
         'error',
         { blankLine: 'always', prev: '*', next: 'if' },
         { blankLine: 'always', prev: '*', next: 'try' },
+        { blankLine: 'always', prev: '*', next: 'for' },
         { blankLine: 'always', prev: '*', next: 'return' },
       ],
     }
