@@ -158,15 +158,20 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Execute graph building from root reference
+   * Execute graph building from root reference or search query
    */
   async executeGraph(): Promise<void> {
     const reference = this.rootReference().trim();
 
     if (!reference) {
-      this.toastService.warning('Please enter a resource reference (e.g., /Patient/123)');
+      this.toastService.warning('Please enter a resource reference (e.g., /Patient/123) or search query (e.g., /Condition?subject:Patient.name=klaas)');
 
       return;
+    }
+
+    // Check if this is a search query (contains ?)
+    if (reference.includes('?')) {
+      return this.executeGraphFromSearch(reference);
     }
 
     // Validate reference format
@@ -216,6 +221,89 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
     } catch (err: any) {
       this.logger.error('Failed to build graph:', err);
       this.toastService.error(err.message || 'Failed to build graph');
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  /**
+   * Execute graph building from a FHIR search query.
+   * Runs the search first, then builds graphs from each result resource.
+   */
+  private async executeGraphFromSearch(query: string): Promise<void> {
+    this.loading.set(true);
+    this.selectedNodeId.set(null);
+    this.selectedResource.set(null);
+
+    try {
+      const queryPath = query.startsWith('/') ? query : `/${query}`;
+      const bundle = await firstValueFrom(this.fhirService.executeQuery(queryPath));
+
+      if (!bundle?.entry?.length) {
+        this.toastService.warning('Search returned no results');
+        this.graphNodes.set([]);
+        this.graphEdges.set([]);
+
+        return;
+      }
+
+      const allNodes: GraphNode[] = [];
+      const allEdges: GraphEdge[] = [];
+      const allFetchedResources = new Map<string, any>();
+
+      for (const entry of bundle.entry) {
+        const resource = entry.resource;
+        if (!resource?.resourceType || !resource?.id) {
+          continue;
+        }
+
+        const rootRef = `${resource.resourceType}/${resource.id}`;
+
+        const result = await firstValueFrom(
+          this.graphService.buildGraph(
+            rootRef,
+            this.maxDepth(),
+            allFetchedResources,
+            this.includeReverseRefs()
+          )
+        );
+
+        for (const node of result.nodes) {
+          if (!allNodes.find(n => n.id === node.id)) {
+            allNodes.push(node);
+          }
+        }
+
+        for (const edge of result.edges) {
+          if (!allEdges.find(e => e.id === edge.id)) {
+            allEdges.push(edge);
+          }
+        }
+      }
+
+      if (allNodes.length === 0) {
+        this.toastService.warning('Search returned no graphable resources');
+        this.graphNodes.set([]);
+        this.graphEdges.set([]);
+      } else {
+        this.graphNodes.set(allNodes);
+        this.graphEdges.set(allEdges);
+        this.fetchedResources.set(allFetchedResources);
+
+        this.onNodeClick(allNodes[0].id);
+
+        this.logger.info(`Graph built from search: ${allNodes.length} nodes, ${allEdges.length} edges`);
+
+        if (allNodes.length > 50) {
+          this.toastService.warning(
+            `Large graph with ${allNodes.length} nodes. Consider reducing depth.`,
+            'Performance Warning'
+          );
+        }
+      }
+    } catch (err: any) {
+      this.logger.error('Failed to build graph from search:', err);
+      this.toastService.error(err.message || 'Failed to execute search query');
     } finally {
       this.loading.set(false);
     }

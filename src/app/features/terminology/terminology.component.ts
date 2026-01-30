@@ -6,6 +6,7 @@ import {LoggerService} from '../../core/services/logger.service';
 import {NavigationService} from '../../core/services/navigation.service';
 import {TerminologyStateService} from '../../core/services/terminology-state.service';
 import {TerminologyService, LookupParams, ExpandParams, ValidateCodeParams, TranslateParams} from '../../core/services/terminology.service';
+import {ToastService} from '../../core/services/toast.service';
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
 import {ResultHeaderComponent} from '../../shared/components/result-header/result-header.component';
 
@@ -55,6 +56,9 @@ export class TerminologyComponent implements OnInit, OnDestroy {
   /** Service for persisting state across tab navigation */
   private terminologyStateService = inject(TerminologyStateService);
 
+  /** Service for toast notifications */
+  private toastService = inject(ToastService);
+
   /** Component-specific logger instance */
   private logger = this.loggerService.component('TerminologyComponent');
 
@@ -63,9 +67,6 @@ export class TerminologyComponent implements OnInit, OnDestroy {
 
   /** Result from last terminology operation execution */
   result = signal<any>(null);
-
-  /** Error message from failed operations */
-  error = signal<string | null>(null);
 
   /** Loading state from terminology service */
   loading = computed(() => this.terminologyService.loading());
@@ -250,7 +251,6 @@ export class TerminologyComponent implements OnInit, OnDestroy {
    * @returns Promise that resolves when operation completes
    */
   async executeOperation() {
-    this.error.set(null);
     this.result.set(null);
 
     try {
@@ -278,7 +278,7 @@ export class TerminologyComponent implements OnInit, OnDestroy {
       this.terminologyStateService.setOperation(this.operation());
       this.terminologyStateService.setLookupParams(this.lookupSystem(), this.lookupCode());
     } catch (err: any) {
-      this.error.set(err.message || 'Operation failed');
+      this.toastService.error(err.message || 'Operation failed');
       this.logger.error('Operation error:', err);
     }
   }
@@ -435,7 +435,6 @@ export class TerminologyComponent implements OnInit, OnDestroy {
   selectOperation(op: OperationType) {
     this.operation.set(op);
     this.result.set(null);
-    this.error.set(null);
   }
 
   /**

@@ -177,8 +177,6 @@ export class LoginComponent implements OnInit {
 
       if (success) {
 
-        this.toastService.success(`Verbonden met ${profile.name}`);
-
         if (this.settingsService.loginNotificationEnabled()) {
 
           new Notification('FHIR Client MX', {

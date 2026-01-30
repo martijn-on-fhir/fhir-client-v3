@@ -137,6 +137,13 @@
               (copyAsCurlClicked)="onCopyAsCurlClicked()"
               (everythingClicked)="onEverythingClicked()"
               (favoriteToggled)="onFavoriteToggled()">
+              <button slot="actions"
+                class="btn btn-sm btn-outline-secondary"
+                (click)="openInReferenceGraph()"
+                [disabled]="!textQuery()"
+                title="Open in Reference Graph">
+                <i class="fas fa-project-diagram"></i>
+              </button>
             </app-result-header>
 
             @if (loading()) {
@@ -578,6 +585,13 @@
             (copyAsCurlClicked)="onCopyAsCurlClicked()"
             (everythingClicked)="onEverythingClicked()"
             (favoriteToggled)="onFavoriteToggled()">
+            <button slot="actions"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="openInReferenceGraph()"
+              [disabled]="!generatedQuery()"
+              title="Open in Reference Graph">
+              <i class="fas fa-project-diagram"></i>
+            </button>
           </app-result-header>
 
           @if (loading()) {

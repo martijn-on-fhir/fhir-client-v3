@@ -252,14 +252,6 @@
       padding="small">
     </app-result-header>
     <div class="card-body results-body">
-      <!-- Error Display -->
-      @if (error()) {
-        <div class="alert alert-danger">
-          <i class="fas fa-exclamation-triangle me-2"></i>
-          {{ error() }}
-        </div>
-      }
-
       <!-- Loading State -->
       @if (loading()) {
         <div class="text-center p-5">
@@ -269,7 +261,7 @@
       }
 
       <!-- No Results -->
-      @if (!result() && !loading() && !error()) {
+      @if (!result() && !loading()) {
         <div class="empty-state">
           <i class="fas fa-search fa-3x text-muted mb-3"></i>
           <p class="text-muted">No results yet. Select an operation and click Execute.</p>

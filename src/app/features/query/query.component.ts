@@ -1822,6 +1822,21 @@ export class QueryComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Open the current query in the Reference Graph tab
+   */
+  openInReferenceGraph(): void {
+    const query = this.getCurrentQuery();
+
+    if (!query) {
+      return;
+    }
+
+    const normalized = query.startsWith('/') ? query : `/${query}`;
+    localStorage.setItem('reference-graph-root', normalized);
+    this.router.navigate(['/app/reference-graph']);
+  }
+
+  /**
    * Gets the current query string based on query mode
    */
   private getCurrentQuery(): string | null {

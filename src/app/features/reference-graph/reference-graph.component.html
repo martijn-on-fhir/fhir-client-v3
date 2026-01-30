@@ -13,7 +13,7 @@
             class="form-control form-control-sm"
             [ngModel]="rootReference()"
             (ngModelChange)="onRootReferenceChange($event)"
-            placeholder="/Patient/123 or /Observation/456"
+            placeholder="/Patient/123 or /Condition?subject:Patient.name=klaas"
             spellcheck="false"
             (keydown.enter)="executeGraph()">
         </div>
