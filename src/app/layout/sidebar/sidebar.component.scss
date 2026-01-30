@@ -96,10 +96,20 @@
   }
 }
 
-// Favorites Section
-.favorites-section {
-  border-bottom: 2px solid var(--bs-border-color);
-  margin-bottom: 0.5rem;
+// Collapsible Sections (shared)
+.favorites-section,
+.recent-section,
+.resource-types-section {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-bottom: 4px solid var(--bs-border-color);
+  flex-shrink: 0;
+
+  &.expanded {
+    flex: 1;
+    min-height: 0;
+  }
 }
 
 .section-header {
@@ -130,7 +140,7 @@
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 350px;
+  flex: 1;
   overflow-y: auto;
 
   // Custom scrollbar
@@ -228,17 +238,11 @@
   border-color: var(--bs-border-color);
 }
 
-// Recent Section
-.recent-section {
-  border-bottom: 2px solid var(--bs-border-color);
-  margin-bottom: 0.5rem;
-}
-
 .recent-list {
   list-style: none;
   padding: 0;
   margin: 0;
-  max-height: 350px;
+  flex: 1;
   overflow-y: auto;
 
   // Custom scrollbar

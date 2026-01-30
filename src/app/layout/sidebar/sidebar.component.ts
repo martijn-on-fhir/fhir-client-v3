@@ -48,6 +48,9 @@ export class SidebarComponent implements OnInit, OnDestroy {
   recentResources = this.recentResourcesService.currentProfileRecent;
   recentExpanded = signal(true);
 
+  // Resource types section
+  resourceTypesExpanded = signal(true);
+
   // Filter
   filterText = signal('');
 
@@ -202,6 +205,13 @@ return;
    */
   toggleRecent() {
     this.recentExpanded.set(!this.recentExpanded());
+  }
+
+  /**
+   * Toggle resource types section expansion
+   */
+  toggleResourceTypes() {
+    this.resourceTypesExpanded.set(!this.resourceTypesExpanded());
   }
 
   /**
