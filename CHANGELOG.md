@@ -1,3 +1,10 @@
+# [1.49.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.48.0...v1.49.0) (2026-01-30)
+
+
+### Features
+
+* **sidebar:** persist panel expanded/collapsed state across sessions ([c8b7c3e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/c8b7c3e1b5a9e579fdfd8d00c4b64e986227ae42))
+
 # [1.48.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.47.0...v1.48.0) (2026-01-30)
 
 
