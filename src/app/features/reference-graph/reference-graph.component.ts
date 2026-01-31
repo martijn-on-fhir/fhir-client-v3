@@ -253,6 +253,7 @@ export class ReferenceGraphComponent implements OnInit, OnDestroy {
 
       for (const entry of bundle.entry) {
         const resource = entry.resource;
+
         if (!resource?.resourceType || !resource?.id) {
           continue;
         }

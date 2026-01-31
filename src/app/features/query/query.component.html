@@ -127,6 +127,8 @@
               [showCompareButton]="isSingleResource()"
               [showCopyAsCurl]="canCopyAsCurl()"
               [showEverythingButton]="canExecuteEverything()"
+              [showReferenceGraphButton]="true"
+              [disableReferenceGraphButton]="!textQuery()"
               [showFavoriteButton]="canFavorite()"
               [isFavorited]="isCurrentQueryFavorited()"
               (pageNavigate)="navigateToPage($event)"
@@ -136,14 +138,8 @@
               (compareClicked)="openDiffDialog()"
               (copyAsCurlClicked)="onCopyAsCurlClicked()"
               (everythingClicked)="onEverythingClicked()"
+              (referenceGraphClicked)="openInReferenceGraph()"
               (favoriteToggled)="onFavoriteToggled()">
-              <button slot="actions"
-                class="btn btn-sm btn-outline-secondary"
-                (click)="openInReferenceGraph()"
-                [disabled]="!textQuery()"
-                title="Open in Reference Graph">
-                <i class="fas fa-project-diagram"></i>
-              </button>
             </app-result-header>
 
             @if (loading()) {
@@ -575,6 +571,8 @@
             [showCompareButton]="isSingleResource()"
             [showCopyAsCurl]="canCopyAsCurl()"
             [showEverythingButton]="canExecuteEverything()"
+            [showReferenceGraphButton]="true"
+            [disableReferenceGraphButton]="!generatedQuery()"
             [showFavoriteButton]="canFavorite()"
             [isFavorited]="isCurrentQueryFavorited()"
             (pageNavigate)="navigateToPage($event)"
@@ -584,14 +582,8 @@
             (compareClicked)="openDiffDialog()"
             (copyAsCurlClicked)="onCopyAsCurlClicked()"
             (everythingClicked)="onEverythingClicked()"
+            (referenceGraphClicked)="openInReferenceGraph()"
             (favoriteToggled)="onFavoriteToggled()">
-            <button slot="actions"
-              class="btn btn-sm btn-outline-secondary"
-              (click)="openInReferenceGraph()"
-              [disabled]="!generatedQuery()"
-              title="Open in Reference Graph">
-              <i class="fas fa-project-diagram"></i>
-            </button>
           </app-result-header>
 
           @if (loading()) {

@@ -194,6 +194,23 @@ export class ResultHeaderComponent {
   @Output() everythingClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the reference graph button in the toolbar
+   * @default false
+   */
+  @Input() showReferenceGraphButton = false;
+
+  /**
+   * Whether the reference graph button is disabled
+   * @default true
+   */
+  @Input() disableReferenceGraphButton = true;
+
+  /**
+   * Event emitted when the reference graph button is clicked
+   */
+  @Output() referenceGraphClicked = new EventEmitter<void>();
+
+  /**
    * Whether to show the favorite button in the toolbar
    * @default false
    */

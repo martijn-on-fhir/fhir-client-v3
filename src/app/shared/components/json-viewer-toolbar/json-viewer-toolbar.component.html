@@ -80,5 +80,14 @@
     <button class="btn btn-sm btn-outline-secondary" title="Expand all" (click)="expandAll()">
       <i class="fas fa-expand"></i>
     </button>
+
+    @if (showReferenceGraphButton) {
+      <button class="btn btn-sm btn-outline-secondary"
+              title="Open in Reference Graph"
+              [disabled]="disableReferenceGraphButton"
+              (click)="referenceGraphClicked.emit()">
+        <i class="fas fa-project-diagram"></i>
+      </button>
+    }
   </div>
 </div>

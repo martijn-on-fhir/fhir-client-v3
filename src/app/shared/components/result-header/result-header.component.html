@@ -89,6 +89,8 @@
         [showCompareButton]="showCompareButton"
         [showCopyAsCurl]="showCopyAsCurl"
         [showEverythingButton]="showEverythingButton"
+        [showReferenceGraphButton]="showReferenceGraphButton"
+        [disableReferenceGraphButton]="disableReferenceGraphButton"
         [showFavoriteButton]="showFavoriteButton"
         [isFavorited]="isFavorited"
         (editClicked)="editClicked.emit()"
@@ -96,6 +98,7 @@
         (compareClicked)="compareClicked.emit()"
         (copyAsCurlClicked)="copyAsCurlClicked.emit()"
         (everythingClicked)="everythingClicked.emit()"
+        (referenceGraphClicked)="referenceGraphClicked.emit()"
         (favoriteToggled)="favoriteToggled.emit()">
       </app-json-viewer-toolbar>
     }

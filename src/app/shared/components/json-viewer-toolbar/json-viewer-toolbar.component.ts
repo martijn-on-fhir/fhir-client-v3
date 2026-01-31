@@ -103,6 +103,23 @@ export class JsonViewerToolbarComponent {
   @Output() generateNarrativeClicked = new EventEmitter<void>();
 
   /**
+   * Whether to show the reference graph button.
+   * @default false
+   */
+  @Input() showReferenceGraphButton = false;
+
+  /**
+   * Whether the reference graph button is disabled.
+   * @default true
+   */
+  @Input() disableReferenceGraphButton = true;
+
+  /**
+   * Emitted when the reference graph button is clicked.
+   */
+  @Output() referenceGraphClicked = new EventEmitter<void>();
+
+  /**
    * Whether to show the favorite button.
    * @default false
    */
