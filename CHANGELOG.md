@@ -1,3 +1,10 @@
+# [1.50.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.49.0...v1.50.0) (2026-01-31)
+
+
+### Features
+
+* **reference-graph:** support FHIR search queries and add query tab integration ([cce514c](https://github.com/martijn-on-fhir/fhir-client-v3/commit/cce514c864ae13bfeae7e15a8488487df19e6369))
+
 # [1.49.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.48.0...v1.49.0) (2026-01-30)
 
 
