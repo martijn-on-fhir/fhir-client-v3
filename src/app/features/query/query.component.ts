@@ -699,6 +699,16 @@ export class QueryComponent implements OnInit, OnDestroy {
         }, 100);
       }
     });
+
+    // Sync local result with state service (clears results on profile switch)
+    effect(() => {
+      const serviceResult = this.queryStateService.result();
+      if (serviceResult === null) {
+        this.result.set(null);
+        this.executionTime.set(null);
+        this.responseSize.set(null);
+      }
+    }, {allowSignalWrites: true});
   }
 
   /**

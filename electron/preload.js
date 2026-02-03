@@ -18,7 +18,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Event listeners
   on: (channel, callback) => {
 
-    const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'show-server-accounts', 'file-open', 'file-save'];
+    const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'show-server-accounts', 'file-open', 'file-save', 'menu-switch-profile'];
 
     if (validChannels.includes(channel)) {
       ipcRenderer.on(channel, callback);
@@ -26,7 +26,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
 
   off: (channel, callback) => {
-    const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'show-server-accounts', 'file-open', 'file-save'];
+    const validChannels = ['show-about', 'show-server-info', 'show-settings', 'show-certificate-manager', 'show-server-accounts', 'file-open', 'file-save', 'menu-switch-profile'];
     if (validChannels.includes(channel)) {
       ipcRenderer.removeListener(channel, callback);
     }

@@ -7,7 +7,11 @@ import {
   DEFAULT_PROFILE,
   PROFILE_COLORS
 } from '../models/server-profile.model';
+import {HttpInspectorService} from './http-inspector.service';
 import {LoggerService} from './logger.service';
+import {PredefinedStateService} from './predefined-state.service';
+import {QueryStateService} from './query-state.service';
+import {TerminologyStateService} from './terminology-state.service';
 
 /**
  * Server Profile Service
@@ -22,6 +26,10 @@ import {LoggerService} from './logger.service';
 export class ServerProfileService {
   private loggerService = inject(LoggerService);
   private logger = this.loggerService.component('ServerProfileService');
+  private queryStateService = inject(QueryStateService);
+  private predefinedStateService = inject(PredefinedStateService);
+  private terminologyStateService = inject(TerminologyStateService);
+  private httpInspectorService = inject(HttpInspectorService);
 
   // State signals
   private _profiles = signal<ServerProfile[]>([]);
@@ -389,6 +397,12 @@ return false;
       this.logger.error('Profile not found:', {profileId});
       return false;
     }
+
+    // Clear results from previous server
+    this.queryStateService.clearResult();
+    this.predefinedStateService.clearResult();
+    this.terminologyStateService.clearResult();
+    this.httpInspectorService.clearHistory();
 
     // Update lastUsed
     await this.updateProfile(profileId, {lastUsed: Date.now()});

@@ -1,4 +1,44 @@
 const { Menu, BrowserWindow, shell, app } = require('electron');
+const tokenStore = require('../auth/token-store');
+
+/**
+ * Build the Servers submenu from stored profiles
+ * @returns {Array} Menu items for the Servers submenu
+ */
+function buildServersSubmenu() {
+  const profiles = tokenStore.getProfiles();
+  const activeProfileId = tokenStore.getActiveProfileId();
+  const items = [];
+
+  if (profiles.length > 0) {
+    for (const profile of profiles) {
+      items.push({
+        label: profile.name,
+        type: 'radio',
+        checked: profile.id === activeProfileId,
+        click: () => {
+          const focusedWindow = BrowserWindow.getFocusedWindow();
+          if (focusedWindow) {
+            focusedWindow.webContents.send('menu-switch-profile', profile.id);
+          }
+        }
+      });
+    }
+    items.push({ type: 'separator' });
+  }
+
+  items.push({
+    label: 'Manage Servers...',
+    click: () => {
+      const focusedWindow = BrowserWindow.getFocusedWindow();
+      if (focusedWindow) {
+        focusedWindow.webContents.send('show-server-accounts');
+      }
+    }
+  });
+
+  return items;
+}
 
 /**
  * Create application menu
@@ -102,6 +142,12 @@ function createApplicationMenu() {
       ]
     });
 
+    // Servers menu
+    template.push({
+      label: 'Servers',
+      submenu: buildServersSubmenu()
+    });
+
     // View menu
     template.push({
       label: 'View',
@@ -198,6 +244,12 @@ function createApplicationMenu() {
         { role: 'paste' },
         { role: 'selectAll' }
       ]
+    });
+
+    // Servers menu
+    template.push({
+      label: 'Servers',
+      submenu: buildServersSubmenu()
     });
 
     template.push({

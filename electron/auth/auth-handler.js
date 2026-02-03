@@ -4,6 +4,7 @@ const path = require('path');
 const fs = require('fs');
 const tokenStore = require('./token-store');
 const log = require('electron-log/main');
+const { createApplicationMenu } = require('../menu/menu-handler');
 
 /**
  * Authentication IPC Handlers
@@ -221,6 +222,7 @@ function registerAuthHandlers() {
    */
   ipcMain.handle('profiles:save', async (event, profiles) => {
     tokenStore.setProfiles(profiles);
+    createApplicationMenu();
     return { success: true };
   });
 
@@ -236,6 +238,7 @@ function registerAuthHandlers() {
    */
   ipcMain.handle('profiles:setActive', async (event, id) => {
     tokenStore.setActiveProfileId(id);
+    createApplicationMenu();
     return { success: true };
   });
 
@@ -244,6 +247,7 @@ function registerAuthHandlers() {
    */
   ipcMain.handle('profiles:clear', async () => {
     tokenStore.clearProfiles();
+    createApplicationMenu();
     return { success: true };
   });
 

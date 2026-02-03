@@ -196,6 +196,14 @@ export class PredefinedComponent implements OnInit, OnDestroy {
         }, 100);
       }
     });
+
+    // Sync local result with state service (clears results on profile switch)
+    effect(() => {
+      const serviceResult = this.predefinedStateService.result();
+      if (serviceResult === null) {
+        this.result.set(null);
+      }
+    }, {allowSignalWrites: true});
   }
 
   /**

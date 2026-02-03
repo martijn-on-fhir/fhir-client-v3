@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, inject, computed, ViewChild, OnInit, OnDestroy } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { EditorStateService } from '../../core/services/editor-state.service';
+import { ServerProfileService } from '../../core/services/server-profile.service';
 import { SettingsService } from '../../core/services/settings.service';
 import { AboutDialogComponent } from '../../shared/components/about-dialog/about-dialog.component';
 import { CertificateManagerDialogComponent } from '../../shared/components/certificate-manager-dialog/certificate-manager-dialog.component';
@@ -42,6 +43,7 @@ import { TabNavComponent } from '../tab-nav/tab-nav.component';
 export class MainLayoutComponent implements OnInit, OnDestroy {
   private settingsService = inject(SettingsService);
   private editorStateService = inject(EditorStateService);
+  private serverProfileService = inject(ServerProfileService);
 
   @ViewChild(AboutDialogComponent) aboutDialog!: AboutDialogComponent;
   @ViewChild(ServerInfoDialogComponent) serverInfoDialog!: ServerInfoDialogComponent;
@@ -68,6 +70,10 @@ export class MainLayoutComponent implements OnInit, OnDestroy {
 
   private showServerAccountsCallback = () => {
     this.serverProfileDialog?.openAdd();
+  };
+
+  private menuSwitchProfileCallback = (_event: any, profileId: string) => {
+    this.serverProfileService.switchToProfile(profileId);
   };
 
   private handleFileOpen = async () => {
@@ -141,6 +147,7 @@ return;
       window.electronAPI.on('show-server-accounts', this.showServerAccountsCallback);
       window.electronAPI.on('file-open', this.handleFileOpen);
       window.electronAPI.on('file-save', this.handleFileSave);
+      window.electronAPI.on('menu-switch-profile', this.menuSwitchProfileCallback);
     }
   }
 
@@ -154,6 +161,7 @@ return;
       window.electronAPI.off('show-server-accounts', this.showServerAccountsCallback);
       window.electronAPI.off('file-open', this.handleFileOpen);
       window.electronAPI.off('file-save', this.handleFileSave);
+      window.electronAPI.off('menu-switch-profile', this.menuSwitchProfileCallback);
     }
   }
 }
