@@ -26,6 +26,7 @@ import {QueryAutocompleteService, Suggestion} from '../../core/services/query-au
 import {QueryHistoryService} from '../../core/services/query-history.service';
 import {QueryStateService} from '../../core/services/query-state.service';
 import {RecentResourcesService} from '../../core/services/recent-resources.service';
+import {ServerProfileService} from '../../core/services/server-profile.service';
 import {ToastService} from '../../core/services/toast.service';
 import {FhirQueryValidator} from '../../core/utils/fhir-query-string-validator'
 import {MonacoEditorComponent} from '../../shared/components/monaco-editor/monaco-editor.component';
@@ -97,6 +98,7 @@ export class QueryComponent implements OnInit, OnDestroy {
    * Injected recent resources service for tracking viewed resources
    */
   private recentResourcesService = inject(RecentResourcesService);
+  private serverProfileService = inject(ServerProfileService);
 
   /**
    * DestroyRef for managing subscriptions
@@ -708,6 +710,19 @@ export class QueryComponent implements OnInit, OnDestroy {
         this.executionTime.set(null);
         this.responseSize.set(null);
       }
+    }, {allowSignalWrites: true});
+
+    // Reload metadata when active profile changes
+    let initialProfile = true;
+    effect(() => {
+      this.serverProfileService.activeProfileId();
+      if (initialProfile) {
+        initialProfile = false;
+        return;
+      }
+      this.metadata.set(null);
+      this.autocompleteService.setMetadata(null);
+      this.loadMetadata();
     }, {allowSignalWrites: true});
   }
 
