@@ -705,6 +705,7 @@ export class QueryComponent implements OnInit, OnDestroy {
     // Sync local result with state service (clears results on profile switch)
     effect(() => {
       const serviceResult = this.queryStateService.result();
+
       if (serviceResult === null) {
         this.result.set(null);
         this.executionTime.set(null);
@@ -716,8 +717,10 @@ export class QueryComponent implements OnInit, OnDestroy {
     let initialProfile = true;
     effect(() => {
       this.serverProfileService.activeProfileId();
+
       if (initialProfile) {
         initialProfile = false;
+
         return;
       }
       this.metadata.set(null);

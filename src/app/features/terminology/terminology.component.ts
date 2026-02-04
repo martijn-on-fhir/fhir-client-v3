@@ -192,6 +192,7 @@ export class TerminologyComponent implements OnInit, OnDestroy {
     // Sync local result with state service (clears results on profile switch)
     effect(() => {
       const serviceResult = this.terminologyStateService.result();
+
       if (serviceResult === null) {
         this.result.set(null);
       }
