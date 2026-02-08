@@ -1,3 +1,10 @@
+## [1.51.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.51.0...v1.51.1) (2026-02-08)
+
+
+### Bug Fixes
+
+* bypass CORS by routing HTTP requests through Electron IPC proxy ([2d2ba00](https://github.com/martijn-on-fhir/fhir-client-v3/commit/2d2ba000721b9ba507a31a58399dc3be7f0ee014))
+
 # [1.51.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.50.0...v1.51.0) (2026-02-08)
 
 
