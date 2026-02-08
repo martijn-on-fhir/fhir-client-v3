@@ -9,6 +9,7 @@ import { FhirService } from '../../core/services/fhir.service';
 import { LoggerService } from '../../core/services/logger.service';
 import { NavigationService } from '../../core/services/navigation.service';
 import { RecentResourcesService } from '../../core/services/recent-resources.service';
+import { ServerProfileService } from '../../core/services/server-profile.service';
 import { SettingsService } from '../../core/services/settings.service';
 
 /**
@@ -27,6 +28,7 @@ import { SettingsService } from '../../core/services/settings.service';
 })
 export class SidebarComponent implements OnInit, OnDestroy {
   private fhirService = inject(FhirService);
+  private serverProfileService = inject(ServerProfileService);
   private settingsService = inject(SettingsService);
   private navigationService = inject(NavigationService);
   private favoritesService = inject(FavoritesService);
@@ -100,6 +102,9 @@ return this.allRecentResources();
 
   // Get sidebar width from settings
   readonly sidebarWidth = computed(() => this.settingsService.sidebarWidth());
+
+  // FHIR version from active server profile
+  readonly fhirVersion = computed(() => this.serverProfileService.activeProfile()?.fhirVersion ?? null);
 
   async ngOnInit() {
     await this.loadResourceTypes();

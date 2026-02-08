@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { FhirSubscription, SubscriptionStatus } from '../../core/models/subscription.model';
 import { EditorStateService } from '../../core/services/editor-state.service';
 import { LoggerService } from '../../core/services/logger.service';
+import { ServerProfileService } from '../../core/services/server-profile.service';
 import { SubscriptionService } from '../../core/services/subscription.service';
 import { ToastService } from '../../core/services/toast.service';
 import { ConfirmationDialogComponent } from '../../shared/components/confirmation-dialog/confirmation-dialog.component';
@@ -14,7 +15,7 @@ import { SubscriptionEditorDialogComponent } from './dialogs/subscription-editor
 /**
  * FHIR Subscriptions Management Component
  *
- * Provides interface for managing FHIR STU3 Subscriptions:
+ * Provides interface for managing FHIR STU3/R4 Subscriptions:
  * - List all subscriptions from server
  * - Create new subscriptions
  * - Edit existing subscriptions
@@ -46,9 +47,13 @@ export class SubscriptionsComponent implements OnInit, OnDestroy {
 
   subscriptionService = inject(SubscriptionService);
   private loggerService = inject(LoggerService);
+  private serverProfileService = inject(ServerProfileService);
   private editorStateService = inject(EditorStateService);
   private toastService = inject(ToastService);
   private logger = this.loggerService.component('SubscriptionsComponent');
+
+  /** Detected FHIR version from the active server profile */
+  fhirVersion = computed(() => this.serverProfileService.activeProfile()?.fhirVersion ?? null);
 
   /** Currently selected subscription */
   selectedSubscription = signal<FhirSubscription | null>(null);

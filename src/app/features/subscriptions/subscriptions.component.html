@@ -13,6 +13,9 @@
         }
         Refresh
       </button>
+      @if (fhirVersion()) {
+        <span class="badge bg-info ms-2">FHIR {{ fhirVersion() }}</span>
+      }
     </div>
     <div class="toolbar-right">
       <div class="filter-group">

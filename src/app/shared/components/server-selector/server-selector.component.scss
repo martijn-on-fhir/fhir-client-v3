@@ -235,3 +235,27 @@
 .profile-meta {
   color: var(--bs-secondary-color);
 }
+
+.version-badge {
+  display: inline-block;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 0.2rem;
+  background: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary);
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.version-badge-sm {
+  display: inline-block;
+  padding: 0.05rem 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+  border-radius: 0.2rem;
+  background: var(--bs-primary-bg-subtle);
+  color: var(--bs-primary);
+  margin-left: 0.35rem;
+  line-height: 1.2;
+}

@@ -1,6 +1,6 @@
 import {CommonModule} from '@angular/common';
 import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmitter, ViewEncapsulation} from '@angular/core';
-import {ServerProfile, PROFILE_COLORS} from '../../../core/models/server-profile.model';
+import {ServerProfile, FhirVersion, PROFILE_COLORS} from '../../../core/models/server-profile.model';
 import {ServerProfileService} from '../../../core/services/server-profile.service';
 
 /**
@@ -126,5 +126,9 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
       case 'mtls': return 'mTLS';
       default: return authType;
     }
+  }
+
+  getVersionLabel(fhirVersion?: FhirVersion): string {
+    return fhirVersion || '';
   }
 }

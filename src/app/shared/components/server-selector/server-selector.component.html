@@ -5,6 +5,9 @@
     title="Server selecteren">
     <span class="status-dot" [style.background-color]="displayColor()"></span>
     <span class="server-name">{{ displayName() }}</span>
+    @if (activeProfile()?.fhirVersion) {
+      <span class="version-badge">{{ activeProfile()!.fhirVersion }}</span>
+    }
     <i class="fas fa-chevron-down chevron" [class.open]="isOpen()"></i>
   </button>
 
@@ -27,7 +30,12 @@
                 </span>
                 <div class="profile-info">
                   <span class="profile-name">{{ profile.name }}</span>
-                  <span class="profile-meta">{{ getAuthTypeLabel(profile.authType) }}</span>
+                  <span class="profile-meta">
+                    {{ getAuthTypeLabel(profile.authType) }}
+                    @if (profile.fhirVersion) {
+                      <span class="version-badge-sm">{{ profile.fhirVersion }}</span>
+                    }
+                  </span>
                 </div>
                 @if (profile.id === activeProfileId()) {
                   <i class="fas fa-check check-icon"></i>

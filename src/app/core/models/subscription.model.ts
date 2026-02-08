@@ -1,5 +1,5 @@
 /**
- * FHIR STU3 Subscription Model
+ * FHIR Subscription Model (STU3/R4)
  *
  * Defines TypeScript interfaces for FHIR Subscription resources
  * used to manage real-time notifications from a FHIR server.
@@ -23,7 +23,7 @@ export interface SubscriptionChannel {
 }
 
 /**
- * FHIR Subscription resource (STU3)
+ * FHIR Subscription resource (STU3/R4)
  */
 export interface FhirSubscription {
   resourceType: 'Subscription';

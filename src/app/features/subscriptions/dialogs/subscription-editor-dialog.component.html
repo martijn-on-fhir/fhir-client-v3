@@ -41,7 +41,12 @@
             [ngModel]="formData().criteria"
             (ngModelChange)="updateField('criteria', $event)"
             placeholder="Observation?code=http://loinc.org|1234-5" />
-          <span class="form-hint">FHIR search criteria that triggers notifications (e.g., Observation?patient=Patient/123)</span>
+          <span class="form-hint">
+            FHIR search criteria that triggers notifications (e.g., Observation?patient=Patient/123)
+            @if (fhirVersion()) {
+              ({{ fhirVersion() }})
+            }
+          </span>
         </div>
 
         <!-- Channel Section -->

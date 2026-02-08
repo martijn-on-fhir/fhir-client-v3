@@ -17,6 +17,7 @@ import {
   QueryParameter,
   SearchParameter,
 } from '../../core/models/query-builder.model';
+import {detectFhirVersion} from '../../core/models/server-profile.model';
 import {EditorStateService} from '../../core/services/editor-state.service';
 import {FavoritesService} from '../../core/services/favorites.service';
 import {FhirService} from '../../core/services/fhir.service';
@@ -804,6 +805,18 @@ export class QueryComponent implements OnInit, OnDestroy {
         this.metadata.set(storedMetadata);
         // Set metadata for autocomplete service
         this.autocompleteService.setMetadata(storedMetadata);
+
+        // Check if fhirVersion needs updating
+        const serverVersion = storedMetadata.fhirVersion;
+
+        if (serverVersion) {
+          const detected = detectFhirVersion(serverVersion);
+          const activeProfile = this.serverProfileService.activeProfile();
+
+          if (detected && activeProfile && activeProfile.fhirVersion !== detected) {
+            this.serverProfileService.updateProfile(activeProfile.id, {fhirVersion: detected});
+          }
+        }
       } else {
         this.metadataError.set('Metadata not available');
       }

@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, signal, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnChanges, SimpleChanges, signal, computed, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   FhirSubscription,
@@ -8,12 +8,13 @@ import {
   ChannelType
 } from '../../../core/models/subscription.model';
 import { LoggerService } from '../../../core/services/logger.service';
+import { ServerProfileService } from '../../../core/services/server-profile.service';
 import { SubscriptionService } from '../../../core/services/subscription.service';
 
 /**
  * Subscription Editor Dialog Component
  *
- * Modal dialog for creating and editing FHIR Subscriptions.
+ * Modal dialog for creating and editing FHIR STU3/R4 Subscriptions.
  */
 @Component({
   selector: 'app-subscription-editor-dialog',
@@ -29,8 +30,12 @@ export class SubscriptionEditorDialogComponent implements OnChanges {
   @Output() save = new EventEmitter<SubscriptionFormData>();
 
   private loggerService = inject(LoggerService);
+  private serverProfileService = inject(ServerProfileService);
   private subscriptionService = inject(SubscriptionService);
   private logger = this.loggerService.component('SubscriptionEditorDialog');
+
+  /** Detected FHIR version from the active server profile */
+  fhirVersion = computed(() => this.serverProfileService.activeProfile()?.fhirVersion ?? null);
 
   /** Form data */
   formData = signal<SubscriptionFormData>({ ...DEFAULT_SUBSCRIPTION_FORM });

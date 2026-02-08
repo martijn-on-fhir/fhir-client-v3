@@ -5,8 +5,10 @@ import {
   ServerProfile,
   AuthType,
   AuthConfig,
+  FhirVersion,
   PROFILE_COLORS,
-  DEFAULT_PROFILE
+  DEFAULT_PROFILE,
+  detectFhirVersion
 } from '../../../core/models/server-profile.model';
 import {CertificateService} from '../../../core/services/certificate.service';
 import {MtlsService} from '../../../core/services/mtls.service';
@@ -43,6 +45,8 @@ interface ProfileFormData {
   mtlsCertificateId: string;
   // Custom headers
   customHeaders: CustomHeaderEntry[];
+  // Detected FHIR version
+  fhirVersion: FhirVersion | null;
 }
 
 /**
@@ -280,6 +284,11 @@ return;
       if (response.ok) {
         const data = await response.json();
         const serverName = data.software?.name || data.implementation?.description || 'FHIR Server';
+        const detectedVersion = data.fhirVersion ? detectFhirVersion(data.fhirVersion) : null;
+
+        if (detectedVersion) {
+          this.formData.update(f => ({...f, fhirVersion: detectedVersion}));
+        }
         this.toastService.success(`Verbinding geslaagd!`, `${serverName} (${data.fhirVersion || 'Unknown version'})`);
       } else {
         this.toastService.error(`Verbinding mislukt`, `Status: ${response.status} ${response.statusText}`);
@@ -412,7 +421,8 @@ return;
       password: '',
       bearerToken: '',
       mtlsCertificateId: '',
-      customHeaders: []
+      customHeaders: [],
+      fhirVersion: null
     };
   }
 
@@ -438,7 +448,8 @@ return;
       password: profile.authConfig?.password || '',
       bearerToken: profile.authConfig?.bearerToken || '',
       mtlsCertificateId: profile.mtlsCertificateId || '',
-      customHeaders
+      customHeaders,
+      fhirVersion: profile.fhirVersion || null
     };
   }
 
@@ -483,7 +494,8 @@ return;
       color: form.color,
       authConfig: Object.keys(authConfig).length > 0 ? authConfig : undefined,
       mtlsCertificateId: form.authType === 'mtls' ? form.mtlsCertificateId : undefined,
-      customHeaders: Object.keys(customHeaders).length > 0 ? customHeaders : undefined
+      customHeaders: Object.keys(customHeaders).length > 0 ? customHeaders : undefined,
+      fhirVersion: form.fhirVersion || undefined
     };
   }
 

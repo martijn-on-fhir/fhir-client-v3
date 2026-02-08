@@ -54,6 +54,15 @@
             />
           </div>
 
+          <div class="form-group fhir-version-display">
+            <label>FHIR Versie</label>
+            @if (formData().fhirVersion) {
+              <span class="version-badge">{{ formData().fhirVersion }}</span>
+            } @else {
+              <span class="version-not-detected">Niet gedetecteerd — test de verbinding om te detecteren</span>
+            }
+          </div>
+
           <!-- Color Picker -->
           <div class="form-group">
             <label>Kleur</label>

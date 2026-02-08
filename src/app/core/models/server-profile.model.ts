@@ -1,4 +1,34 @@
 /**
+ * Supported FHIR versions
+ */
+export type FhirVersion = 'STU3' | 'R4' | 'R4B' | 'R5';
+
+/**
+ * Detects the FHIR version from a CapabilityStatement fhirVersion string.
+ * Maps version strings like "4.0.1" to the corresponding FhirVersion label.
+ */
+export function detectFhirVersion(fhirVersionString: string): FhirVersion | null {
+  if (!fhirVersionString) {
+    return null;
+  }
+
+  if (fhirVersionString.startsWith('3.0')) {
+    return 'STU3';
+  }
+  if (fhirVersionString.startsWith('4.0')) {
+    return 'R4';
+  }
+  if (fhirVersionString.startsWith('4.3')) {
+    return 'R4B';
+  }
+  if (fhirVersionString.startsWith('5.')) {
+    return 'R5';
+  }
+
+  return null;
+}
+
+/**
  * Authentication type for server profiles
  */
 export type AuthType = 'none' | 'basic' | 'bearer' | 'oauth2' | 'mtls';
@@ -42,6 +72,8 @@ export interface ServerProfile {
   lastUsed?: number;
   /** Custom headers to include in every FHIR request */
   customHeaders?: Record<string, string>;
+  /** Detected FHIR version from the server's CapabilityStatement */
+  fhirVersion?: FhirVersion;
 }
 
 /**

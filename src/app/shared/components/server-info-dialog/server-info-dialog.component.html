@@ -54,7 +54,12 @@
                 </tr>
                 <tr>
                   <td class="label">FHIR Version:</td>
-                  <td class="value">{{ getFhirVersion() }}</td>
+                  <td class="value">
+                    {{ getFhirVersion() }}
+                    @if (detectedVersion()) {
+                      <span class="badge bg-info ms-2">{{ detectedVersion() }}</span>
+                    }
+                  </td>
                 </tr>
                 <tr>
                   <td class="label">Status:</td>
@@ -71,6 +76,15 @@
                   <td class="value">{{ getReleaseDate() }}</td>
                 </tr>
               </table>
+
+              @if (versionMismatch()) {
+                <div class="alert alert-warning mt-2">
+                  <i class="fas fa-exclamation-triangle me-2"></i>
+                  Server reports FHIR version <strong>{{ detectedVersion() }}</strong>,
+                  but profile has <strong>{{ profileVersion() }}</strong> stored.
+                  Re-test the connection to update.
+                </div>
+              }
             </div>
 
             <!-- Connection Details -->

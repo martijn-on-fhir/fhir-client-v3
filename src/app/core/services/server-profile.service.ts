@@ -5,7 +5,8 @@ import {
   ServerSession,
   AuthType,
   DEFAULT_PROFILE,
-  PROFILE_COLORS
+  PROFILE_COLORS,
+  detectFhirVersion
 } from '../models/server-profile.model';
 import {HttpInspectorService} from './http-inspector.service';
 import {LoggerService} from './logger.service';
@@ -411,6 +412,7 @@ return false;
     if (this.hasValidSession(profileId)) {
       await this.setActiveProfileId(profileId);
       this.logger.info('Switched to profile (existing session):', {id: profileId, name: profile.name});
+      this.detectAndPersistFhirVersion(profileId);
       return true;
     }
 
@@ -419,6 +421,7 @@ return false;
     if (authenticated) {
       await this.setActiveProfileId(profileId);
       this.logger.info('Switched to profile (new session):', {id: profileId, name: profile.name});
+      this.detectAndPersistFhirVersion(profileId);
       return true;
     }
 
@@ -629,6 +632,44 @@ return {};
   async getActiveAuthHeaders(): Promise<Record<string, string>> {
     const activeId = this._activeProfileId();
     return activeId ? this.getAuthHeadersForProfile(activeId) : {};
+  }
+
+  // ==================== FHIR Version Detection ====================
+
+  /**
+   * Detect FHIR version from the server's CapabilityStatement and persist it.
+   * Runs in the background (fire-and-forget) so it doesn't block profile switching.
+   * Only fetches if the profile doesn't already have a fhirVersion.
+   * Uses direct fetch to avoid circular dependency with FhirService.
+   */
+  private async detectAndPersistFhirVersion(profileId: string): Promise<void> {
+    const profile = this.getProfile(profileId);
+    if (!profile || profile.fhirVersion) {
+      return;
+    }
+
+    try {
+      const baseUrl = profile.fhirServerUrl.replace(/\/$/, '');
+      const headers: Record<string, string> = {
+        'Accept': 'application/fhir+json',
+        ...await this.getAuthHeadersForProfile(profileId)
+      };
+
+      const response = await fetch(`${baseUrl}/metadata`, {method: 'GET', headers});
+      if (response.ok) {
+        const data = await response.json();
+        const versionString = data?.fhirVersion;
+        if (versionString) {
+          const detected = detectFhirVersion(versionString);
+          if (detected) {
+            await this.updateProfile(profileId, {fhirVersion: detected});
+            this.logger.info('Detected FHIR version:', {profileId, fhirVersion: detected});
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.warn('Failed to detect FHIR version:', error);
+    }
   }
 
   // ==================== Utilities ====================

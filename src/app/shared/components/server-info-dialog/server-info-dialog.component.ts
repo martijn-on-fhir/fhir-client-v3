@@ -1,7 +1,9 @@
 import { CommonModule } from '@angular/common';
-import { Component, signal, inject, HostListener } from '@angular/core';
+import { Component, signal, computed, inject, HostListener } from '@angular/core';
+import { detectFhirVersion, FhirVersion } from '../../../core/models/server-profile.model';
 import { FhirService } from '../../../core/services/fhir.service';
 import { LoggerService } from '../../../core/services/logger.service';
+import { ServerProfileService } from '../../../core/services/server-profile.service';
 
 /**
  * Server Info Dialog Component
@@ -18,6 +20,7 @@ import { LoggerService } from '../../../core/services/logger.service';
 export class ServerInfoDialogComponent {
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
+  private serverProfileService = inject(ServerProfileService);
   private get logger() {
     return this.loggerService.component('ServerInfoDialog');
   }
@@ -26,6 +29,22 @@ export class ServerInfoDialogComponent {
   loading = signal(false);
   error = signal<string | null>(null);
   metadata = signal<any>(null);
+
+  detectedVersion = computed<FhirVersion | null>(() => {
+    const meta = this.metadata();
+    const raw = meta?.fhirVersion;
+
+    return raw ? detectFhirVersion(raw) : null;
+  });
+
+  profileVersion = computed<FhirVersion | null>(() => this.serverProfileService.activeProfile()?.fhirVersion ?? null);
+
+  versionMismatch = computed(() => {
+    const detected = this.detectedVersion();
+    const profile = this.profileVersion();
+
+    return detected !== null && profile !== null && detected !== profile;
+  });
 
   /**
    * Open dialog and fetch server metadata

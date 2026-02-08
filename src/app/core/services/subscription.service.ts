@@ -1,4 +1,4 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, inject, signal, computed } from '@angular/core';
 import { Observable, tap } from 'rxjs';
 import {
   FhirSubscription,
@@ -7,11 +7,12 @@ import {
 } from '../models/subscription.model';
 import { FhirService } from './fhir.service';
 import { LoggerService } from './logger.service';
+import { ServerProfileService } from './server-profile.service';
 
 /**
  * Subscription Service
  *
- * Manages FHIR STU3 Subscriptions for real-time notifications.
+ * Manages FHIR STU3/R4 Subscriptions for real-time notifications.
  * Uses Angular Signals for reactive state management.
  */
 @Injectable({
@@ -20,7 +21,11 @@ import { LoggerService } from './logger.service';
 export class SubscriptionService {
   private fhirService = inject(FhirService);
   private loggerService = inject(LoggerService);
+  private serverProfileService = inject(ServerProfileService);
   private logger = this.loggerService.component('SubscriptionService');
+
+  /** Detected FHIR version from the active server profile */
+  readonly fhirVersion = computed(() => this.serverProfileService.activeProfile()?.fhirVersion ?? null);
 
   /** List of subscriptions loaded from server */
   readonly subscriptions = signal<FhirSubscription[]>([]);

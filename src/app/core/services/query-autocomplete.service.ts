@@ -1,5 +1,5 @@
 import {Injectable, inject} from '@angular/core';
-import {R3TypesService} from './r3-types.service';
+import {FhirTypesService} from './fhir-types.service';
 
 /**
  * Query context - where in the query the cursor is
@@ -70,7 +70,7 @@ export interface Suggestion {
 })
 export class QueryAutocompleteService {
 
-  private r3Types = inject(R3TypesService);
+  private fhirTypes = inject(FhirTypesService);
 
   /** Cached metadata from CapabilityStatement */
   private metadata: any = null;
@@ -282,7 +282,7 @@ export class QueryAutocompleteService {
    */
   private getResourceSuggestions(prefix: string): Suggestion[] {
 
-    const types = this.r3Types.searchResourceTypes(prefix);
+    const types = this.fhirTypes.searchResourceTypes(prefix);
 
     return types.map(type => ({
       label: type,
@@ -319,7 +319,7 @@ export class QueryAutocompleteService {
     const suggestions: Suggestion[] = [];
 
     // Add global parameters
-    const globalParams = this.r3Types.searchGlobalParameters(prefix);
+    const globalParams = this.fhirTypes.searchGlobalParameters(prefix);
     for (const param of globalParams) {
       if (!usedParams.includes(param.name)) {
         suggestions.push({
@@ -383,7 +383,7 @@ export class QueryAutocompleteService {
     }
 
     const paramType = this.getParamType(resourceType, paramName);
-    const modifiers = this.r3Types.getModifiers(paramType || 'string');
+    const modifiers = this.fhirTypes.getModifiers(paramType || 'string');
 
     const lowerPrefix = prefix.toLowerCase();
     const suggestions: Suggestion[] = [];
@@ -402,7 +402,7 @@ export class QueryAutocompleteService {
 
     // For reference parameters, also add target resource types for chained search
     if (paramType === 'reference') {
-      const targets = this.r3Types.getReferenceTargets(paramName);
+      const targets = this.fhirTypes.getReferenceTargets(paramName);
       for (const target of targets) {
         if (target.toLowerCase().startsWith(lowerPrefix)) {
           suggestions.push({
@@ -432,7 +432,7 @@ export class QueryAutocompleteService {
 
     // For date, number, quantity - suggest operators
     if (paramType === 'date' || paramType === 'number' || paramType === 'quantity') {
-      const operators = this.r3Types.getPrefixOperators();
+      const operators = this.fhirTypes.getPrefixOperators();
       for (const op of operators) {
         if (op.prefix.startsWith(prefix.toLowerCase())) {
           suggestions.push({
@@ -448,10 +448,10 @@ export class QueryAutocompleteService {
     // Check for enum values
     if (paramName) {
       // Try resource-specific enum
-      let enumValues = this.r3Types.getEnumValues(`${resourceType}.${paramName}`);
+      let enumValues = this.fhirTypes.getEnumValues(`${resourceType}.${paramName}`);
       // Fall back to generic enum
       if (!enumValues) {
-        enumValues = this.r3Types.getEnumValues(paramName);
+        enumValues = this.fhirTypes.getEnumValues(paramName);
       }
 
       if (enumValues) {
@@ -588,7 +588,7 @@ return 1;
     }
 
     // Check global parameters first
-    const globalParam = this.r3Types.getGlobalParameters().find(p => p.name === paramName);
+    const globalParam = this.fhirTypes.getGlobalParameters().find(p => p.name === paramName);
     if (globalParam) {
       return globalParam.type;
     }
