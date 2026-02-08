@@ -74,6 +74,49 @@ ipcMain.handle('shell:openExternal', async (event, url) => {
 
 log.info('Application starting...');
 
+/**
+ * Register a generic HTTP proxy handler for bypassing CORS in the renderer.
+ * Unlike mtls:request, this does NOT attach client certificates.
+ */
+function registerHttpProxyHandler() {
+  const axios = require('axios');
+
+  ipcMain.handle('http:request', async (event, options) => {
+    const { url, method = 'GET', headers = {}, data, timeout = 30000 } = options;
+    try {
+      const response = await axios({
+        url,
+        method,
+        headers,
+        data,
+        timeout,
+        validateStatus: () => true
+      });
+      return {
+        success: true,
+        status: response.status,
+        statusText: response.statusText,
+        headers: response.headers,
+        data: response.data
+      };
+    } catch (error) {
+      log.error('[HttpProxy] Request failed:', error.message);
+      if (error.response) {
+        return {
+          success: true,
+          status: error.response.status,
+          statusText: error.response.statusText,
+          headers: error.response.headers,
+          data: error.response.data
+        };
+      }
+      return { success: false, error: error.message, code: error.code };
+    }
+  });
+
+  log.info('[HttpProxy] HTTP proxy handler registered');
+}
+
 let mainWindow;
 let splashWindow;
 let splashStartTime;
@@ -242,6 +285,7 @@ app.whenReady().then(() => {
   registerCertificateHandlers();
   registerMtlsHandlers();
   registerNarrativeHandlers();
+  registerHttpProxyHandler();
   createApplicationMenu();
   createSplashWindow();
   createWindow();

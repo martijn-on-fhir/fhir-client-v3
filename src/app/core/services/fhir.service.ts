@@ -171,6 +171,10 @@ export class FhirService {
           return this.executeMtlsRequest<T>(url, 'GET', undefined, authHeaders);
         }
 
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest<T>(url, 'GET', undefined, authHeaders);
+        }
+
         // Apply profile auth headers if available
         const options = Object.keys(authHeaders).length > 0 ? {headers: new HttpHeaders(authHeaders)} : {};
 
@@ -198,6 +202,14 @@ export class FhirService {
         if (useMtls) {
           this.logger.debug('Using mTLS for request:', url);
           return this.executeMtlsRequestWithFormat(url, 'GET', format, authHeaders);
+        }
+
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'GET', undefined, {
+            ...authHeaders,
+            'Accept': acceptHeader,
+            'Content-Type': 'application/fhir+json'
+          });
         }
 
         // Build headers properly using set() to ensure Accept header is correctly set
@@ -260,6 +272,36 @@ export class FhirService {
     } catch {
       return false;
     }
+  }
+
+  /**
+   * Check if Electron HTTP proxy is available (for CORS bypass)
+   */
+  private get electronHttpAvailable(): boolean {
+    return !!(window as any).electronAPI?.http?.request;
+  }
+
+  /**
+   * Execute a request through Electron's HTTP proxy (no client certificates)
+   */
+  private executeElectronRequest<T>(url: string, method: string, data?: any, headers?: Record<string, string>): Observable<T> {
+    return from((window as any).electronAPI.http.request({
+      url,
+      method,
+      data,
+      headers: {
+        ...headers,
+        'Accept': headers?.['Accept'] || 'application/fhir+json',
+        'Content-Type': headers?.['Content-Type'] || 'application/fhir+json'
+      }
+    })).pipe(
+      switchMap((response: any) => {
+        if (response.success && response.data !== undefined) {
+          return from([response.data as T]);
+        }
+        return throwError(() => new Error(response.error || 'HTTP request failed'));
+      })
+    );
   }
 
   /**
@@ -369,6 +411,10 @@ export class FhirService {
           return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
 
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'POST', resource, authHeaders);
+        }
+
         const headers = new HttpHeaders({
           ...authHeaders,
           'Content-Type': 'application/fhir+json',
@@ -420,6 +466,9 @@ export class FhirService {
           this.logger.debug('Using mTLS for create:', url);
           return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'POST', resource, authHeaders);
+        }
         const options = Object.keys(authHeaders).length > 0
                         ? {headers: new HttpHeaders(authHeaders)}
                         : {};
@@ -447,6 +496,9 @@ export class FhirService {
         if (useMtls) {
           this.logger.debug('Using mTLS for update:', url);
           return this.executeMtlsRequest(url, 'PUT', resource, authHeaders);
+        }
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'PUT', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
                         ? {headers: new HttpHeaders(authHeaders)}
@@ -476,6 +528,9 @@ export class FhirService {
           this.logger.debug('Using mTLS for createResource:', url);
           return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
         }
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'POST', resource, authHeaders);
+        }
         const options = Object.keys(authHeaders).length > 0
                         ? {headers: new HttpHeaders(authHeaders)}
                         : {};
@@ -503,6 +558,9 @@ export class FhirService {
           this.logger.debug('Using mTLS for updateResource:', url);
           return this.executeMtlsRequest(url, 'PUT', resource, authHeaders);
         }
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'PUT', resource, authHeaders);
+        }
         const options = Object.keys(authHeaders).length > 0
                         ? {headers: new HttpHeaders(authHeaders)}
                         : {};
@@ -529,6 +587,9 @@ export class FhirService {
         if (useMtls) {
           this.logger.debug('Using mTLS for delete:', url);
           return this.executeMtlsRequest(url, 'DELETE', undefined, authHeaders);
+        }
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'DELETE', undefined, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
                         ? {headers: new HttpHeaders(authHeaders)}
@@ -562,6 +623,9 @@ export class FhirService {
         if (useMtls) {
           this.logger.debug('Using mTLS for validateResource:', url);
           return this.executeMtlsRequest(url, 'POST', resource, authHeaders);
+        }
+        if (this.electronHttpAvailable) {
+          return this.executeElectronRequest(url, 'POST', resource, authHeaders);
         }
         const options = Object.keys(authHeaders).length > 0
                         ? {headers: new HttpHeaders(authHeaders)}

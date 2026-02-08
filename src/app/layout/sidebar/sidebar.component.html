@@ -83,7 +83,7 @@
       @if (!loading() && !error()) {
         <span class="badge bg-secondary">{{ filteredResourceTypes().length }}</span>
       }
-    
+
       <i class="fas fa-chevron-{{ resourceTypesExpanded() ? 'up' : 'down' }} ms-auto"></i>
     </button>
     @if (resourceTypesExpanded()) {

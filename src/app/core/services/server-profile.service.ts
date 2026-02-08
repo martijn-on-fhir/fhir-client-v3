@@ -655,16 +655,31 @@ return {};
         ...await this.getAuthHeadersForProfile(profileId)
       };
 
-      const response = await fetch(`${baseUrl}/metadata`, {method: 'GET', headers});
-      if (response.ok) {
-        const data = await response.json();
-        const versionString = data?.fhirVersion;
-        if (versionString) {
-          const detected = detectFhirVersion(versionString);
-          if (detected) {
-            await this.updateProfile(profileId, {fhirVersion: detected});
-            this.logger.info('Detected FHIR version:', {profileId, fhirVersion: detected});
-          }
+      let data: any;
+
+      if ((window as any).electronAPI?.http?.request) {
+        // Use Electron HTTP proxy to bypass CORS
+        const result = await (window as any).electronAPI.http.request({
+          url: `${baseUrl}/metadata`,
+          method: 'GET',
+          headers
+        });
+        if (result.success) {
+          data = result.data;
+        }
+      } else {
+        // Fallback to fetch (works when CORS is allowed)
+        const response = await fetch(`${baseUrl}/metadata`, {method: 'GET', headers});
+        if (response.ok) {
+          data = await response.json();
+        }
+      }
+
+      if (data?.fhirVersion) {
+        const detected = detectFhirVersion(data.fhirVersion);
+        if (detected) {
+          await this.updateProfile(profileId, {fhirVersion: detected});
+          this.logger.info('Detected FHIR version:', {profileId, fhirVersion: detected});
         }
       }
     } catch (error) {

@@ -553,6 +553,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('certificate:testConnectionWithData', params)
   },
 
+  // HTTP Proxy API (bypasses CORS, no client certificates)
+  http: {
+    /**
+     * Make an HTTP request through the Electron main process (CORS-free)
+     * @param {Object} options - Request options
+     * @param {string} options.url - Full URL to request
+     * @param {string} options.method - HTTP method (GET, POST, PUT, DELETE)
+     * @param {Object} options.headers - Request headers
+     * @param {any} options.data - Request body
+     * @param {number} options.timeout - Request timeout in ms
+     * @returns {Promise<{success: boolean, status?: number, data?: any, error?: string}>}
+     */
+    request: (options) =>
+      ipcRenderer.invoke('http:request', options)
+  },
+
   // mTLS Request Proxy API
   mtls: {
     /**
