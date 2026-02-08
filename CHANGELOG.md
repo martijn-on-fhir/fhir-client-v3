@@ -1,3 +1,11 @@
+# [1.51.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.50.0...v1.51.0) (2026-02-08)
+
+
+### Features
+
+* add multi-FHIR-version support with Jest test setup ([7f6dd14](https://github.com/martijn-on-fhir/fhir-client-v3/commit/7f6dd14f78539ad12f29aec616a2694c1e849e9c))
+* **validator:** auto-detect FHIR version from active server profile ([305578e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/305578ee90759b5ab0e2f3a0b8ec621062554e2d))
+
 # [1.50.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.49.0...v1.50.0) (2026-01-31)
 
 
