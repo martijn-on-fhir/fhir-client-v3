@@ -18,7 +18,7 @@ export class ValidatorStateService {
   private validationResultSignal = signal<any>(null);
 
   // Selected profile
-  private selectedProfileSignal = signal<string>('server-capability');
+  private selectedProfileSignal = signal<string>('auto-detect');
 
   /**
    * Read-only computed for JSON input
@@ -71,7 +71,7 @@ export class ValidatorStateService {
   clearState() {
     this.jsonInputSignal.set('');
     this.validationResultSignal.set(null);
-    this.selectedProfileSignal.set('server-capability');
+    this.selectedProfileSignal.set('auto-detect');
   }
 
   /**

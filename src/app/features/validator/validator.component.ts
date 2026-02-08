@@ -5,6 +5,7 @@ import {firstValueFrom} from 'rxjs';
 import {EditorStateService} from '../../core/services/editor-state.service';
 import {FhirService} from '../../core/services/fhir.service';
 import {LoggerService} from '../../core/services/logger.service';
+import {ServerProfileService} from '../../core/services/server-profile.service';
 import {ThemeService} from '../../core/services/theme.service';
 import {ToastService} from '../../core/services/toast.service';
 import {ValidatorStateService} from '../../core/services/validator-state.service';
@@ -57,6 +58,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
   /** Service for toast notifications */
   private toastService = inject(ToastService);
 
+  /** Service for managing server profiles */
+  private serverProfileService = inject(ServerProfileService);
+
   /** JSON input content from Monaco editor */
   jsonInput = signal<string>('');
 
@@ -70,7 +74,7 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
   loading = signal<boolean>(false);
 
   /** Selected validation mode (client-side or server-side) */
-  selectedProfile = signal<string>('server-capability');
+  selectedProfile = signal<string>('auto-detect');
 
   /** Server CapabilityStatement metadata for server validation */
   serverMetadata = signal<any>(null);
@@ -120,6 +124,20 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     return result ? result.issues.filter(i => i.severity === 'information') : [];
   });
 
+  /** Detected FHIR version from the active server profile */
+  detectedFhirVersion = computed<'R4' | 'STU3'>(() => {
+    const version = this.serverProfileService.activeProfile()?.fhirVersion;
+
+    if (version === 'R4' || version === 'R4B' || version === 'R5') {
+      return 'R4';
+    }
+
+    return 'STU3';
+  });
+
+  /** Resolved version label for display */
+  resolvedVersionLabel = computed(() => this.resolveVersion());
+
   /** Mouse move event handler for panel resizing */
   private mouseMoveHandler?: (e: MouseEvent) => void;
 
@@ -128,6 +146,26 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
 
   /** Utility function reference for severity icon mapping */
   getSeverityIcon = getSeverityIcon;
+
+  /**
+   * Resolves the FHIR version to use for validation based on the selected profile mode.
+   * - 'fhir-stu3-base' → STU3
+   * - 'fhir-r4-base' → R4
+   * - 'auto-detect' / 'server-capability' → detected version from active server profile
+   */
+  resolveVersion(): 'R4' | 'STU3' {
+    const profile = this.selectedProfile();
+
+    if (profile === 'fhir-stu3-base') {
+      return 'STU3';
+    }
+
+    if (profile === 'fhir-r4-base') {
+      return 'R4';
+    }
+
+    return this.detectedFhirVersion();
+  }
 
   /**
    * Creates an instance of ValidatorComponent
@@ -155,7 +193,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
     }, {allowSignalWrites: true});
 
     effect(async () => {
-      if (this.selectedProfile() === 'server-capability') {
+      const profile = this.selectedProfile();
+
+      if (profile === 'server-capability' || profile === 'auto-detect') {
         await this.loadServerMetadata();
       }
     }, {allowSignalWrites: true});
@@ -404,8 +444,9 @@ export class ValidatorComponent implements OnInit, AfterViewInit, OnDestroy {
       }
 
       // Client-side validation
-      const isServerValidation = this.selectedProfile() === 'server-capability';
-      const fhirVersion = this.selectedProfile() === 'fhir-stu3-base' ? 'STU3' : 'R4';
+      const selectedMode = this.selectedProfile();
+      const isServerValidation = selectedMode === 'server-capability' || selectedMode === 'auto-detect';
+      const fhirVersion = this.resolveVersion();
 
       if (Array.isArray(data)) {
         const results = data.map((resource, index) => {

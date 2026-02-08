@@ -5,6 +5,9 @@
  * Validates structure, required fields, data types, and references.
  */
 
+import {FHIR_R3_DATA} from '../data/fhir-r3.data';
+import {FHIR_R4_DATA} from '../data/fhir-r4.data';
+
 /**
  * Represents a single validation issue found during FHIR resource validation
  */
@@ -32,69 +35,6 @@ export interface ValidationResult {
   /** The resource type being validated */
   resourceType?: string;
 }
-
-/**
- * FHIR R4 base resource types
- */
-const FHIR_R4_RESOURCES = [
-  'Account', 'ActivityDefinition', 'AdverseEvent', 'AllergyIntolerance', 'Appointment',
-  'AppointmentResponse', 'AuditEvent', 'Basic', 'Binary', 'BiologicallyDerivedProduct',
-  'BodyStructure', 'Bundle', 'CapabilityStatement', 'CarePlan', 'CareTeam', 'CatalogEntry',
-  'ChargeItem', 'ChargeItemDefinition', 'Claim', 'ClaimResponse', 'ClinicalImpression',
-  'CodeSystem', 'Communication', 'CommunicationRequest', 'CompartmentDefinition', 'Composition',
-  'ConceptMap', 'Condition', 'Consent', 'Contract', 'Coverage', 'CoverageEligibilityRequest',
-  'CoverageEligibilityResponse', 'DetectedIssue', 'Device', 'DeviceDefinition', 'DeviceMetric',
-  'DeviceRequest', 'DeviceUseStatement', 'DiagnosticReport', 'DocumentManifest', 'DocumentReference',
-  'EffectEvidenceSynthesis', 'Encounter', 'Endpoint', 'EnrollmentRequest', 'EnrollmentResponse',
-  'EpisodeOfCare', 'EventDefinition', 'Evidence', 'EvidenceVariable', 'ExampleScenario',
-  'ExplanationOfBenefit', 'FamilyMemberHistory', 'Flag', 'Goal', 'GraphDefinition', 'Group',
-  'GuidanceResponse', 'HealthcareService', 'ImagingStudy', 'Immunization', 'ImmunizationEvaluation',
-  'ImmunizationRecommendation', 'ImplementationGuide', 'InsurancePlan', 'Invoice', 'Library',
-  'Linkage', 'List', 'Location', 'Measure', 'MeasureReport', 'Media', 'Medication',
-  'MedicationAdministration', 'MedicationDispense', 'MedicationKnowledge', 'MedicationRequest',
-  'MedicationStatement', 'MedicinalProduct', 'MedicinalProductAuthorization', 'MedicinalProductContraindication',
-  'MedicinalProductIndication', 'MedicinalProductIngredient', 'MedicinalProductInteraction',
-  'MedicinalProductManufactured', 'MedicinalProductPackaged', 'MedicinalProductPharmaceutical',
-  'MedicinalProductUndesirableEffect', 'MessageDefinition', 'MessageHeader', 'MolecularSequence',
-  'NamingSystem', 'NutritionOrder', 'Observation', 'ObservationDefinition', 'OperationDefinition',
-  'OperationOutcome', 'Organization', 'OrganizationAffiliation', 'Parameters', 'Patient',
-  'PaymentNotice', 'PaymentReconciliation', 'Person', 'PlanDefinition', 'Practitioner',
-  'PractitionerRole', 'Procedure', 'Provenance', 'Questionnaire', 'QuestionnaireResponse',
-  'RelatedPerson', 'RequestGroup', 'ResearchDefinition', 'ResearchElementDefinition', 'ResearchStudy',
-  'ResearchSubject', 'RiskAssessment', 'RiskEvidenceSynthesis', 'Schedule', 'SearchParameter',
-  'ServiceRequest', 'Slot', 'Specimen', 'SpecimenDefinition', 'StructureDefinition', 'StructureMap',
-  'Subscription', 'Substance', 'SubstanceNucleicAcid', 'SubstancePolymer', 'SubstanceProtein',
-  'SubstanceReferenceInformation', 'SubstanceSourceMaterial', 'SubstanceSpecification', 'SupplyDelivery',
-  'SupplyRequest', 'Task', 'TerminologyCapabilities', 'TestReport', 'TestScript', 'ValueSet',
-  'VerificationResult', 'VisionPrescription',
-];
-
-/**
- * FHIR STU3 (R3) base resource types
- */
-const FHIR_STU3_RESOURCES = [
-  'Account', 'ActivityDefinition', 'AdverseEvent', 'AllergyIntolerance', 'Appointment',
-  'AppointmentResponse', 'AuditEvent', 'Basic', 'Binary', 'BodySite', 'Bundle', 'CapabilityStatement',
-  'CarePlan', 'CareTeam', 'ChargeItem', 'Claim', 'ClaimResponse', 'ClinicalImpression', 'CodeSystem',
-  'Communication', 'CommunicationRequest', 'CompartmentDefinition', 'Composition', 'ConceptMap',
-  'Condition', 'Consent', 'Contract', 'Coverage', 'DataElement', 'DetectedIssue', 'Device',
-  'DeviceComponent', 'DeviceMetric', 'DeviceRequest', 'DeviceUseStatement', 'DiagnosticReport',
-  'DocumentManifest', 'DocumentReference', 'EligibilityRequest', 'EligibilityResponse', 'Encounter',
-  'Endpoint', 'EnrollmentRequest', 'EnrollmentResponse', 'EpisodeOfCare', 'ExpansionProfile',
-  'ExplanationOfBenefit', 'FamilyMemberHistory', 'Flag', 'Goal', 'GraphDefinition', 'Group',
-  'GuidanceResponse', 'HealthcareService', 'ImagingManifest', 'ImagingStudy', 'Immunization',
-  'ImmunizationRecommendation', 'ImplementationGuide', 'Library', 'Linkage', 'List', 'Location',
-  'Measure', 'MeasureReport', 'Media', 'Medication', 'MedicationAdministration', 'MedicationDispense',
-  'MedicationRequest', 'MedicationStatement', 'MessageDefinition', 'MessageHeader', 'NamingSystem',
-  'NutritionOrder', 'Observation', 'OperationDefinition', 'OperationOutcome', 'Organization',
-  'Parameters', 'Patient', 'PaymentNotice', 'PaymentReconciliation', 'Person', 'PlanDefinition',
-  'Practitioner', 'PractitionerRole', 'Procedure', 'ProcedureRequest', 'ProcessRequest',
-  'ProcessResponse', 'Provenance', 'Questionnaire', 'QuestionnaireResponse', 'ReferralRequest',
-  'RelatedPerson', 'RequestGroup', 'ResearchStudy', 'ResearchSubject', 'RiskAssessment', 'Schedule',
-  'SearchParameter', 'Sequence', 'ServiceDefinition', 'Slot', 'Specimen', 'StructureDefinition',
-  'StructureMap', 'Subscription', 'Substance', 'SupplyDelivery', 'SupplyRequest', 'Task',
-  'TestReport', 'TestScript', 'ValueSet', 'VisionPrescription',
-];
 
 /**
  * Common required fields for FHIR R4 resources
@@ -155,7 +95,7 @@ const STU3_REQUIRED_FIELDS: Record<string, string[]> = {
  */
 export const validateFhirResource = (resource: any, version: 'R4' | 'STU3' = 'R4'): ValidationResult => {
   const issues: ValidationIssue[] = [];
-  const validResources = version === 'STU3' ? FHIR_STU3_RESOURCES : FHIR_R4_RESOURCES;
+  const validResources = version === 'STU3' ? FHIR_R3_DATA.resourceTypes : FHIR_R4_DATA.resourceTypes;
   const requiredFields = version === 'STU3' ? STU3_REQUIRED_FIELDS : R4_REQUIRED_FIELDS;
 
   let parsedResource: any;
