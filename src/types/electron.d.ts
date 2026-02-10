@@ -70,6 +70,7 @@ declare global {
         watch: () => Promise<{ success: boolean } | { error: string }>;
         unwatch: () => Promise<{ success: boolean } | { error: string }>;
         export: () => Promise<{ success: boolean; path?: string } | { error: string; canceled?: boolean }>;
+        clear: () => Promise<{ success: boolean } | { error: string }>;
       };
       terminology?: {
         lookup: (code: string, system: string) => Promise<any>;

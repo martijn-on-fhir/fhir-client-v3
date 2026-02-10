@@ -451,6 +451,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('logs:unwatch'),
 
     /**
+     * Clear (truncate) log files on disk
+     * @returns {Promise<{success: boolean}|{error: string}>}
+     */
+    clear: () =>
+      ipcRenderer.invoke('logs:clear'),
+
+    /**
      * Export logs to file
      * @returns {Promise<{success: boolean, path?: string}|{error: string, canceled?: boolean}>}
      */

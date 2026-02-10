@@ -361,14 +361,25 @@ export class LogsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Clears the displayed log entries from the UI
+   * Clears log files from disk and the UI display
    *
-   * Empties the logs signal without deleting the actual log files.
-   * The log files remain on disk and can be reloaded.
+   * Truncates the log files via Electron API, then clears the displayed logs.
    */
-  clear() {
-    this.logs.set([]);
-    this.logger.info('Cleared displayed logs');
+  async clear() {
+    try {
+      const result = await window.electronAPI?.logs?.clear();
+
+      if (result && 'error' in result) {
+        this.error.set(result.error);
+        this.logger.error('Failed to clear log files:', result.error);
+        return;
+      }
+
+      this.logs.set([]);
+    } catch (err: any) {
+      this.error.set(err.message || 'Failed to clear log files');
+      this.logger.error('Error clearing log files:', err);
+    }
   }
 
   /**

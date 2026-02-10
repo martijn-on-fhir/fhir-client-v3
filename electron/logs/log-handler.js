@@ -225,6 +225,25 @@ function stopWatching() {
 }
 
 /**
+ * Clear (truncate) log files on disk
+ */
+function clearLogFiles() {
+  const logPath = log.transports.file.getFile().path;
+
+  try {
+    if (fs.existsSync(logPath)) {
+      fs.writeFileSync(logPath, '', 'utf8');
+    }
+
+    log.info('Log files cleared');
+    return { success: true };
+  } catch (error) {
+    log.error('Error clearing log files:', error);
+    return { error: `Failed to clear log files: ${error.message}` };
+  }
+}
+
+/**
  * Export logs to user-selected file
  */
 async function exportLogs(mainWindow) {
@@ -299,6 +318,16 @@ function registerLogHandlers(mainWindow) {
       return stopWatching();
     } catch (error) {
       log.error('Error stopping watch:', error);
+      return { error: error.message };
+    }
+  });
+
+  // Clear log files
+  ipcMain.handle('logs:clear', () => {
+    try {
+      return clearLogFiles();
+    } catch (error) {
+      log.error('Error clearing logs:', error);
       return { error: error.message };
     }
   });
