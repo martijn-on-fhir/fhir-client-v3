@@ -1,8 +1,9 @@
 import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {Injectable, inject} from '@angular/core';
 import {Observable, from, throwError} from 'rxjs';
-import {catchError, map, switchMap} from 'rxjs/operators';
+import {catchError, map, switchMap, tap} from 'rxjs/operators';
 import {getEnvironmentConfig} from '../config/environments';
+import {HttpInspectorService, HttpInspection} from './http-inspector.service';
 import {LoggerService} from './logger.service';
 import {MtlsService} from './mtls.service';
 import {ServerProfileService} from './server-profile.service';
@@ -21,6 +22,7 @@ import {ServerProfileService} from './server-profile.service';
 })
 export class FhirService {
   private http = inject(HttpClient);
+  private inspectorService = inject(HttpInspectorService);
   private loggerService = inject(LoggerService);
   private mtlsService = inject(MtlsService);
   private profileService = inject(ServerProfileService);
@@ -241,23 +243,54 @@ export class FhirService {
    * Execute mTLS request with specified format
    */
   private executeMtlsRequestWithFormat<T>(url: string, method: string, format: 'json' | 'xml', authHeaders?: Record<string, string>): Observable<T> {
-
+    const startTime = performance.now();
+    const requestId = this.inspectorService.generateId();
     const acceptHeader = format === 'xml' ? 'application/fhir+xml' : 'application/fhir+json';
+    const requestHeaders = {
+      ...authHeaders,
+      'Accept': acceptHeader,
+      'Content-Type': 'application/fhir+json'
+    };
 
     return from(this.mtlsService.request<T>({
       url,
       method,
-      headers: {
-        ...authHeaders,
-        'Accept': acceptHeader,
-        'Content-Type': 'application/fhir+json'
-      }
+      headers: requestHeaders
     })).pipe(
       switchMap(response => {
         if (response.success && response.data !== undefined) {
           return from([response.data]);
         }
         return throwError(() => new Error(response.error || 'mTLS request failed'));
+      }),
+      tap((responseData) => {
+        const endTime = performance.now();
+        let responseSize = 0;
+        try { responseSize = new Blob([JSON.stringify(responseData)]).size; } catch { /* ignore */ }
+
+        const inspection: HttpInspection = {
+          id: requestId,
+          timestamp: new Date(),
+          request: { method, url, headers: requestHeaders },
+          response: { status: 200, statusText: 'OK', headers: {}, body: responseData },
+          timing: { startTime, endTime, duration: Math.round(endTime - startTime) },
+          size: { requestSize: 0, responseSize }
+        };
+        this.inspectorService.record(inspection);
+      }),
+      catchError(error => {
+        const endTime = performance.now();
+        const inspection: HttpInspection = {
+          id: requestId,
+          timestamp: new Date(),
+          request: { method, url, headers: requestHeaders },
+          response: { status: 0, statusText: 'Error', headers: {} },
+          timing: { startTime, endTime, duration: Math.round(endTime - startTime) },
+          size: { requestSize: 0, responseSize: 0 },
+          error: true
+        };
+        this.inspectorService.record(inspection);
+        return throwError(() => error);
       })
     );
   }
@@ -285,21 +318,56 @@ export class FhirService {
    * Execute a request through Electron's HTTP proxy (no client certificates)
    */
   private executeElectronRequest<T>(url: string, method: string, data?: any, headers?: Record<string, string>): Observable<T> {
+    const startTime = performance.now();
+    const requestId = this.inspectorService.generateId();
+    const requestHeaders = {
+      ...headers,
+      'Accept': headers?.['Accept'] || 'application/fhir+json',
+      'Content-Type': headers?.['Content-Type'] || 'application/fhir+json'
+    };
+
     return from((window as any).electronAPI.http.request({
       url,
       method,
       data,
-      headers: {
-        ...headers,
-        'Accept': headers?.['Accept'] || 'application/fhir+json',
-        'Content-Type': headers?.['Content-Type'] || 'application/fhir+json'
-      }
+      headers: requestHeaders
     })).pipe(
       switchMap((response: any) => {
         if (response.success && response.data !== undefined) {
           return from([response.data as T]);
         }
         return throwError(() => new Error(response.error || 'HTTP request failed'));
+      }),
+      tap((responseData) => {
+        const endTime = performance.now();
+        let responseSize = 0;
+        try { responseSize = new Blob([JSON.stringify(responseData)]).size; } catch { /* ignore */ }
+        let requestSize = 0;
+        if (data) { try { requestSize = new Blob([JSON.stringify(data)]).size; } catch { /* ignore */ } }
+
+        const inspection: HttpInspection = {
+          id: requestId,
+          timestamp: new Date(),
+          request: { method, url, headers: requestHeaders, body: data },
+          response: { status: 200, statusText: 'OK', headers: {}, body: responseData },
+          timing: { startTime, endTime, duration: Math.round(endTime - startTime) },
+          size: { requestSize, responseSize }
+        };
+        this.inspectorService.record(inspection);
+      }),
+      catchError(error => {
+        const endTime = performance.now();
+        const inspection: HttpInspection = {
+          id: requestId,
+          timestamp: new Date(),
+          request: { method, url, headers: requestHeaders, body: data },
+          response: { status: 0, statusText: 'Error', headers: {} },
+          timing: { startTime, endTime, duration: Math.round(endTime - startTime) },
+          size: { requestSize: 0, responseSize: 0 },
+          error: true
+        };
+        this.inspectorService.record(inspection);
+        return throwError(() => error);
       })
     );
   }
@@ -308,21 +376,56 @@ export class FhirService {
    * Execute request through mTLS proxy
    */
   private executeMtlsRequest<T>(url: string, method: string, data?: any, authHeaders?: Record<string, string>): Observable<T> {
+    const startTime = performance.now();
+    const requestId = this.inspectorService.generateId();
+    const requestHeaders = {
+      ...authHeaders,
+      'Accept': 'application/fhir+json',
+      'Content-Type': 'application/fhir+json'
+    };
+
     return from(this.mtlsService.request<T>({
       url,
       method,
       data,
-      headers: {
-        ...authHeaders,
-        'Accept': 'application/fhir+json',
-        'Content-Type': 'application/fhir+json'
-      }
+      headers: requestHeaders
     })).pipe(
       switchMap(response => {
         if (response.success && response.data !== undefined) {
           return from([response.data]);
         }
         return throwError(() => new Error(response.error || 'mTLS request failed'));
+      }),
+      tap((responseData) => {
+        const endTime = performance.now();
+        let responseSize = 0;
+        try { responseSize = new Blob([JSON.stringify(responseData)]).size; } catch { /* ignore */ }
+        let requestSize = 0;
+        if (data) { try { requestSize = new Blob([JSON.stringify(data)]).size; } catch { /* ignore */ } }
+
+        const inspection: HttpInspection = {
+          id: requestId,
+          timestamp: new Date(),
+          request: { method, url, headers: requestHeaders, body: data },
+          response: { status: 200, statusText: 'OK', headers: {}, body: responseData },
+          timing: { startTime, endTime, duration: Math.round(endTime - startTime) },
+          size: { requestSize, responseSize }
+        };
+        this.inspectorService.record(inspection);
+      }),
+      catchError(error => {
+        const endTime = performance.now();
+        const inspection: HttpInspection = {
+          id: requestId,
+          timestamp: new Date(),
+          request: { method, url, headers: requestHeaders, body: data },
+          response: { status: 0, statusText: 'Error', headers: {} },
+          timing: { startTime, endTime, duration: Math.round(endTime - startTime) },
+          size: { requestSize: 0, responseSize: 0 },
+          error: true
+        };
+        this.inspectorService.record(inspection);
+        return throwError(() => error);
       })
     );
   }

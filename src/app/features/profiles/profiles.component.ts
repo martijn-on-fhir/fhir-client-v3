@@ -131,6 +131,12 @@ export class ProfilesComponent implements OnInit {
           metadata.rest[0].resource.forEach((resource: any) => {
             if (resource.profile) {
               this.extractProfiles(resource.profile, resource.type, profileList);
+            } else {
+              // Include resource types without explicit profile using base FHIR StructureDefinition URL
+              profileList.push({
+                url: `http://hl7.org/fhir/StructureDefinition/${resource.type}`,
+                resourceType: resource.type
+              });
             }
 
             if (resource.supportedProfile) {

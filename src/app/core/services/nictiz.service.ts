@@ -37,7 +37,7 @@ export class NictizService {
     try {
       const allProfiles: NictizProfile[] = [];
       const seenUrls = new Set<string>(); // Track URLs to detect duplicates
-      let nextUrl: string | null = `/administration/StructureDefinition?publisher=Nictiz,HL7 Netherlands&status=active&kind=resource&_summary=data&_count=50`;
+      let nextUrl: string | null = `/administration/StructureDefinition?publisher=Nictiz,HL7%20Netherlands&status=active&kind=resource&_summary=data&_count=50`;
       let batchCount = 0;
       const maxBatches = 100; // Safety limit: max 5000 profiles
 
