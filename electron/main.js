@@ -83,6 +83,15 @@ function registerHttpProxyHandler() {
 
   ipcMain.handle('http:request', async (event, options) => {
     const { url, method = 'GET', headers = {}, data, timeout = 30000 } = options;
+
+    const headerKeys = Object.keys(headers);
+    const hasAuth = headerKeys.some(k => k.toLowerCase() === 'authorization');
+    log.info(`[HttpProxy] ${method} ${url}`);
+    log.info(`[HttpProxy]   Headers: [${headerKeys.join(', ')}], hasAuth=${hasAuth}`);
+    if (data) {
+      log.info(`[HttpProxy]   Body: ${typeof data === 'string' ? data.substring(0, 200) : JSON.stringify(data).substring(0, 200)}`);
+    }
+
     try {
       const response = await axios({
         url,
@@ -92,6 +101,12 @@ function registerHttpProxyHandler() {
         timeout,
         validateStatus: () => true
       });
+
+      log.info(`[HttpProxy]   Response: ${response.status} ${response.statusText}`);
+      if (response.status >= 400) {
+        log.warn(`[HttpProxy]   Error response body: ${typeof response.data === 'string' ? response.data.substring(0, 500) : JSON.stringify(response.data).substring(0, 500)}`);
+      }
+
       return {
         success: true,
         status: response.status,
@@ -100,8 +115,12 @@ function registerHttpProxyHandler() {
         data: response.data
       };
     } catch (error) {
-      log.error('[HttpProxy] Request failed:', error.message);
+      log.error(`[HttpProxy] Request failed: ${method} ${url}`, error.message);
+      if (error.code) {
+        log.error(`[HttpProxy]   Error code: ${error.code}`);
+      }
       if (error.response) {
+        log.warn(`[HttpProxy]   Error response: ${error.response.status} ${error.response.statusText}`);
         return {
           success: true,
           status: error.response.status,

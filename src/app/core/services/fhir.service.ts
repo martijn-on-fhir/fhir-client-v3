@@ -326,6 +326,8 @@ export class FhirService {
       'Content-Type': headers?.['Content-Type'] || 'application/fhir+json'
     };
 
+    this.logger.info(`Electron HTTP ${method} ${url}`);
+
     return from((window as any).electronAPI.http.request({
       url,
       method,
@@ -333,9 +335,16 @@ export class FhirService {
       headers: requestHeaders
     })).pipe(
       switchMap((response: any) => {
-        if (response.success && response.data !== undefined) {
-          return from([response.data as T]);
+        if (response.success) {
+          this.logger.info(`Electron HTTP response: ${response.status} ${response.statusText} for ${method} ${url}`);
+          if (response.status >= 400) {
+            this.logger.warn(`Electron HTTP error body:`, response.data);
+          }
+          if (response.data !== undefined) {
+            return from([response.data as T]);
+          }
         }
+        this.logger.error(`Electron HTTP request failed: ${response.error || 'unknown error'}`, { code: response.code, url });
         return throwError(() => new Error(response.error || 'HTTP request failed'));
       }),
       tap((responseData) => {
@@ -356,6 +365,7 @@ export class FhirService {
         this.inspectorService.record(inspection);
       }),
       catchError(error => {
+        this.logger.error(`Electron HTTP failed: ${method} ${url}`, error.message);
         const endTime = performance.now();
         const inspection: HttpInspection = {
           id: requestId,
