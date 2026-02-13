@@ -1,3 +1,10 @@
+## [1.52.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.52.0...v1.52.1) (2026-02-13)
+
+
+### Bug Fixes
+
+* reduce component stylesheet sizes to stay within budget ([abdd713](https://github.com/martijn-on-fhir/fhir-client-v3/commit/abdd713564a68a582cccd72aac49f467045fba9d))
+
 # [1.52.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.51.1...v1.52.0) (2026-02-13)
 
 
