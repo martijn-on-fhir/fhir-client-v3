@@ -1,3 +1,19 @@
+# [1.52.0](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.51.1...v1.52.0) (2026-02-13)
+
+
+### Bug Fixes
+
+* correct indentation of try/catch blocks in fhir.service.ts ([8f3b6e0](https://github.com/martijn-on-fhir/fhir-client-v3/commit/8f3b6e0363eb3d16ef4e9c2014c9e87dff04c360))
+* show all resources in Nictiz and Profiles dropdowns and add HTTP inspection to proxy requests ([31d6d44](https://github.com/martijn-on-fhir/fhir-client-v3/commit/31d6d4475790f34465f2ea23fd55dfbc75837b6b))
+
+
+### Features
+
+* add request/response logging to Electron HTTP proxy and FhirService ([6ff3b24](https://github.com/martijn-on-fhir/fhir-client-v3/commit/6ff3b24aab71a41d4738d8b5b6dfdf43efbd391f))
+* add search/filter input to server profile selector dropdown ([cd7846a](https://github.com/martijn-on-fhir/fhir-client-v3/commit/cd7846a27dfb73f1a3b0f2e7951dbba6c9f2cf1a))
+* clear log files from disk instead of only clearing the display ([1b4e33e](https://github.com/martijn-on-fhir/fhir-client-v3/commit/1b4e33e8f95fa09b610a3586fe636a0105579e7d))
+* show toast notification on profile switch failure ([ee2a209](https://github.com/martijn-on-fhir/fhir-client-v3/commit/ee2a209473aa0430a353fa6cc82cd3c5f2c57ce5))
+
 ## [1.51.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.51.0...v1.51.1) (2026-02-08)
 
 

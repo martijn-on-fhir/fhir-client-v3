@@ -1,6 +1,6 @@
 {
   "name": "fhir-client-mx",
-  "version": "1.51.1",
+  "version": "1.52.0",
   "description": "FHIR Client v3 - Electron Desktop Application",
   "main": "electron/main.js",
   "scripts": {
