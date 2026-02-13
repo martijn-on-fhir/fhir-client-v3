@@ -3,6 +3,7 @@ import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmi
 import {FormsModule} from '@angular/forms';
 import {ServerProfile, FhirVersion, PROFILE_COLORS} from '../../../core/models/server-profile.model';
 import {ServerProfileService} from '../../../core/services/server-profile.service';
+import {ToastService} from '../../../core/services/toast.service';
 
 /**
  * Server Selector Component
@@ -20,6 +21,7 @@ import {ServerProfileService} from '../../../core/services/server-profile.servic
 })
 export class ServerSelectorComponent implements OnInit, OnDestroy {
   private profileService = inject(ServerProfileService);
+  private toastService = inject(ToastService);
 
   @Output() addProfile = new EventEmitter<void>();
   @Output() editProfile = new EventEmitter<ServerProfile>();
@@ -110,7 +112,20 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
     this.switching.set(profile.id);
 
     try {
-      await this.profileService.switchToProfile(profile.id);
+      const success = await this.profileService.switchToProfile(profile.id);
+
+      if (!success) {
+        this.toastService.error(
+          `Kon niet wisselen naar "${profile.name}". Controleer de authenticatie-instellingen.`,
+          'Profiel wisselen mislukt'
+        );
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Onbekende fout';
+      this.toastService.error(
+        `Fout bij wisselen naar "${profile.name}": ${message}`,
+        'Profiel wisselen mislukt'
+      );
     } finally {
       this.switching.set(null);
       this.isOpen.set(false);
