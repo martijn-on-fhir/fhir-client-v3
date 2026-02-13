@@ -266,7 +266,9 @@ export class FhirService {
       tap((responseData) => {
         const endTime = performance.now();
         let responseSize = 0;
-        try { responseSize = new Blob([JSON.stringify(responseData)]).size; } catch { /* ignore */ }
+        try {
+          responseSize = new Blob([JSON.stringify(responseData)]).size;
+        } catch { /* ignore */ }
 
         const inspection: HttpInspection = {
           id: requestId,
@@ -350,9 +352,15 @@ export class FhirService {
       tap((responseData) => {
         const endTime = performance.now();
         let responseSize = 0;
-        try { responseSize = new Blob([JSON.stringify(responseData)]).size; } catch { /* ignore */ }
+        try {
+          responseSize = new Blob([JSON.stringify(responseData)]).size;
+        } catch { /* ignore */ }
         let requestSize = 0;
-        if (data) { try { requestSize = new Blob([JSON.stringify(data)]).size; } catch { /* ignore */ } }
+        if (data) {
+          try {
+            requestSize = new Blob([JSON.stringify(data)]).size;
+          } catch { /* ignore */ }
+        }
 
         const inspection: HttpInspection = {
           id: requestId,
@@ -409,9 +417,15 @@ export class FhirService {
       tap((responseData) => {
         const endTime = performance.now();
         let responseSize = 0;
-        try { responseSize = new Blob([JSON.stringify(responseData)]).size; } catch { /* ignore */ }
+        try {
+          responseSize = new Blob([JSON.stringify(responseData)]).size;
+        } catch { /* ignore */ }
         let requestSize = 0;
-        if (data) { try { requestSize = new Blob([JSON.stringify(data)]).size; } catch { /* ignore */ } }
+        if (data) {
+          try {
+            requestSize = new Blob([JSON.stringify(data)]).size;
+          } catch { /* ignore */ }
+        }
 
         const inspection: HttpInspection = {
           id: requestId,

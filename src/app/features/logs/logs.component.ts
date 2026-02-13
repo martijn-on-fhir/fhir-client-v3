@@ -372,6 +372,7 @@ export class LogsComponent implements OnInit, OnDestroy {
       if (result && 'error' in result) {
         this.error.set(result.error);
         this.logger.error('Failed to clear log files:', result.error);
+
         return;
       }
 
