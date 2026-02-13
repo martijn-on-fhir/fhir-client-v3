@@ -402,62 +402,6 @@
   border-color: var(--bs-primary);
 }
 
-.validation-section .validation-result {
-  padding: 1rem;
-  border-radius: 6px;
-}
-.validation-section .validation-result.valid {
-  background: var(--bs-success-bg-subtle);
-  border: 1px solid var(--bs-success);
-}
-.validation-section .validation-result.valid .validation-header {
-  color: var(--bs-success);
-}
-.validation-section .validation-result.invalid {
-  background: var(--bs-danger-bg-subtle);
-  border: 1px solid var(--bs-danger);
-  color: var(--bs-danger);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.validation-section .validation-result .validation-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  margin-bottom: 0.75rem;
-}
-.validation-section .validation-result .validation-header .warning-badge {
-  margin-left: auto;
-  background: var(--bs-warning);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 0.75rem;
-}
-.validation-section .validation-result .cert-details {
-  display: grid;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--bs-body-color);
-}
-.validation-section .validation-result .cert-details .detail-row {
-  display: flex;
-  gap: 0.5rem;
-}
-.validation-section .validation-result .cert-details .detail-row .label {
-  color: var(--bs-secondary-color);
-  min-width: 100px;
-}
-.validation-section .validation-result .cert-details .detail-row .value {
-  font-weight: 500;
-}
-.validation-section .validation-result .cert-details .detail-row .value.monospace {
-  font-family: monospace;
-  font-size: 0.75rem;
-}
-
 .test-section .test-connection-form {
   display: flex;
   gap: 0.75rem;
@@ -467,65 +411,6 @@
 .test-section .test-connection-form .form-group {
   flex: 1;
   margin-bottom: 0;
-}
-.test-section .test-result {
-  padding: 1rem;
-  border-radius: 6px;
-}
-.test-section .test-result.success {
-  background: var(--bs-success-bg-subtle);
-  border: 1px solid var(--bs-success);
-}
-.test-section .test-result.success .result-header {
-  color: var(--bs-success);
-}
-.test-section .test-result.error {
-  background: var(--bs-danger-bg-subtle);
-  border: 1px solid var(--bs-danger);
-}
-.test-section .test-result.error .result-header {
-  color: var(--bs-danger);
-}
-.test-section .test-result .result-header {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-.test-section .test-result .result-details {
-  font-size: 0.875rem;
-  color: var(--bs-body-color);
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-.test-section .test-result .result-details.error-message {
-  color: var(--bs-danger);
-}
-
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -45%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
 }
 
 /*# sourceMappingURL=certificate-manager-dialog.component.css.map */

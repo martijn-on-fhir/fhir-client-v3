@@ -1,12 +1,8 @@
 .modal-backdrop {
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   background: rgba(0, 0, 0, 0.5);
   z-index: 1040;
-  animation: fadeIn 0.2s ease;
 }
 
 .modal-dialog {
@@ -18,7 +14,6 @@
   max-width: 800px;
   max-height: 90vh;
   z-index: 1050;
-  animation: slideIn 0.3s ease;
 }
 
 .modal-content {
@@ -41,7 +36,6 @@
   font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
-  color: var(--bs-body-color);
 }
 .modal-header .modal-title i {
   margin-right: 0.5rem;
@@ -55,7 +49,6 @@
   cursor: pointer;
   padding: 0.5rem;
   border-radius: 4px;
-  transition: all 0.2s ease;
 }
 .modal-header .btn-close:hover {
   background: var(--bs-secondary-bg);
@@ -113,63 +106,6 @@
   margin-bottom: 1.5rem;
 }
 
-.account-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.account-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem;
-  border: 2px solid var(--bs-border-color);
-  border-radius: 8px;
-  transition: all 0.3s ease;
-}
-.account-card:hover {
-  border-color: var(--bs-primary);
-  background: var(--bs-primary-bg-subtle);
-}
-.account-card .account-info {
-  flex: 1;
-}
-.account-card .account-info .account-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  margin-bottom: 0.5rem;
-}
-.account-card .account-info .account-header h4 {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--bs-body-color);
-}
-.account-card .account-info .account-header .badge {
-  background: var(--bs-primary);
-  color: white;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-.account-card .account-info .account-details {
-  display: flex;
-  gap: 1.5rem;
-  font-size: 0.875rem;
-  color: var(--bs-secondary-color);
-}
-.account-card .account-info .account-details i {
-  margin-right: 0.5rem;
-}
-.account-card .account-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
 .empty-state {
   text-align: center;
   padding: 3rem 2rem;
@@ -184,32 +120,10 @@
   margin-bottom: 1.5rem;
 }
 
-.account-form {
-  background: var(--bs-light-bg-subtle);
-  padding: 1.5rem;
-  border-radius: 8px;
-}
-.account-form h4 {
-  margin-bottom: 1.5rem;
-  font-size: 1.125rem;
-  font-weight: 600;
-}
-
 .form-group {
   margin-bottom: 1.25rem;
 }
-.form-group .form-label {
-  display: block;
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-  color: var(--bs-body-color);
-}
-.form-group .form-label i {
-  margin-right: 0.5rem;
-  color: var(--bs-primary);
-}
-.form-group .form-control,
-.form-group .form-select {
+.form-group .form-control {
   width: 100%;
   padding: 0.75rem;
   border: 2px solid var(--bs-border-color);
@@ -219,8 +133,7 @@
   font-size: 1rem;
   transition: all 0.3s ease;
 }
-.form-group .form-control:focus,
-.form-group .form-select:focus {
+.form-group .form-control:focus {
   outline: none;
   border-color: var(--bs-primary);
   box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.1);
@@ -231,25 +144,6 @@
   gap: 1rem;
   justify-content: flex-end;
   margin-top: 1.5rem;
-}
-
-.tfa-status {
-  text-align: center;
-  padding: 2rem;
-}
-.tfa-status .status-indicator {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-.tfa-status .status-indicator i {
-  font-size: 3rem;
-}
-.tfa-status .status-indicator .badge {
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
 }
 
 .tfa-setup {
@@ -393,10 +287,7 @@
 .toggle-switch .toggle-slider {
   position: absolute;
   cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+  inset: 0;
   background-color: var(--bs-danger);
   transition: 0.3s;
   border-radius: 20px;
@@ -435,10 +326,6 @@
   margin-right: 0.5rem;
   color: var(--bs-primary);
 }
-.server-info .info-item .badge-lg {
-  font-size: 1rem;
-  padding: 0.5rem 1rem;
-}
 .server-info .info-item .status-badge {
   display: flex;
   align-items: center;
@@ -451,103 +338,12 @@
   background: var(--bs-success-bg-subtle);
   color: var(--bs-success);
 }
-.server-info .info-item .status-badge.authenticated {
-  background: var(--bs-primary-bg-subtle);
-  color: var(--bs-primary);
-}
 .server-info .info-item .status-badge.enabled {
   background: var(--bs-info-bg-subtle);
   color: var(--bs-info);
 }
 .server-info .info-item .status-badge i {
   font-size: 0.875rem;
-}
-
-.btn {
-  padding: 0.75rem 1.5rem;
-  border-radius: 6px;
-  font-weight: 600;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-.btn:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-.btn.btn-sm {
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-}
-
-.btn-primary {
-  background: var(--bs-primary);
-  color: white;
-}
-.btn-primary:hover:not(:disabled) {
-  background: var(--bs-primary);
-  filter: brightness(1.1);
-  transform: translateY(-1px);
-}
-
-.btn-secondary {
-  background: var(--bs-secondary);
-  color: white;
-}
-.btn-secondary:hover:not(:disabled) {
-  background: var(--bs-secondary);
-  filter: brightness(1.1);
-}
-
-.btn-outline-primary {
-  background: transparent;
-  border: 2px solid var(--bs-primary);
-  color: var(--bs-primary);
-}
-.btn-outline-primary:hover:not(:disabled) {
-  background: var(--bs-primary);
-  color: white;
-}
-
-.btn-outline-danger {
-  background: transparent;
-  border: 2px solid var(--bs-danger);
-  color: var(--bs-danger);
-}
-.btn-outline-danger:hover:not(:disabled) {
-  background: var(--bs-danger);
-  color: white;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translate(-50%, -45%);
-  }
-  to {
-    opacity: 1;
-    transform: translate(-50%, -50%);
-  }
-}
-.alert {
-  padding: 1rem;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.alert.alert-danger {
-  background: var(--bs-danger-bg-subtle);
-  color: var(--bs-danger);
-  border: 1px solid var(--bs-danger);
 }
 
 .tab-header {
@@ -611,10 +407,6 @@
   align-items: center;
   gap: 0.5rem;
 }
-.profile-card .profile-info .profile-header h4 .default-badge {
-  font-size: 0.7rem;
-  color: #ffc107;
-}
 .profile-card .profile-info .profile-header h4 .active-badge {
   font-size: 0.65rem;
   padding: 0.15rem 0.4rem;
@@ -673,17 +465,6 @@
 }
 .btn-icon i {
   font-size: 0.8rem;
-}
-
-.btn-outline-secondary {
-  background: transparent;
-  border: 1px solid var(--bs-border-color);
-  color: var(--bs-secondary-color);
-}
-.btn-outline-secondary:hover:not(:disabled) {
-  background: var(--bs-secondary-bg);
-  border-color: var(--bs-secondary);
-  color: var(--bs-body-color);
 }
 
 .profile-color-dot {
