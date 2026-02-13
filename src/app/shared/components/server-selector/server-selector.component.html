@@ -14,8 +14,18 @@
   @if (isOpen()) {
     <div class="dropdown-menu">
       @if (hasProfiles()) {
+        <div class="dropdown-search">
+          <i class="fas fa-search search-icon"></i>
+          <input
+            type="text"
+            class="search-input"
+            placeholder="Zoeken..."
+            [ngModel]="filterText()"
+            (ngModelChange)="filterText.set($event)"
+            (click)="$event.stopPropagation()" />
+        </div>
         <div class="dropdown-section">
-          @for (profile of profiles(); track profile.id) {
+          @for (profile of filteredProfiles(); track profile.id) {
             <div class="dropdown-item-row">
               <button
                 class="dropdown-item"
@@ -51,6 +61,12 @@
                 <i class="fas fa-pen"></i>
               </button>
             </div>
+          } @empty {
+            @if (filterText()) {
+              <div class="dropdown-no-results">
+                <span>Geen resultaten voor "{{ filterText() }}"</span>
+              </div>
+            }
           }
         </div>
       } @else {

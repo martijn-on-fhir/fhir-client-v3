@@ -1,5 +1,6 @@
 import {CommonModule} from '@angular/common';
 import {Component, inject, signal, computed, OnInit, OnDestroy, Output, EventEmitter, ViewEncapsulation} from '@angular/core';
+import {FormsModule} from '@angular/forms';
 import {ServerProfile, FhirVersion, PROFILE_COLORS} from '../../../core/models/server-profile.model';
 import {ServerProfileService} from '../../../core/services/server-profile.service';
 
@@ -12,7 +13,7 @@ import {ServerProfileService} from '../../../core/services/server-profile.servic
 @Component({
   selector: 'app-server-selector',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './server-selector.component.html',
   styleUrls: ['./server-selector.component.scss'],
   encapsulation: ViewEncapsulation.None
@@ -26,6 +27,7 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
 
   isOpen = signal(false);
   switching = signal<string | null>(null);
+  filterText = signal('');
 
   // Expose service signals
   readonly profiles = this.profileService.sortedProfiles;
@@ -35,6 +37,20 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
 
   // Computed
   readonly hasProfiles = computed(() => this.profiles().length > 0);
+
+  readonly filteredProfiles = computed(() => {
+    const filter = this.filterText().toLowerCase().trim();
+
+    if (!filter) {
+      return this.profiles();
+    }
+
+    return this.profiles().filter(p =>
+      p.name.toLowerCase().includes(filter) ||
+      p.fhirServerUrl.toLowerCase().includes(filter) ||
+      this.getAuthTypeLabel(p.authType).toLowerCase().includes(filter)
+    );
+  });
 
   readonly displayName = computed(() => {
     const profile = this.activeProfile();
@@ -68,12 +84,18 @@ export class ServerSelectorComponent implements OnInit, OnDestroy {
 
     if (!dropdown && this.isOpen()) {
       this.isOpen.set(false);
+      this.filterText.set('');
     }
   }
 
   toggleDropdown(event: MouseEvent): void {
     event.stopPropagation();
-    this.isOpen.set(!this.isOpen());
+    const opening = !this.isOpen();
+    this.isOpen.set(opening);
+
+    if (!opening) {
+      this.filterText.set('');
+    }
   }
 
   async selectProfile(profile: ServerProfile, event: MouseEvent): Promise<void> {
