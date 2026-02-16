@@ -1,3 +1,10 @@
+## [1.52.2](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.52.1...v1.52.2) (2026-02-16)
+
+
+### Bug Fixes
+
+* apply lint auto-fixes and convert detectFhirVersion to arrow function ([29ffbb9](https://github.com/martijn-on-fhir/fhir-client-v3/commit/29ffbb97fac7f7e5f475de5f421bf52ba18948e0))
+
 ## [1.52.1](https://github.com/martijn-on-fhir/fhir-client-v3/compare/v1.52.0...v1.52.1) (2026-02-13)
 
 
