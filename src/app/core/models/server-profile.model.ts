@@ -7,7 +7,7 @@ export type FhirVersion = 'STU3' | 'R4' | 'R4B' | 'R5';
  * Detects the FHIR version from a CapabilityStatement fhirVersion string.
  * Maps version strings like "4.0.1" to the corresponding FhirVersion label.
  */
-export function detectFhirVersion(fhirVersionString: string): FhirVersion | null {
+export const detectFhirVersion = (fhirVersionString: string): FhirVersion | null => {
   if (!fhirVersionString) {
     return null;
   }

@@ -243,6 +243,7 @@ export class FhirService {
    * Execute mTLS request with specified format
    */
   private executeMtlsRequestWithFormat<T>(url: string, method: string, format: 'json' | 'xml', authHeaders?: Record<string, string>): Observable<T> {
+
     const startTime = performance.now();
     const requestId = this.inspectorService.generateId();
     const acceptHeader = format === 'xml' ? 'application/fhir+xml' : 'application/fhir+json';
